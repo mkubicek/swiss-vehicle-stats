@@ -1,0 +1,400 @@
+2016:
+  bev: 269
+  months:
+    1:
+      bev: 7
+      total: 20205
+    2:
+      bev: 21
+      total: 22653
+    3:
+      bev: 21
+      total: 29099
+    4:
+      bev: 20
+      total: 28698
+    5:
+      bev: 14
+      total: 26123
+    6:
+      bev: 47
+      total: 31259
+    7:
+      bev: 13
+      total: 26074
+    8:
+      bev: 38
+      total: 21927
+    9:
+      bev: 37
+      total: 26145
+    10:
+      bev: 13
+      total: 23396
+    11:
+      bev: 7
+      total: 26414
+    12:
+      bev: 31
+      total: 35325
+  total: 317318
+2017:
+  bev: 212
+  months:
+    1:
+      bev: 14
+      total: 19451
+    2:
+      bev: 18
+      total: 22809
+    3:
+      bev: 24
+      total: 30509
+    4:
+      bev: 16
+      total: 25815
+    5:
+      bev: 27
+      total: 28411
+    6:
+      bev: 15
+      total: 31923
+    7:
+      bev: 13
+      total: 24885
+    8:
+      bev: 16
+      total: 23160
+    9:
+      bev: 16
+      total: 24520
+    10:
+      bev: 16
+      total: 24724
+    11:
+      bev: 22
+      total: 26749
+    12:
+      bev: 15
+      total: 31072
+  total: 314028
+2018:
+  bev: 299
+  months:
+    1:
+      bev: 16
+      total: 21671
+    2:
+      bev: 18
+      total: 22292
+    3:
+      bev: 23
+      total: 28126
+    4:
+      bev: 28
+      total: 26519
+    5:
+      bev: 35
+      total: 27826
+    6:
+      bev: 29
+      total: 31476
+    7:
+      bev: 15
+      total: 25483
+    8:
+      bev: 13
+      total: 21484
+    9:
+      bev: 12
+      total: 20409
+    10:
+      bev: 45
+      total: 22788
+    11:
+      bev: 46
+      total: 24103
+    12:
+      bev: 19
+      total: 27539
+  total: 299716
+2019:
+  bev: 13177
+  months:
+    1:
+      bev: 434
+      total: 20931
+    2:
+      bev: 733
+      total: 22176
+    3:
+      bev: 1856
+      total: 28958
+    4:
+      bev: 1122
+      total: 28620
+    5:
+      bev: 677
+      total: 28060
+    6:
+      bev: 1121
+      total: 28391
+    7:
+      bev: 745
+      total: 25518
+    8:
+      bev: 625
+      total: 19437
+    9:
+      bev: 1530
+      total: 24219
+    10:
+      bev: 715
+      total: 26103
+    11:
+      bev: 783
+      total: 24228
+    12:
+      bev: 2836
+      total: 34825
+  total: 311466
+2020:
+  bev: 19504
+  months:
+    1:
+      bev: 779
+      total: 18788
+    2:
+      bev: 784
+      total: 19108
+    3:
+      bev: 1558
+      total: 17556
+    4:
+      bev: 532
+      total: 9382
+    5:
+      bev: 688
+      total: 13890
+    6:
+      bev: 1347
+      total: 24477
+    7:
+      bev: 1004
+      total: 22641
+    8:
+      bev: 1608
+      total: 16260
+    9:
+      bev: 2869
+      total: 21454
+    10:
+      bev: 1492
+      total: 20975
+    11:
+      bev: 2200
+      total: 22846
+    12:
+      bev: 4643
+      total: 29451
+  total: 236828
+2021:
+  bev: 31823
+  months:
+    1:
+      bev: 1032
+      total: 15130
+    2:
+      bev: 1380
+      total: 16320
+    3:
+      bev: 2324
+      total: 25236
+    4:
+      bev: 1974
+      total: 22054
+    5:
+      bev: 1919
+      total: 19991
+    6:
+      bev: 3690
+      total: 26005
+    7:
+      bev: 1856
+      total: 19422
+    8:
+      bev: 2242
+      total: 16456
+    9:
+      bev: 4006
+      total: 19648
+    10:
+      bev: 2191
+      total: 15060
+    11:
+      bev: 3596
+      total: 18825
+    12:
+      bev: 5613
+      total: 24523
+  total: 238670
+2022:
+  bev: 40172
+  months:
+    1:
+      bev: 2126
+      total: 15899
+    2:
+      bev: 2441
+      total: 16606
+    3:
+      bev: 4253
+      total: 21722
+    4:
+      bev: 2088
+      total: 15646
+    5:
+      bev: 2638
+      total: 18450
+    6:
+      bev: 4446
+      total: 21277
+    7:
+      bev: 2015
+      total: 15656
+    8:
+      bev: 2294
+      total: 16384
+    9:
+      bev: 4212
+      total: 20947
+    10:
+      bev: 2409
+      total: 17185
+    11:
+      bev: 4391
+      total: 21406
+    12:
+      bev: 6859
+      total: 24737
+  total: 225915
+2023:
+  bev: 52728
+  months:
+    1:
+      bev: 2840
+      total: 16437
+    2:
+      bev: 2598
+      total: 17198
+    3:
+      bev: 4812
+      total: 25184
+    4:
+      bev: 3375
+      total: 18150
+    5:
+      bev: 4313
+      total: 21569
+    6:
+      bev: 5226
+      total: 25214
+    7:
+      bev: 3649
+      total: 18599
+    8:
+      bev: 4289
+      total: 18977
+    9:
+      bev: 5133
+      total: 21578
+    10:
+      bev: 4505
+      total: 20355
+    11:
+      bev: 4748
+      total: 22005
+    12:
+      bev: 7240
+      total: 26948
+  total: 252214
+2024:
+  bev: 46141
+  months:
+    1:
+      bev: 2364
+      total: 15236
+    2:
+      bev: 3295
+      total: 18521
+    3:
+      bev: 4765
+      total: 23467
+    4:
+      bev: 3179
+      total: 20040
+    5:
+      bev: 3568
+      total: 21265
+    6:
+      bev: 4216
+      total: 22689
+    7:
+      bev: 3434
+      total: 18430
+    8:
+      bev: 3421
+      total: 15927
+    9:
+      bev: 4560
+      total: 20155
+    10:
+      bev: 3564
+      total: 18753
+    11:
+      bev: 4151
+      total: 19698
+    12:
+      bev: 5624
+      total: 25354
+  total: 239535
+2025:
+  bev: 53250
+  months:
+    1:
+      bev: 2910
+      total: 14788
+    2:
+      bev: 3402
+      total: 16212
+    3:
+      bev: 4421
+      total: 21690
+    4:
+      bev: 3480
+      total: 18664
+    5:
+      bev: 4177
+      total: 19969
+    6:
+      bev: 4813
+      total: 21810
+    7:
+      bev: 4083
+      total: 19629
+    8:
+      bev: 3257
+      total: 16136
+    9:
+      bev: 5182
+      total: 20029
+    10:
+      bev: 4175
+      total: 18451
+    11:
+      bev: 4766
+      total: 19615
+    12:
+      bev: 8584
+      total: 26744
+  total: 233737
