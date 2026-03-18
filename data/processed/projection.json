@@ -1,0 +1,32 @@
+{
+  "year": 2026,
+  "data_date": "2026-03-16",
+  "complete_months": 2,
+  "partial_month": 3,
+  "partial_month_fraction": 0.516,
+  "capture_ratio": 0.56,
+  "effective_fraction": 0.289,
+  "ytd_actual": 37577,
+  "ytd_prorated": 56242,
+  "reference_years": [
+    2016,
+    2017,
+    2018,
+    2019,
+    2022,
+    2023,
+    2024,
+    2025
+  ],
+  "excluded_years": [
+    2020,
+    2021
+  ],
+  "mean_factor": 6.0,
+  "std_factor": 0.19,
+  "projection": 225281,
+  "projection_low": 218072,
+  "projection_high": 232491,
+  "cv_pct": 3.2,
+  "method": "pro_rated_with_lag_correction"
+}
