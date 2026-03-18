@@ -612,7 +612,6 @@ def chart_brand_race():
     # Precompute cumulative totals per frame
     cumulative = {b: 0 for b in all_brands}
     all_frame_data = []
-    prev_ym = None
     for y, m in target_months:
         # Add this month's counts to running totals
         for brand in all_brands:
