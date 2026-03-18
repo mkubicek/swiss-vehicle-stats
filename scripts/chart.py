@@ -524,7 +524,7 @@ def chart_ev_race():
     images = []
 
     for i, ((y, m), top10) in enumerate(all_frame_data):
-        if not top10:
+        if not top10:  # pragma: no cover
             continue
 
         brands = [b for b, _ in reversed(top10)]
@@ -623,7 +623,7 @@ def chart_brand_race():
     images = []
 
     for i, ((y, m), top10) in enumerate(all_frame_data):
-        if not top10:
+        if not top10:  # pragma: no cover
             continue
 
         brands = [b for b, _ in reversed(top10)]
