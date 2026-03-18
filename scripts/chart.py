@@ -157,8 +157,20 @@ def save_chart(fig, name: str):
     print(f"  Saved: {name}.png ({size_kb:.0f} KB)")
 
 
+def load_projection() -> dict | None:
+    """Load projection.json if it exists and has a non-null projection."""
+    path = DATA_DIR / "projection.json"
+    if not path.exists():
+        return None
+    with open(path) as f:
+        data = json.load(f)
+    if data.get("projection") is None:
+        return None
+    return data
+
+
 def chart_yearly_registrations():
-    """Total registrations as line chart with trend."""
+    """Total registrations as line chart with trend + optional projection."""
     df = pd.read_csv(DATA_DIR / "monthly_totals.csv")
     yearly = df.groupby("year")["count"].sum().reset_index()
     # Exclude partial current year (< 12 months)
@@ -176,14 +188,60 @@ def chart_yearly_registrations():
                     textcoords="offset points", xytext=(0, 12),
                     ha="center", fontsize=8, fontweight="bold", color=TEXT)
 
+    # Load projection and add YTD + projected point
+    proj = load_projection()
+    x_max = yearly["year"].max()
+    xticks = list(yearly["year"])
+    xticklabels = [str(int(y)) for y in yearly["year"]]
+
+    if proj:
+        proj_year = proj["year"]
+        ytd = proj["ytd_actual"]
+        projected = proj["projection"]
+        proj_low = proj["projection_low"]
+        proj_high = proj["projection_high"]
+        x_max = proj_year
+
+        # YTD point (diamond marker, lower alpha)
+        ax.plot(proj_year, ytd, marker="D", markersize=9, color="#52b788",
+                alpha=0.6, zorder=4, linestyle="none")
+        ax.annotate(f"{ytd:,} YTD", (proj_year, ytd),
+                    textcoords="offset points", xytext=(12, 0),
+                    ha="left", va="center", fontsize=8, fontweight="bold", color=SUBTLE)
+
+        # Dashed line from last complete year to projection
+        last_complete_year = int(yearly["year"].iloc[-1])
+        last_complete_count = int(yearly["count"].iloc[-1])
+        ax.plot([last_complete_year, proj_year], [last_complete_count, projected],
+                linestyle="--", linewidth=1.5, color="#52b788", alpha=0.5, zorder=2)
+
+        # Projection point
+        ax.plot(proj_year, projected, marker="o", markersize=8, color="#52b788",
+                alpha=0.5, zorder=4, linestyle="none")
+        margin = projected - proj_low
+        ax.annotate(f"~{projected:,} ±{margin:,}\n(projected)", (proj_year, projected),
+                    textcoords="offset points", xytext=(0, 12),
+                    ha="center", fontsize=8, fontweight="bold", color="#52b788", alpha=0.7)
+
+        # Uncertainty error bar
+        ax.vlines(proj_year, proj_low, proj_high,
+                  color="#52b788", alpha=0.35, linewidth=1.5, zorder=2)
+        cap_w = 0.15
+        for yval in (proj_low, proj_high):
+            ax.hlines(yval, proj_year - cap_w, proj_year + cap_w,
+                      color="#52b788", alpha=0.35, linewidth=1.5, zorder=2)
+
+        xticks.append(proj_year)
+        xticklabels.append(f"{proj_year}\n(YTD)")
+
     style_chart(ax,
                 "New Passenger Car Registrations in Switzerland",
                 subtitle="Personenwagen (passenger cars) per year | Source: ASTRA/IVZ Open Data",
                 ylabel="Registrations")
     ax.yaxis.set_major_formatter(mticker.FuncFormatter(lambda x, _: f"{x:,.0f}"))
-    ax.set_xlim(yearly["year"].min() - 0.5, yearly["year"].max() + 0.5)
-    ax.set_xticks(yearly["year"])
-    ax.set_xticklabels(yearly["year"].astype(int))
+    ax.set_xlim(min(xticks) - 0.5, x_max + 0.5)
+    ax.set_xticks(xticks)
+    ax.set_xticklabels(xticklabels)
     add_attribution(fig)
     save_chart(fig, "yearly_registrations")
 
