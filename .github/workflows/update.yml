@@ -73,6 +73,9 @@ jobs:
       - name: Validate data
         run: uv run scripts/validate.py
 
+      - name: Generate projection
+        run: uv run scripts/project.py
+
       - name: Generate charts
         run: uv run scripts/chart.py
 
