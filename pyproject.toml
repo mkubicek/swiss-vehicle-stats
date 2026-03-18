@@ -1,0 +1,28 @@
+[project]
+name = "swiss-vehicle-stats"
+version = "0.1.0"
+description = "Automated Swiss vehicle registration analytics from ASTRA open data"
+requires-python = ">=3.11"
+license = "MIT"
+dependencies = [
+    "pandas>=2.0",
+    "matplotlib>=3.7",
+    "pyyaml>=6.0",
+    "requests>=2.28",
+    "geopandas>=0.14",
+    "openpyxl>=3.1",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=5.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["scripts"]
+
+[tool.uv]
+managed = true
+package = false

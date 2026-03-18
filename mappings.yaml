@@ -1,0 +1,432 @@
+# Classification mappings for Swiss vehicle registration data
+# Edit this file to correct misclassifications — no code changes needed.
+# Unknown values automatically go to "Other" bucket.
+
+# Brand → country of origin (by brand heritage, not corporate HQ)
+brand_origin:
+  # German
+  AUDI: Germany
+  AUDI-NSU: Germany
+  BMW: Germany
+  BMW/ALPINA: Germany
+  ALPINA: Germany
+  MERCEDES-BENZ: Germany
+  MERCEDES BENZ: Germany
+  MERCEDES-AMG: Germany
+  MERCEDES-ADRIA: Germany
+  MERCEDES-BENZ-HYMER: Germany
+  MERCEDES-BENZ-WEINSBERG: Germany
+  VOLKSWAGEN: Germany
+  VW: Germany
+  VW-MAN: Germany
+  PORSCHE: Germany
+  OPEL: Germany
+  OPEL-DANGEL: Germany
+  SMART: Germany
+  MINI: Germany
+  MAYBACH: Germany
+  MAN: Germany
+  NSU: Germany
+  WIESMANN: Germany
+  ABT: Germany
+  QUATTRO: Germany
+  BORGWARD: Germany
+  DAIMLER: Germany
+  KOENIG: Germany
+
+  # French
+  PEUGEOT: France
+  PEUGEOT-ALKO: France
+  PEUGEOT-DANGEL: France
+  RENAULT: France
+  RENAULT-SPORT: France
+  CITROEN: France
+  CITROËN: France
+  CITROEN-DANGEL: France
+  CITROEN-POESSL: France
+  DS: France
+  ALPINE: France
+  BUGATTI: France
+  PGO: France
+  FACEL-VEGA: France
+  SECMA: France
+  ARIES: France
+
+  # Italian
+  FIAT: Italy
+  FIAT-ABARTH: Italy
+  ALFA ROMEO: Italy
+  FERRARI: Italy
+  LAMBORGHINI: Italy
+  MASERATI: Italy
+  LANCIA: Italy
+  ABARTH: Italy
+  IVECO: Italy
+  PAGANI: Italy
+  DALLARA: Italy
+  PININFARINA: Italy
+  TAZZARI: Italy
+  FAVERO: Italy
+
+  # Japanese
+  TOYOTA: Japan
+  HONDA: Japan
+  NISSAN: Japan
+  MAZDA: Japan
+  TOYO-KOGYO: Japan
+  SUBARU: Japan
+  SUZUKI: Japan
+  MITSUBISHI: Japan
+  LEXUS: Japan
+  INFINITI: Japan
+  ISUZU: Japan
+  DAIHATSU: Japan
+  AB KAWASAKI: Japan
+  YAMAHA: Japan
+
+  # South Korean
+  HYUNDAI: South Korea
+  KIA: South Korea
+  GENESIS: South Korea
+  SSANGYONG: South Korea
+  KG MOBILITY: South Korea
+
+  # American
+  FORD: USA
+  FORD ECONOLINE: USA
+  FORD-CNG-TECHNIK: USA
+  CHEVROLET: USA
+  JEEP: USA
+  DODGE: USA
+  CHRYSLER: USA
+  CADILLAC: USA
+  TESLA: USA
+  LINCOLN: USA
+  GMC: USA
+  RAM: USA
+  BUICK: USA
+  CORVETTE: USA
+  RIVIAN: USA
+  LUCID: USA
+  HUMMER: USA
+  FISKER: USA
+  EDSEL: USA
+  PLYMOUTH: USA
+  PONTIAC: USA
+  MUSTANG: USA
+  CLUB CAR: USA
+
+  # British
+  LAND ROVER: UK
+  JAGUAR: UK
+  BENTLEY: UK
+  ROLLS-ROYCE: UK
+  ROLLS ROYCE: UK
+  ASTON MARTIN: UK
+  MCLAREN: UK
+  MC LAREN: UK
+  LOTUS: UK
+  CATERHAM: UK
+  MORGAN: UK
+  RELIANT: UK
+  VAUXHALL: UK
+  ROVER: UK
+  ALVIS: UK
+  AC-COBRA: UK
+  RADICAL SPORTSCARS: UK
+
+  # Swedish
+  VOLVO: Sweden
+  POLESTAR: Sweden
+  KOENIGSEGG: Sweden
+  SAAB: Sweden
+
+  # Czech
+  SKODA: Czech Republic
+  ŠKODA: Czech Republic
+
+  # Spanish
+  SEAT: Spain
+  CUPRA: Spain
+
+  # Chinese
+  BYD: China
+  NIO: China
+  XPENG: China
+  AIWAYS: China
+  LYNK & CO: China
+  LYNK: China
+  MAXUS: China
+  DONGFENG: China
+  DFSK: China
+  GEELY: China
+  GREAT WALL: China
+  GWM: China
+  CHERY: China
+  JAC: China
+  SERES: China
+  LEAP MOTOR: China
+  LEAPMOTOR: China
+  ORA: China
+  HONGQI: China
+  ZEEKR: China
+  OMODA: China
+  JAECOO: China
+  VOYAH: China
+  WULING: China
+  MG: China
+  BAIC: China
+  SKYWELL: China
+  JIALING: China
+  JIAYUAN: China
+
+  # Indian
+  TATA: India
+  MAHINDRA: India
+
+  # Romanian
+  DACIA: Romania
+
+  # Malaysian
+  PROTON: Malaysia
+
+  # Croatian
+  RIMAC: Croatia
+
+  # Dutch
+  DONKERVOORT: Netherlands
+
+  # Austrian
+  KTM: Austria
+
+  # Russian
+  LADA: Russia
+
+  # Swiss
+  KLINGLER: Switzerland
+  ROOS: Switzerland
+  STIMBO: Switzerland
+  MICRO COMPACT CAR: Switzerland
+
+  # Italian (motorycles/off-road crossover)
+  SWM: Italy
+  NIBBI: Italy
+
+  # Other/misc
+  INEOS: UK
+  PUMA: Argentina
+  PRINOTH: Italy
+  CUSHMAN: USA
+  TRIUMPH: UK
+  AUSTIN: UK
+  BRP: Canada
+  CAN-AM: Canada
+  FFW: Switzerland
+  JUMBOLINO: Switzerland
+  TOURNEAU LE: France
+  Avantier: Germany
+  "UEBRIGE (SIEHE TYP)": Other
+  VOLVO-T: Sweden
+
+# Brand → corporate group
+brand_group:
+  # Volkswagen Group
+  VOLKSWAGEN: Volkswagen Group
+  VW: Volkswagen Group
+  VW-MAN: Volkswagen Group
+  AUDI: Volkswagen Group
+  AUDI-NSU: Volkswagen Group
+  PORSCHE: Volkswagen Group
+  SKODA: Volkswagen Group
+  ŠKODA: Volkswagen Group
+  SEAT: Volkswagen Group
+  CUPRA: Volkswagen Group
+  BENTLEY: Volkswagen Group
+  LAMBORGHINI: Volkswagen Group
+  BUGATTI: Volkswagen Group
+  MAN: Volkswagen Group
+
+  # Stellantis
+  PEUGEOT: Stellantis
+  PEUGEOT-ALKO: Stellantis
+  PEUGEOT-DANGEL: Stellantis
+  CITROEN: Stellantis
+  CITROËN: Stellantis
+  CITROEN-DANGEL: Stellantis
+  CITROEN-POESSL: Stellantis
+  DS: Stellantis
+  FIAT: Stellantis
+  FIAT-ABARTH: Stellantis
+  ALFA ROMEO: Stellantis
+  MASERATI: Stellantis
+  LANCIA: Stellantis
+  ABARTH: Stellantis
+  JEEP: Stellantis
+  DODGE: Stellantis
+  CHRYSLER: Stellantis
+  RAM: Stellantis
+  OPEL: Stellantis
+  OPEL-DANGEL: Stellantis
+
+  # Toyota Motor Corporation
+  TOYOTA: Toyota
+  LEXUS: Toyota
+  DAIHATSU: Toyota
+  SUZUKI: Toyota
+
+  # Hyundai Motor Group
+  HYUNDAI: Hyundai Group
+  KIA: Hyundai Group
+  GENESIS: Hyundai Group
+
+  # Renault-Nissan-Mitsubishi
+  RENAULT: Renault Group
+  DACIA: Renault Group
+  ALPINE: Renault Group
+  NISSAN: Renault Group
+  INFINITI: Renault Group
+  MITSUBISHI: Renault Group
+
+  # BMW Group
+  BMW: BMW Group
+  BMW/ALPINA: BMW Group
+  ALPINA: BMW Group
+  MINI: BMW Group
+  ROLLS-ROYCE: BMW Group
+  ROLLS ROYCE: BMW Group
+
+  # Mercedes-Benz Group
+  MERCEDES-BENZ: Mercedes-Benz
+  MERCEDES BENZ: Mercedes-Benz
+  MERCEDES-AMG: Mercedes-Benz
+  MERCEDES-ADRIA: Mercedes-Benz
+  MERCEDES-BENZ-HYMER: Mercedes-Benz
+  MERCEDES-BENZ-WEINSBERG: Mercedes-Benz
+  SMART: Mercedes-Benz
+  MAYBACH: Mercedes-Benz
+  DAIMLER: Mercedes-Benz
+
+  # Geely
+  VOLVO: Geely
+  VOLVO-T: Geely
+  POLESTAR: Geely
+  ZEEKR: Geely
+  LYNK & CO: Geely
+  LYNK: Geely
+  LOTUS: Geely
+
+  # Ford
+  FORD: Ford
+  FORD ECONOLINE: Ford
+  FORD-CNG-TECHNIK: Ford
+
+  # Tesla
+  TESLA: Tesla
+
+  # Honda
+  HONDA: Honda
+
+  # Mazda
+  MAZDA: Mazda
+
+  # Subaru
+  SUBARU: Subaru
+
+  # Tata
+  JAGUAR: Tata
+  LAND ROVER: Tata
+  TATA: Tata
+
+  # GM
+  CHEVROLET: GM
+  CADILLAC: GM
+  GMC: GM
+  BUICK: GM
+
+  # BYD
+  BYD: BYD
+
+  # SAIC
+  MG: SAIC
+  MAXUS: SAIC
+
+# Country → continent mapping
+country_continent:
+  Germany: Europe
+  France: Europe
+  Italy: Europe
+  UK: Europe
+  Sweden: Europe
+  Czech Republic: Europe
+  Spain: Europe
+  Romania: Europe
+  Japan: Asia
+  South Korea: Asia
+  China: Asia
+  India: Asia
+  Malaysia: Asia
+  USA: North America
+  Other: Other
+
+# Fuel type normalization
+# NOTE: ASTRA data uses spaces around "/" (e.g. "Benzin / Elektrisch")
+fuel_types:
+  Benzin: Petrol
+  Diesel: Diesel
+  Elektrisch: BEV
+  "Benzin / Elektrisch": PHEV
+  "Diesel / Elektrisch": Diesel Hybrid
+  "Benzin/Elektrisch": PHEV
+  "Diesel/Elektrisch": Diesel Hybrid
+  "Elektrisch mit RE": BEV
+  "Elektrisch mit RE (Range Extender)": BEV
+  Wasserstoff: Hydrogen
+  "Wasserstoff / Elektrisch": Hydrogen
+  "Erdgas (CNG)": CNG
+  "Erdgas (CNG) / Benzin": CNG
+  "Erdgas / Benzin (CNG)": CNG
+  "Flüssiggas (LPG)": LPG
+  "Flüssiggas (LPG) / Benzin": LPG
+  "Benzin / Alkohol (Ethanol)": Petrol
+  "Benzin/Alkohol (Ethanol)": Petrol
+  "Alkohol (Ethanol)": Petrol
+  "Gas (CNG/GPL)": CNG
+  Petrol: Petrol
+  Methanol: Other
+
+# Drive type mapping
+drive_types:
+  Allrad: AWD
+  Vorderrad: FWD
+  Hinterrad: RWD
+  "Geländegängig": AWD
+  Raupenantrieb: Other
+
+# Plate color → usage type
+plate_usage:
+  Weiss: Private
+  Blau: Commercial
+  "Grün": Agricultural
+  Schwarz: Military
+  Braun: Temporary
+
+# Color translation (German → English)
+colors:
+  Schwarz: Black
+  Weiss: White
+  Grau: Grey
+  Silber: Silver
+  Blau: Blue
+  Rot: Red
+  "Grün": Green
+  Braun: Brown
+  Orange: Orange
+  Gelb: Yellow
+  Violett: Purple
+  Beige: Beige
+  Gold: Gold
+  Bunt: Multicolor
+  "Feldgrau (Nur für Militärfahrzeuge)": Grey
+  "Fleckentarnung ( Nur für Militärfahrzeuge)": Camouflage
+  Effektlack: Other
+  unbekannt: Other

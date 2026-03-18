@@ -17,7 +17,7 @@ CURRENT_URL = f"{BASE_URL}/NEUZU.txt"
 ARCHIVE_URL = f"{BASE_URL}/1213-Vorjahresdaten/NEUZU-{{year}}.txt"
 
 RAW_DIR = Path(__file__).parent.parent / "data" / "raw"
-ARCHIVE_YEARS = range(2016, 2026)
+ARCHIVE_YEARS = range(2016, __import__("datetime").date.today().year)
 
 
 def download_file(url: str, dest: Path, force: bool = False) -> bool:

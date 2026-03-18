@@ -133,8 +133,8 @@ def main():
     current_comparable = ytd_actual if use_partial else complete_sum
 
     projection = round(mean_factor * current_comparable)
-    projection_low = round((mean_factor - std_factor) * current_comparable)
-    projection_high = round((mean_factor + std_factor) * current_comparable)
+    projection_low = round((mean_factor - 2 * std_factor) * current_comparable)
+    projection_high = round((mean_factor + 2 * std_factor) * current_comparable)
 
     # YTD prorated: estimate including full partial month
     if use_partial and effective_fraction > 0:
@@ -162,6 +162,7 @@ def main():
         "projection_low": projection_low,
         "projection_high": projection_high,
         "cv_pct": cv_pct,
+        "band": "2sigma",
         "method": method,
     }
 
