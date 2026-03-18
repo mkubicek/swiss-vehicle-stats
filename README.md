@@ -40,7 +40,7 @@ Position changes of the top 10 brands. Watch for brands climbing or falling thro
 
 ### The EV Wave
 
-BEV + PHEV share of new passenger car registrations by canton, animated from Jan 2016 to Feb 2026. Shows the electrification wave spreading across Switzerland.
+BEV + PHEV share of new passenger car registrations by canton, animated over time. Shows the electrification wave spreading across Switzerland.
 
 ![EV Wave](charts/ev_wave.gif)
 
@@ -64,13 +64,13 @@ Location Quotient for top 6 BEV brands — where each brand over/underperforms v
 download.py -> process.py -> validate.py -> chart.py -> report.py
 ```
 
-1. **Download** -- fetches NEUZU.txt (current year) and archive files (2016-2025) from ASTRA
+1. **Download** -- fetches NEUZU.txt (current year) and archive files (2016–present) from ASTRA. Uses HTTP `If-Modified-Since` to skip unchanged files. Raw data is cached between CI runs.
 2. **Process** -- parses TSV files with dtype optimization, applies `mappings.yaml` classifications, outputs aggregated CSVs
 3. **Validate** -- plausibility checks against auto.swiss reference data, surfaces warnings
 4. **Chart** -- generates charts with professional styling and dynamic attribution
 5. **Report** -- produces a monthly delta report (MoM + YoY + YTD) in markdown
 
-Runs automatically on the 5th of each month via GitHub Actions. Can also be triggered manually.
+Runs automatically on the 5th of each month via GitHub Actions. Can also be triggered manually via `workflow_dispatch`.
 
 ## Classification
 

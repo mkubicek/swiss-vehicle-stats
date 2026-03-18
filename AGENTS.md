@@ -99,6 +99,15 @@ Nissan:      #fca5a5
 - `warnings.log` is unified: unmapped values + plausibility checks
 - Raw data not committed (~1GB), only aggregated CSVs and charts
 - Charts regenerated on every pipeline run via GitHub Actions
+- Archive year range is derived from current date — no hardcoded end year
+
+## CI / GitHub Actions
+
+- **Schedule:** 5th of each month at 08:00 UTC
+- **Cache:** Raw data (~1GB) is compressed with zstd and cached between runs. Cache key includes `github.run_id` so each run saves its progress even on timeout.
+- **Incremental downloads:** `download.py` uses HTTP `If-Modified-Since` to skip unchanged files. Downloads write to `.tmp` files and atomically rename on completion — partial downloads from killed processes are cleaned up on next run.
+- **Soft timeout:** `DOWNLOAD_TIMEOUT=900` (15 min) stops starting new downloads before the 30-min job timeout, leaving headroom for cache save + processing steps.
+- **Cache restore:** Uses `restore-keys` prefix matching so partial caches from earlier runs are reused. Extract condition uses `hashFiles()` (not `cache-hit`) since prefix matches don't set `cache-hit=true`.
 
 ## Data Notes
 
@@ -112,17 +121,19 @@ Nissan:      #fca5a5
 
 ```
 scripts/
-  download.py     # Fetch raw data from ASTRA
+  download.py     # Fetch raw data from ASTRA (incremental, cached)
   process.py      # Parse + aggregate → data/processed/
   validate.py     # Plausibility checks vs auto.swiss reference
   chart.py        # Generate charts → charts/
-  report.py       # Monthly delta report
+  report.py       # Monthly delta report → reports/
 data/
-  raw/            # NEUZU-*.txt (gitignored)
-  processed/      # Aggregated CSVs
+  raw/            # NEUZU-*.txt (gitignored, ~1GB)
+  processed/      # Aggregated CSVs + metadata.json
   ch-cantons.geojson
 charts/           # Generated PNGs and GIFs
+reports/          # Monthly markdown reports (YYYY-MM.md)
 mappings.yaml     # Brand origins, groups, fuel types, colors
 reference.yaml    # auto.swiss totals for plausibility checks
 warnings.log      # Unified: unmapped values + plausibility checks
+.github/workflows/update.yml  # Monthly CI pipeline
 ```

@@ -85,7 +85,7 @@ def generate_report(target_year: int = None, target_month: int = None):
 
     # Calculate plug-in share (BEV + PHEV)
     bev = fuel_current_dict.get("BEV", 0)
-    phev = fuel_current_dict.get("Hybrid (Petrol)", 0) + fuel_current_dict.get("Hybrid (Diesel)", 0)
+    phev = fuel_current_dict.get("PHEV", 0)
     plugin_share = (bev + phev) / current * 100 if current > 0 else 0
     bev_share = bev / current * 100 if current > 0 else 0
 

@@ -5,6 +5,7 @@ PNG and GIF output, professional style, dynamic attribution.
 """
 
 import io
+import json
 import os
 import subprocess
 import pandas as pd
@@ -109,19 +110,6 @@ def get_repo_url() -> str:
         return url.removesuffix(".git")
     except Exception:
         return ""
-
-
-def get_attribution() -> str:
-    from datetime import date
-    repo = get_repo_url()
-    meta = load_metadata()
-    data_str = "Data: ASTRA/IVZ Open Data"
-    if "data_date" in meta:
-        data_str += f" (as of {meta['data_date']})"
-    parts = [f"{data_str} | Generated {date.today()}"]
-    if repo:
-        parts.append(repo)
-    return " | ".join(parts)
 
 
 def style_chart(ax, title: str, subtitle: str = "", xlabel: str = "", ylabel: str = ""):
