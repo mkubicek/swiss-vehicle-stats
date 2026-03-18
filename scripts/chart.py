@@ -105,7 +105,11 @@ def get_repo_url() -> str:
 def get_attribution() -> str:
     from datetime import date
     repo = get_repo_url()
-    parts = [f"Data: ASTRA/IVZ Open Data | Generated {date.today()}"]
+    meta = load_metadata()
+    data_str = "Data: ASTRA/IVZ Open Data"
+    if "data_date" in meta:
+        data_str += f" (as of {meta['data_date']})"
+    parts = [f"{data_str} | Generated {date.today()}"]
     if repo:
         parts.append(repo)
     return " | ".join(parts)
@@ -134,9 +138,12 @@ def get_dark_attribution() -> str:
     """Attribution text for dark-theme charts (shorter, fits one line)."""
     from datetime import date
     repo = get_repo_url()
-    # Strip https://github.com/ prefix for brevity
+    meta = load_metadata()
     short = repo.replace("https://github.com/", "github.com/") if repo else ""
-    return f"{short} | Data: ASTRA/IVZ Open Data"
+    data_str = "Data: ASTRA/IVZ Open Data"
+    if "data_date" in meta:
+        data_str += f" (as of {meta['data_date']})"
+    return f"{short} | {data_str} | Generated {date.today()}"
 
 
 def add_attribution(fig):
