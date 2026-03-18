@@ -586,6 +586,107 @@ def chart_ev_race():
     print(f"  Saved: ev_race.gif ({size_mb:.1f} MB)")
 
 
+def chart_brand_race():
+    """Animated bar chart race: top 10 BEV brands by cumulative registrations since data start."""
+    path = DATA_DIR / "brand_bev_by_month.csv"
+    if not path.exists():
+        print("  Skip: brand_race (no data)")
+        return
+
+    df = pd.read_csv(path)
+
+    # Build lookup: (brand, year, month) -> bev_count
+    bev_lookup = {}
+    for _, row in df.iterrows():
+        bev_lookup[(row["brand"], int(row["year"]), int(row["month"]))] = int(row["bev_count"])
+
+    all_brands = df["brand"].unique().tolist()
+    years = sorted(df["year"].unique())
+    target_months = [(y, m) for y in range(min(years), max(years) + 1)
+                     for m in range(1, 13)
+                     if any(bev_lookup.get((b, y, m)) for b in all_brands[:5])]
+
+    attribution = get_dark_attribution()
+    start_year = min(years)
+
+    # Precompute cumulative totals per frame
+    cumulative = {b: 0 for b in all_brands}
+    all_frame_data = []
+    prev_ym = None
+    for y, m in target_months:
+        # Add this month's counts to running totals
+        for brand in all_brands:
+            cumulative[brand] += bev_lookup.get((brand, y, m), 0)
+        top10 = sorted(((b, c) for b, c in cumulative.items() if c > 0),
+                        key=lambda x: x[1], reverse=True)[:10]
+        all_frame_data.append(((y, m), top10))
+
+    images = []
+
+    for i, ((y, m), top10) in enumerate(all_frame_data):
+        if not top10:
+            continue
+
+        brands = [b for b, _ in reversed(top10)]
+        counts = [c for _, c in reversed(top10)]
+        frame_max = counts[-1]  # leader is last (reversed order)
+
+        fig, ax = plt.subplots(figsize=(14, 8), facecolor=BG)
+        ax.set_facecolor(BG)
+
+        bar_colors = [BRAND_COLORS.get(b, FALLBACK_COLORS[j % len(FALLBACK_COLORS)]) for j, b in enumerate(brands)]
+        bars = ax.barh(range(len(brands)), counts, color=bar_colors, height=0.7, edgecolor="none")
+
+        for j, (brand, count) in enumerate(zip(brands, counts)):
+            ax.text(count + frame_max * 0.01, j, f" {count:,}",
+                    va="center", ha="left", fontsize=10, color=TEXT, fontweight="bold")
+
+        ax.set_yticks(range(len(brands)))
+        ax.set_yticklabels([display_brand(b) for b in brands], fontsize=11, color=TEXT, fontweight="bold")
+        ax.set_xlim(0, frame_max * 1.18)
+        ax.xaxis.set_major_formatter(mticker.FuncFormatter(lambda x, _: f"{x:,.0f}"))
+        ax.tick_params(colors=TEXT, labelsize=9)
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        ax.spines["bottom"].set_color(GRID_COLOR)
+        ax.spines["left"].set_color(GRID_COLOR)
+        ax.grid(axis="x", alpha=0.2, color=GRID_COLOR)
+
+        fig.text(0.50, 0.97, f"{MONTH_NAMES[m]} {y}", ha="center", va="top",
+                 fontsize=28, fontweight="bold", color="#fbbf24", fontfamily="monospace")
+        fig.text(0.50, 0.92, f"Top 10 BEV Brands — Total Registrations Since {start_year}",
+                 ha="center", va="top", fontsize=14, fontweight="bold", color=TEXT)
+        fig.text(0.50, 0.895,
+                 "Fully electric (BEV) new Personenwagen (passenger cars) | Source: ASTRA/IVZ Open Data",
+                 ha="center", va="top", fontsize=8, color=SUBTLE)
+
+        fig.subplots_adjust(top=0.85, bottom=0.08, left=0.18, right=0.92)
+
+        fig.text(0.99, 0.005, attribution, ha="right", va="bottom",
+                 fontsize=11, color="#64748b", style="italic")
+
+        buf = io.BytesIO()
+        fig.savefig(buf, format="png", dpi=100, facecolor=BG)
+        plt.close(fig)
+        buf.seek(0)
+        images.append(Image.open(buf).copy())
+        if (i + 1) % 24 == 0:
+            print(f"    brand_race: frame {i + 1}/{len(target_months)}")
+
+    if not images:
+        print("  Skip: brand_race (no frames)")
+        return
+
+    CHART_DIR.mkdir(parents=True, exist_ok=True)
+    out = CHART_DIR / "brand_race.gif"
+    durations = [300] * len(images)
+    durations[-1] = 3000
+    images[0].save(out, save_all=True, append_images=images[1:],
+                   duration=durations, loop=0, optimize=True)
+    size_mb = out.stat().st_size / (1024 * 1024)
+    print(f"  Saved: brand_race.gif ({size_mb:.1f} MB)")
+
+
 def chart_ev_taste():
     """Static heatmap: Location Quotient for top BEV brands by canton."""
     bev_path = DATA_DIR / "brand_canton_bev.csv"
@@ -699,6 +800,7 @@ def main():
     chart_brand_rankings()
     chart_ev_wave()
     chart_ev_race()
+    chart_brand_race()
     chart_ev_taste()
 
     print("\nDone.")

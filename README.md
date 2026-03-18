@@ -50,6 +50,12 @@ Top 10 fully electric (BEV only) brands by trailing 12-month registrations. Watc
 
 ![EV Race](charts/ev_race.gif)
 
+### The BEV Brand Race (Cumulative)
+
+Top 10 fully electric (BEV) brands by cumulative registrations since 2016. Watch Tesla build an early monopoly and then the competition slowly close in.
+
+![Brand Race](charts/brand_race.gif)
+
 ### Geography of EV Taste
 
 Location Quotient for top 6 BEV brands — where each brand over/underperforms vs the national average. LQ > 1.0 means overrepresented in that canton.
