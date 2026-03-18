@@ -31,8 +31,35 @@ jobs:
         env:
           UV_SYSTEM_PYTHON: "1"
 
-      - name: Download data
+      - name: Restore raw vehicle data (compressed)
+        id: raw-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: data/raw.tar.zst
+          key: raw-data-v3-${{ hashFiles('scripts/download.py') }}-${{ runner.os }}
+          restore-keys: |
+            raw-data-v3-
+
+      - name: Extract cached raw data
+        if: steps.raw-cache.outputs.cache-hit == 'true'
+        run: |
+          mkdir -p data/raw
+          tar --zstd -xf data/raw.tar.zst -C data/
+          rm -f data/raw.tar.zst
+
+      - name: Download data (with per-file invalidation)
         run: uv run scripts/download.py
+
+      - name: Re-pack raw data for next cache
+        run: |
+          mkdir -p data
+          tar --zstd -cf data/raw.tar.zst -C data raw/
+
+      - name: Save updated raw vehicle data
+        uses: actions/cache/save@v4
+        with:
+          path: data/raw.tar.zst
+          key: ${{ steps.raw-cache.outputs.cache-primary-key }}
 
       - name: Process data
         run: uv run scripts/process.py
