@@ -143,8 +143,9 @@ def get_dark_attribution() -> str:
     return f"{short} | {data_str} | Generated {date.today()}"
 
 
-def add_attribution(fig):
-    fig.text(0.99, 0.01, get_dark_attribution(), ha="right", va="bottom",
+def add_attribution(fig, prefix=""):
+    text = f"{prefix} | {get_dark_attribution()}" if prefix else get_dark_attribution()
+    fig.text(0.99, 0.01, text, ha="right", va="bottom",
              fontsize=8, color="#64748b", style="italic")
 
 
@@ -219,9 +220,11 @@ def chart_yearly_registrations():
         ax.plot(proj_year, projected, marker="o", markersize=8, color="#52b788",
                 alpha=0.5, zorder=4, linestyle="none")
         margin = projected - proj_low
-        ax.annotate(f"~{projected:,} ±{margin:,}\n(projected)", (proj_year, projected),
-                    textcoords="offset points", xytext=(0, 12),
-                    ha="center", fontsize=8, fontweight="bold", color="#52b788", alpha=0.7)
+        ax.annotate(f"~{projected:,}\n±{margin:,}\n(projected)",
+                    (proj_year, projected),
+                    textcoords="offset points", xytext=(10, 0),
+                    ha="left", va="center", fontsize=8, fontweight="bold",
+                    color="#52b788", alpha=0.7, linespacing=1.3)
 
         # Uncertainty error bar
         ax.vlines(proj_year, proj_low, proj_high,
@@ -242,7 +245,16 @@ def chart_yearly_registrations():
     ax.set_xlim(min(xticks) - 0.5, x_max + 0.5)
     ax.set_xticks(xticks)
     ax.set_xticklabels(xticklabels)
-    add_attribution(fig)
+    if proj:
+        n_ref = len(proj["reference_years"])
+        excl = "\u2013".join(str(y) for y in proj["excluded_years"][:1] + proj["excluded_years"][-1:])
+        method_prefix = (
+            f"Projection: YTD \u00d7 seasonal completion factor, "
+            f"95% band from {n_ref} ref. years (excl. {excl})"
+        )
+        add_attribution(fig, prefix=method_prefix)
+    else:
+        add_attribution(fig)
     save_chart(fig, "yearly_registrations")
 
 

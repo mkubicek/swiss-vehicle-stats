@@ -25,8 +25,9 @@
   "mean_factor": 6.0,
   "std_factor": 0.19,
   "projection": 225281,
-  "projection_low": 218072,
-  "projection_high": 232491,
+  "projection_low": 210862,
+  "projection_high": 239700,
   "cv_pct": 3.2,
+  "band": "2sigma",
   "method": "pro_rated_with_lag_correction"
 }
