@@ -132,10 +132,13 @@ data/
   raw/            # NEUZU-*.txt (gitignored, ~1GB)
   processed/      # Aggregated CSVs + metadata.json
   ch-cantons.geojson
+tests/
+  test_utils.py   # Pure-function tests (chart, process, report)
 charts/           # Generated PNGs and GIFs
 reports/          # Monthly markdown reports (YYYY-MM.md)
 mappings.yaml     # Brand origins, groups, fuel types, colors
 reference.yaml    # auto.swiss totals for plausibility checks
 warnings.log      # Unified: unmapped values + plausibility checks
 .github/workflows/update.yml  # Monthly CI pipeline
+.github/workflows/test.yml   # pytest + coverage on push/PR
 ```

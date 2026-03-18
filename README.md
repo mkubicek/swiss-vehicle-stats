@@ -1,6 +1,7 @@
 # Swiss Vehicle Registration Analytics
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![codecov](https://codecov.io/gh/mkubicek/swiss-vehicle-stats/graph/badge.svg)](https://codecov.io/gh/mkubicek/swiss-vehicle-stats)
 
 Automated analytics dashboard for Swiss new vehicle registrations, built from [ASTRA/IVZ Open Data](https://opendata.astra.admin.ch/ivzod/1000-Fahrzeuge_IVZ/1200-Neuzulassungen/).
 
