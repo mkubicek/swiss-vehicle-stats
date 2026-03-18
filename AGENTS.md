@@ -59,9 +59,9 @@ Nissan:      #fca5a5
 ### Layout
 
 - **Dark theme:** Background `#0d1117`, text white/light gray
-- **Attribution line:** Always bottom-right, single line combining repo link + data source:
-  `{repo_url} | Data: ASTRA/IVZ Open Data`
-  Repo URL is detected at runtime from `GITHUB_REPOSITORY` env var or `git remote`.
+- **Attribution line:** Always bottom-right, single line combining repo link + data source + dates:
+  `{repo_url} | Data: ASTRA/IVZ Open Data (as of {data_date}) | Generated {today}`
+  Data date comes from `data/processed/metadata.json` (extracted from ASTRA `Datenstand` column). Repo URL is detected at runtime from `GITHUB_REPOSITORY` env var or `git remote`.
   Use fontsize 8 for static charts, 11 for GIF frames (rendered at lower DPI).
 - **Attribution positioning:** Use `ax.transAxes` coordinates (not `fig.text`) for charts saved with `bbox_inches="tight"` — figure coordinates create gaps on tall/non-standard aspect ratio charts.
 - **Definition line:** Below chart title, gray text (`#94a3b8`), explains scope and methodology

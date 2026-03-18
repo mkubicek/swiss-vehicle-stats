@@ -5,6 +5,7 @@ Loads one file at a time with dtype optimization. Applies mappings.yaml
 for classification. Unknown values go to "Other" bucket.
 """
 
+import json
 import yaml
 import pandas as pd
 from pathlib import Path
@@ -82,6 +83,20 @@ def process_file(filepath: Path, mappings: dict, warnings: set) -> dict:
     # Check which columns exist in this file
     with open(filepath, "r", encoding="utf-8", errors="replace") as f:
         header_cols = [c.strip() for c in f.readline().split(sep)]
+
+    # Extract Datenstand (data-as-of date) if present
+    datenstand = None
+    if "Datenstand" in header_cols:
+        ds_idx = header_cols.index("Datenstand")
+        with open(filepath, "r", encoding="utf-8", errors="replace") as f:
+            f.readline()  # skip header
+            first_row = f.readline().strip().split(sep)
+            if ds_idx < len(first_row):
+                raw = first_row[ds_idx].strip()
+                try:
+                    datenstand = datetime.strptime(raw, "%d.%m.%Y").strftime("%Y-%m-%d")
+                except ValueError:
+                    pass
 
     # Normalize known ASTRA typos (2016-2018 files have "Erstinvekehrsetzung_Kanton")
     col_renames = {}
@@ -261,16 +276,21 @@ def process_file(filepath: Path, mappings: dict, warnings: set) -> dict:
         if not valid.empty:
             agg["drive_by_month"] = valid.groupby(["_year", "_month", "_drive"]).size().reset_index(name="count")
 
+    if datenstand:
+        agg["_datenstand"] = datenstand
+
     return agg
 
 
 def merge_aggs(total: dict, new: dict) -> dict:
     """Merge two aggregation dicts by concatenating DataFrames."""
-    for key, df in new.items():
-        if key in total:
-            total[key] = pd.concat([total[key], df], ignore_index=True)
+    for key, value in new.items():
+        if key == "_datenstand":
+            total[key] = value  # last file wins
+        elif key in total:
+            total[key] = pd.concat([total[key], value], ignore_index=True)
         else:
-            total[key] = df
+            total[key] = value
     return total
 
 
@@ -334,6 +354,15 @@ def consolidate_and_save(agg: dict):
         df.columns = ["canton", "brand", "year", "month", "bev_count"]
         df = df.sort_values(["canton", "brand", "year", "month"])
         df.to_csv(OUT_DIR / "brand_canton_bev.csv", index=False)
+
+    # Write metadata
+    metadata = {}
+    if "_datenstand" in agg:
+        metadata["data_date"] = agg["_datenstand"]
+    if metadata:
+        with open(OUT_DIR / "metadata.json", "w") as f:
+            json.dump(metadata, f, indent=2)
+        print(f"  Wrote metadata.json: {metadata}")
 
     print(f"\nSaved CSVs to {OUT_DIR}/")
 

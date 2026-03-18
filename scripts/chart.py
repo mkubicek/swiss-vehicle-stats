@@ -85,6 +85,15 @@ def trailing_months(year: int, month: int, n: int = 12) -> list[tuple[int, int]]
     return result
 
 
+def load_metadata() -> dict:
+    """Load metadata.json if available."""
+    path = DATA_DIR / "metadata.json"
+    if path.exists():
+        with open(path) as f:
+            return json.load(f)
+    return {}
+
+
 def get_repo_url() -> str:
     """Get repo URL from environment or git remote."""
     repo = os.environ.get("GITHUB_REPOSITORY")

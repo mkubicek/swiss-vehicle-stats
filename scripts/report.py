@@ -4,6 +4,7 @@
 Produces a markdown report suitable for LinkedIn posting.
 """
 
+import json
 import pandas as pd
 from pathlib import Path
 from datetime import datetime
@@ -12,6 +13,15 @@ from chart import display_brand
 ROOT = Path(__file__).parent.parent
 DATA_DIR = ROOT / "data" / "processed"
 REPORT_DIR = ROOT / "reports"
+
+def load_metadata() -> dict:
+    """Load metadata.json if available."""
+    path = DATA_DIR / "metadata.json"
+    if path.exists():
+        with open(path) as f:
+            return json.load(f)
+    return {}
+
 
 MONTH_NAMES = {
     1: "January", 2: "February", 3: "March", 4: "April",
@@ -92,10 +102,14 @@ def generate_report(target_year: int = None, target_month: int = None):
         momentum = "remained flat"
 
     # Build report
+    meta = load_metadata()
+    data_source = "ASTRA/IVZ Open Data"
+    if "data_date" in meta:
+        data_source += f" (as of {meta['data_date']})"
     lines = [
         f"# Swiss Vehicle Market Report: {month_name} {year}",
         "",
-        f"*Generated {datetime.now().strftime('%Y-%m-%d')} | Data: ASTRA/IVZ Open Data*",
+        f"*Generated {datetime.now().strftime('%Y-%m-%d')} | Data: {data_source}*",
         "",
         "---",
         "",
