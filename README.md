@@ -67,14 +67,15 @@ Location Quotient for top 6 BEV brands — where each brand over/underperforms v
 ## How It Works
 
 ```
-download.py -> process.py -> validate.py -> chart.py -> report.py
+download.py -> process.py -> validate.py -> project.py -> chart.py -> report.py
 ```
 
 1. **Download** -- fetches NEUZU.txt (current year) and archive files (2016–present) from ASTRA. Uses HTTP `If-Modified-Since` to skip unchanged files. Raw data is cached between CI runs.
 2. **Process** -- parses TSV files with dtype optimization, applies `mappings.yaml` classifications, outputs aggregated CSVs
 3. **Validate** -- plausibility checks against auto.swiss reference data, surfaces warnings
-4. **Chart** -- generates charts with professional styling and dynamic attribution
-5. **Report** -- produces a monthly delta report (MoM + YoY + YTD) in markdown
+4. **Project** -- year-end projection based on YTD data with seasonal scaling factors
+5. **Chart** -- generates charts with professional styling and dynamic attribution
+6. **Report** -- produces a monthly delta report (MoM + YoY + YTD) in markdown
 
 Runs automatically on the 5th of each month via GitHub Actions. Can also be triggered manually via `workflow_dispatch`.
 
@@ -101,6 +102,7 @@ uv sync
 # Run pipeline
 uv run scripts/download.py    # ~1GB total download
 uv run scripts/process.py     # ~2-5 min
+uv run scripts/project.py    # instant
 uv run scripts/chart.py       # ~10 sec
 uv run scripts/report.py      # instant
 ```

@@ -4,7 +4,7 @@
 
 Automated analytics dashboard for Swiss new vehicle registrations from ASTRA/IVZ Open Data.
 
-Pipeline: `download.py` → `process.py` → `validate.py` → `chart.py` → `report.py`
+Pipeline: `download.py` → `process.py` → `validate.py` → `project.py` → `chart.py` → `report.py`
 
 ## Data Scope
 
@@ -114,6 +114,7 @@ Nissan:      #fca5a5
 - ASTRA and auto.swiss both use the same MOFIS database but at different snapshot times. auto.swiss publishes on the 1st–3rd business day of the following month; ASTRA cumulates with retroactive corrections.
 - Monthly differences typically cancel out over a year (overall diff: +0.027% across 2.67M registrations). July tends to show ASTRA < auto.swiss; January the opposite.
 - 2% tolerance is well-calibrated for yearly comparisons (max observed: 0.07%). Monthly can reach ~5.5% for recent months due to snapshot timing.
+- **Year-end projection:** `project.py` pro-rates YTD registrations using scaling factors from reference years (2016–present, excluding COVID 2020–21). A capture ratio corrects for ASTRA reporting lag in the partial month. If capture ratio is outside 0.4–1.3, the partial month is excluded. Outputs `projection.json` consumed by chart.py and report.py.
 - Canton codes in data include non-Swiss codes (A, BA, FL, M, P) — filtered out for map charts but harmlessly present in CSVs.
 - 2016–2018 ASTRA files have a typo: "Erstinvekehrsetzung_Kanton" (missing 'r'). `process.py` auto-corrects this.
 
@@ -124,6 +125,7 @@ scripts/
   download.py     # Fetch raw data from ASTRA (incremental, cached)
   process.py      # Parse + aggregate → data/processed/
   validate.py     # Plausibility checks vs auto.swiss reference
+  project.py      # Year-end projection → data/processed/projection.json
   chart.py        # Generate charts → charts/
   report.py       # Monthly delta report → reports/
 data/
