@@ -41,25 +41,31 @@ jobs:
             raw-data-v3-
 
       - name: Extract cached raw data
-        if: steps.raw-cache.outputs.cache-hit == 'true'
+        if: hashFiles('data/raw.tar.zst') != ''
         run: |
           mkdir -p data/raw
           tar --zstd -xf data/raw.tar.zst -C data/
           rm -f data/raw.tar.zst
+          echo "Cached files:" && ls -lh data/raw/
 
       - name: Download data (with per-file invalidation)
         run: uv run scripts/download.py
+        env:
+          DOWNLOAD_TIMEOUT: "900"
 
       - name: Re-pack raw data for next cache
+        if: always()
         run: |
-          mkdir -p data
-          tar --zstd -cf data/raw.tar.zst -C data raw/
+          if [ -d data/raw ] && ls data/raw/*.txt >/dev/null 2>&1; then
+            tar --zstd -cf data/raw.tar.zst -C data raw/
+          fi
 
       - name: Save updated raw vehicle data
+        if: always()
         uses: actions/cache/save@v4
         with:
           path: data/raw.tar.zst
-          key: ${{ steps.raw-cache.outputs.cache-primary-key }}
+          key: raw-data-v3-${{ hashFiles('scripts/download.py') }}-${{ github.run_id }}
 
       - name: Process data
         run: uv run scripts/process.py
