@@ -150,9 +150,7 @@
       background: none;
       border: 1px solid #30363d;
       border-radius: 6px;
-      color: #e6edf3;
       cursor: pointer;
-      font-size: 1.1rem;
       width: 36px;
       height: 36px;
       display: flex;
@@ -163,6 +161,22 @@
     }
 
     .play-btn:hover { background: #21262d; }
+
+    .icon-play {
+      width: 0;
+      height: 0;
+      border-style: solid;
+      border-width: 6px 0 6px 11px;
+      border-color: transparent transparent transparent #e6edf3;
+      margin-left: 2px;
+    }
+
+    .icon-pause {
+      width: 10px;
+      height: 12px;
+      border-left: 3px solid #e6edf3;
+      border-right: 3px solid #e6edf3;
+    }
 
     .slider {
       flex: 1;
@@ -285,7 +299,7 @@
         <div class="loading-overlay"><div><div class="spinner"></div>Loading animation&hellip;</div></div>
         <canvas></canvas>
         <div class="controls">
-          <button class="play-btn" title="Play / Pause">&#x25B6;</button>
+          <button class="play-btn" title="Play / Pause"><span class="icon-play"></span></button>
           <input type="range" class="slider" min="0" value="0">
           <span class="frame-label">&mdash;</span>
         </div>
@@ -299,7 +313,7 @@
         <div class="loading-overlay"><div><div class="spinner"></div>Loading animation&hellip;</div></div>
         <canvas></canvas>
         <div class="controls">
-          <button class="play-btn" title="Play / Pause">&#x25B6;</button>
+          <button class="play-btn" title="Play / Pause"><span class="icon-play"></span></button>
           <input type="range" class="slider" min="0" value="0">
           <span class="frame-label">&mdash;</span>
         </div>
@@ -313,7 +327,7 @@
         <div class="loading-overlay"><div><div class="spinner"></div>Loading animation&hellip;</div></div>
         <canvas></canvas>
         <div class="controls">
-          <button class="play-btn" title="Play / Pause">&#x25B6;</button>
+          <button class="play-btn" title="Play / Pause"><span class="icon-play"></span></button>
           <input type="range" class="slider" min="0" value="0">
           <span class="frame-label">&mdash;</span>
         </div>
@@ -420,7 +434,11 @@
       }
     }
 
-    // ---------- GIF Player (lazy decompression — one frame at a time) ----------
+    // ---------- GIF Player (lazy decompression + key-frame cache) ----------
+
+    const KEY_INTERVAL = 20; // cache a snapshot every 20 frames
+    const ICON_PLAY  = '<span class="icon-play"></span>';
+    const ICON_PAUSE = '<span class="icon-pause"></span>';
 
     class GifPlayer {
       constructor(el, startYear, startMonth) {
@@ -431,9 +449,10 @@
         this.slider = el.querySelector('.slider');
         this.label = el.querySelector('.frame-label');
         this.playBtn = el.querySelector('.play-btn');
-        this.gif = null;       // parsed GIF (compact, keeps compressed data)
-        this.rawFrames = null; // parsed frames with image data
-        this.meta = null;      // lightweight dims/delay/disposal per frame
+        this.gif = null;
+        this.rawFrames = null;
+        this.meta = null;
+        this.keyFrames = {};   // idx -> ImageData snapshot
         this.w = 0;
         this.h = 0;
         this.cur = -1;
@@ -452,7 +471,6 @@
           this.gif = parseGIF(buf);
           this.rawFrames = this.gif.frames.filter(f => f.image);
 
-          // Extract lightweight metadata without decompressing pixels
           this.meta = this.rawFrames.map(f => ({
             dims: {
               top: f.image.descriptor.top,
@@ -493,7 +511,6 @@
         this.el.classList.add('loaded');
       }
 
-      // Decompress a single frame on demand (~3 MB, immediately GC-able)
       decomp(idx) {
         return decompressFrame(this.rawFrames[idx], this.gif.gct, true);
       }
@@ -507,28 +524,47 @@
         this.cctx.drawImage(this.patch, f.dims.left, f.dims.top);
       }
 
+      // Save a key-frame snapshot after compositing
+      saveKey(idx) {
+        if (idx % KEY_INTERVAL === 0) {
+          this.keyFrames[idx] = this.cctx.getImageData(0, 0, this.w, this.h);
+        }
+      }
+
+      // Composite frames from `start` through `end` onto comp canvas
+      compositeRange(start, end) {
+        for (let i = start; i <= end; i++) {
+          if (i > 0 && this.meta[i - 1].disposalType === 2) {
+            const d = this.meta[i - 1].dims;
+            this.cctx.clearRect(d.left, d.top, d.width, d.height);
+          }
+          this.drawPatch(this.decomp(i));
+          this.saveKey(i);
+        }
+      }
+
       renderFrame(idx) {
         if (idx === this.cur) return;
+
         if (idx > this.cur && this.cur >= 0) {
-          // Forward: decompress and composite incrementally
-          for (let i = this.cur + 1; i <= idx; i++) {
-            if (i > 0 && this.meta[i - 1].disposalType === 2) {
-              const d = this.meta[i - 1].dims;
-              this.cctx.clearRect(d.left, d.top, d.width, d.height);
-            }
-            this.drawPatch(this.decomp(i));
-          }
+          // Forward: composite incrementally from current
+          this.compositeRange(this.cur + 1, idx);
         } else {
-          // Backward or initial: recomposite from frame 0
-          this.cctx.clearRect(0, 0, this.w, this.h);
-          for (let i = 0; i <= idx; i++) {
-            this.drawPatch(this.decomp(i));
-            if (i < idx && this.meta[i].disposalType === 2) {
-              const d = this.meta[i].dims;
-              this.cctx.clearRect(d.left, d.top, d.width, d.height);
-            }
+          // Backward or initial: find nearest cached key frame
+          let nearest = -1;
+          for (let k = idx - (idx % KEY_INTERVAL); k >= 0; k -= KEY_INTERVAL) {
+            if (this.keyFrames[k]) { nearest = k; break; }
+          }
+
+          if (nearest >= 0) {
+            this.cctx.putImageData(this.keyFrames[nearest], 0, 0);
+            if (nearest < idx) this.compositeRange(nearest + 1, idx);
+          } else {
+            this.cctx.clearRect(0, 0, this.w, this.h);
+            this.compositeRange(0, idx);
           }
         }
+
         this.ctx.drawImage(this.comp, 0, 0);
         this.cur = idx;
         this.slider.value = idx;
@@ -546,7 +582,7 @@
 
       play() {
         this.playing = true;
-        this.playBtn.textContent = '\u23F8';
+        this.playBtn.innerHTML = ICON_PAUSE;
         if (this.cur >= this.rawFrames.length - 1) {
           this.cur = -1;
           this.cctx.clearRect(0, 0, this.w, this.h);
@@ -566,7 +602,7 @@
 
       stop() {
         this.playing = false;
-        this.playBtn.textContent = '\u25B6';
+        this.playBtn.innerHTML = ICON_PLAY;
       }
     }
 
