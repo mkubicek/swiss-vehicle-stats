@@ -118,6 +118,10 @@ def main():
     print(f"\nDone in {elapsed:.0f}s. Data changed: {updated_any}", flush=True)
     if timed_out:
         print("  (partial download — remaining files will be fetched on next run)", flush=True)
+        gh_output = os.environ.get("GITHUB_OUTPUT")
+        if gh_output:
+            with open(gh_output, "a") as f:
+                f.write("timed_out=true\n")
 
 
 if __name__ == "__main__":

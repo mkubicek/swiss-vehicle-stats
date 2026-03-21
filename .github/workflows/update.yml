@@ -49,6 +49,7 @@ jobs:
           echo "Cached files:" && ls -lh data/raw/
 
       - name: Download data (with per-file invalidation)
+        id: download
         run: uv run scripts/download.py
         env:
           DOWNLOAD_TIMEOUT: "900"
@@ -68,15 +69,19 @@ jobs:
           key: raw-data-v3-${{ hashFiles('scripts/download.py') }}-${{ github.run_id }}
 
       - name: Process data
+        if: steps.download.outputs.timed_out != 'true'
         run: uv run scripts/process.py
 
       - name: Validate data
+        if: steps.download.outputs.timed_out != 'true'
         run: uv run scripts/validate.py
 
       - name: Generate projection
+        if: steps.download.outputs.timed_out != 'true'
         run: uv run scripts/project.py
 
       - name: Generate charts
+        if: steps.download.outputs.timed_out != 'true'
         run: |
           DAY=$(date -u +%d)
           if [ "$DAY" = "05" ]; then
@@ -86,9 +91,11 @@ jobs:
           fi
 
       - name: Generate report
+        if: steps.download.outputs.timed_out != 'true'
         run: uv run scripts/report.py
 
       - name: Commit and push
+        if: steps.download.outputs.timed_out != 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
