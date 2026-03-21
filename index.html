@@ -5,6 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Swiss Vehicle Registration Statistics</title>
   <meta name="description" content="Monthly analysis of new passenger car registrations in Switzerland, including EV adoption trends, brand rankings, and cantonal breakdowns.">
+  <meta name="theme-color" content="#0d1117">
+  <meta property="og:title" content="Swiss Vehicle Registration Statistics">
+  <meta property="og:description" content="Interactive dashboard tracking EV adoption, brand rankings, and cantonal trends across Switzerland.">
+  <meta property="og:image" content="charts/ev_wave.gif">
+  <meta property="og:type" content="website">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🇨🇭</text></svg>">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -331,6 +337,13 @@
     </footer>
   </div>
 
+  <noscript>
+    <style>.stats-grid, .gif-player { display: none; }</style>
+    <p style="text-align:center; color:#8b949e; padding:2rem;">
+      JavaScript is required to load the interactive dashboard and animated charts.
+    </p>
+  </noscript>
+
   <script type="module">
     import { parseGIF, decompressFrame } from 'https://cdn.jsdelivr.net/npm/gifuct-js@2.1.2/+esm';
 
@@ -361,7 +374,7 @@
         const fuel = parseCSV(fuelText);
 
         // Last complete month (second-to-last row; last row may be partial current month)
-        const latest = monthly[monthly.length - 2];
+        const latest = monthly[monthly.length >= 2 ? monthly.length - 2 : monthly.length - 1];
         const y = +latest.year, m = +latest.month, count = +latest.count;
 
         // Same month previous year
