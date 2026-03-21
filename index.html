@@ -488,8 +488,6 @@
           this.canvas.height = this.h;
           this.comp.width = this.w;
           this.comp.height = this.h;
-          this.patch.width = this.w;
-          this.patch.height = this.h;
           this.rafPending = false;
           this.slider.max = this.rawFrames.length - 1;
           this.slider.value = 0;
@@ -519,11 +517,12 @@
       }
 
       drawPatch(f) {
-        const imd = new ImageData(f.patch, f.dims.width, f.dims.height);
-        this.pctx.putImageData(imd, 0, 0);
-        this.cctx.drawImage(this.patch,
-          0, 0, f.dims.width, f.dims.height,
-          f.dims.left, f.dims.top, f.dims.width, f.dims.height);
+        this.patch.width = f.dims.width;
+        this.patch.height = f.dims.height;
+        this.pctx.putImageData(
+          new ImageData(new Uint8ClampedArray(f.patch), f.dims.width, f.dims.height), 0, 0
+        );
+        this.cctx.drawImage(this.patch, f.dims.left, f.dims.top);
       }
 
       // Save a key-frame snapshot after compositing
