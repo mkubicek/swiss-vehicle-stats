@@ -332,7 +332,7 @@
   </div>
 
   <script type="module">
-    import { parseGIF, decompressFrames } from 'https://cdn.jsdelivr.net/npm/gifuct-js@2.1.2/+esm';
+    import { parseGIF, decompressFrame } from 'https://cdn.jsdelivr.net/npm/gifuct-js@2.1.2/+esm';
 
     const MONTHS_SHORT = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
     const MONTHS_LONG = ['January','February','March','April','May','June',
@@ -399,7 +399,6 @@
         document.getElementById('data-date').textContent =
           `Data: ASTRA/IVZ Open Data (as of ${meta.data_date})`;
 
-        // Return start date for GIF labels
         const first = monthly[0];
         return { startYear: +first.year, startMonth: +first.month };
       } catch (err) {
@@ -408,7 +407,7 @@
       }
     }
 
-    // ---------- GIF Player ----------
+    // ---------- GIF Player (lazy decompression — one frame at a time) ----------
 
     class GifPlayer {
       constructor(el, startYear, startMonth) {
@@ -419,7 +418,9 @@
         this.slider = el.querySelector('.slider');
         this.label = el.querySelector('.frame-label');
         this.playBtn = el.querySelector('.play-btn');
-        this.frames = null;
+        this.gif = null;       // parsed GIF (compact, keeps compressed data)
+        this.rawFrames = null; // parsed frames with image data
+        this.meta = null;      // lightweight dims/delay/disposal per frame
         this.w = 0;
         this.h = 0;
         this.cur = -1;
@@ -435,15 +436,29 @@
       async load() {
         try {
           const buf = await (await fetch(this.url)).arrayBuffer();
-          this.frames = decompressFrames(parseGIF(buf), true);
-          this.w = this.frames[0].dims.width;
-          this.h = this.frames[0].dims.height;
+          this.gif = parseGIF(buf);
+          this.rawFrames = this.gif.frames.filter(f => f.image);
+
+          // Extract lightweight metadata without decompressing pixels
+          this.meta = this.rawFrames.map(f => ({
+            dims: {
+              top: f.image.descriptor.top,
+              left: f.image.descriptor.left,
+              width: f.image.descriptor.width,
+              height: f.image.descriptor.height,
+            },
+            delay: f.gce ? (f.gce.delay || 10) * 10 : 100,
+            disposalType: f.gce ? f.gce.extras.disposal : 0,
+          }));
+
+          this.w = this.meta[0].dims.width;
+          this.h = this.meta[0].dims.height;
           this.canvas.width = this.w;
           this.canvas.height = this.h;
           this.comp.width = this.w;
           this.comp.height = this.h;
-          this.slider.max = this.frames.length - 1;
-          this.slider.value = this.frames.length - 1;
+          this.slider.max = this.rawFrames.length - 1;
+          this.slider.value = 0;
           this.renderFrame(0);
           this.bind();
           this.el.classList.add('loaded');
@@ -465,6 +480,11 @@
         this.el.classList.add('loaded');
       }
 
+      // Decompress a single frame on demand (~3 MB, immediately GC-able)
+      decomp(idx) {
+        return decompressFrame(this.rawFrames[idx], this.gif.gct, true);
+      }
+
       drawPatch(f) {
         this.patch.width = f.dims.width;
         this.patch.height = f.dims.height;
@@ -477,19 +497,21 @@
       renderFrame(idx) {
         if (idx === this.cur) return;
         if (idx > this.cur && this.cur >= 0) {
+          // Forward: decompress and composite incrementally
           for (let i = this.cur + 1; i <= idx; i++) {
-            if (i > 0 && this.frames[i - 1].disposalType === 2) {
-              const d = this.frames[i - 1].dims;
+            if (i > 0 && this.meta[i - 1].disposalType === 2) {
+              const d = this.meta[i - 1].dims;
               this.cctx.clearRect(d.left, d.top, d.width, d.height);
             }
-            this.drawPatch(this.frames[i]);
+            this.drawPatch(this.decomp(i));
           }
         } else {
+          // Backward or initial: recomposite from frame 0
           this.cctx.clearRect(0, 0, this.w, this.h);
           for (let i = 0; i <= idx; i++) {
-            this.drawPatch(this.frames[i]);
-            if (i < idx && this.frames[i].disposalType === 2) {
-              const d = this.frames[i].dims;
+            this.drawPatch(this.decomp(i));
+            if (i < idx && this.meta[i].disposalType === 2) {
+              const d = this.meta[i].dims;
               this.cctx.clearRect(d.left, d.top, d.width, d.height);
             }
           }
@@ -512,15 +534,15 @@
       play() {
         this.playing = true;
         this.playBtn.textContent = '\u23F8';
-        if (this.cur >= this.frames.length - 1) {
+        if (this.cur >= this.rawFrames.length - 1) {
           this.cur = -1;
           this.cctx.clearRect(0, 0, this.w, this.h);
         }
         const step = () => {
           if (!this.playing) return;
-          if (this.cur < this.frames.length - 1) {
+          if (this.cur < this.rawFrames.length - 1) {
             this.renderFrame(this.cur + 1);
-            const delay = Math.max(this.frames[this.cur].delay || 300, 30);
+            const delay = Math.max(this.meta[this.cur].delay || 300, 30);
             setTimeout(step, delay);
           } else {
             this.stop();
