@@ -360,8 +360,8 @@
         const monthly = parseCSV(monthlyText);
         const fuel = parseCSV(fuelText);
 
-        // Latest month
-        const latest = monthly[monthly.length - 1];
+        // Last complete month (second-to-last row; last row may be partial current month)
+        const latest = monthly[monthly.length - 2];
         const y = +latest.year, m = +latest.month, count = +latest.count;
 
         // Same month previous year
