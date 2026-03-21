@@ -101,7 +101,7 @@
 
     .chart-pair {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1fr;
       gap: 1.5rem;
     }
 
@@ -228,7 +228,7 @@
 
     @media (max-width: 768px) {
       h1 { font-size: 1.8rem; }
-      .chart-pair { grid-template-columns: 1fr; }
+      .chart-pair { gap: 1rem; }
       .stats-grid { grid-template-columns: repeat(2, 1fr); }
     }
   </style>
@@ -444,9 +444,10 @@
           this.comp.height = this.h;
           this.slider.max = this.frames.length - 1;
           this.slider.value = this.frames.length - 1;
-          this.renderFrame(this.frames.length - 1);
+          this.renderFrame(0);
           this.bind();
           this.el.classList.add('loaded');
+          this.play();
         } catch (err) {
           console.error('GIF player error, falling back to <img>:', err);
           this.fallback();
