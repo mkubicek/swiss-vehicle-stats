@@ -1,9 +1,11 @@
 fuel_type,count
 Petrol,1261919
 Diesel,581722
-PHEV,508202
-BEV,279173
-Diesel Hybrid,71610
+Hybrid (Petrol),391833
+BEV,277995
+PHEV,117547
+Hybrid (Diesel),68793
 CNG,4760
+Diesel PHEV,2817
 Hydrogen,289
 LPG,41

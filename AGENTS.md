@@ -9,8 +9,9 @@ Pipeline: `download.py` → `process.py` → `validate.py` → `project.py` → 
 ## Data Scope
 
 - **Fahrzeugart = Personenwagen** (passenger cars only, ASTRA terminology)
-- **EV:** BEV + PHEV + FCEV
+- **EV:** BEV + PHEV + Diesel PHEV + FCEV (plug-in vehicles only; excludes non-plug-in HEV)
 - **BEV:** Fully electric only
+- **HEV/PHEV split:** "Benzin/Elektrisch" and "Diesel/Elektrisch" include both plug-in (PHEV) and non-pluggable (HEV) hybrids. Split using `Hybridcode` column (OVC-HEV=PHEV, NOVC-HEV=HEV) for 2022+; CO2 <= 50 g/km fallback for pre-2022. Range Extenders ("Elektrisch mit RE") are classified as PHEV.
 - Source files: ~100MB TSV each, 2016–present
 
 ## Chart Styleguide

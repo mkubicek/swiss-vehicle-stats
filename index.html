@@ -276,7 +276,7 @@
       </div>
       <div class="stat-card">
         <div class="stat-value" id="stat-plugin">&hellip;</div>
-        <div class="stat-label">Plug-in Share (BEV + PHEV)</div>
+        <div class="stat-label">Electrified Share (BEV + Hybrid)</div>
       </div>
     </div>
 
@@ -293,8 +293,8 @@
     </section>
 
     <section>
-      <h2>EV Adoption by Canton</h2>
-      <p class="section-desc">12-month trailing EV share (BEV + PHEV + FCEV) of new registrations by canton. Use the slider to scrub through time.</p>
+      <h2>BEV Adoption by Canton</h2>
+      <p class="section-desc">12-month trailing BEV share of new passenger car registrations by canton. Use the slider to scrub through time.</p>
       <div class="gif-player" id="ev-wave" data-src="charts/ev_wave.gif">
         <div class="loading-overlay"><div><div class="spinner"></div>Loading animation&hellip;</div></div>
         <canvas></canvas>
@@ -344,6 +344,10 @@
     </section>
 
     <footer>
+      <p style="margin-bottom: 0.75rem;">
+        BEV figures are exact. PHEV/HEV split is approximate for pre-2023 data
+        (based on CO2 threshold when ASTRA Hybridcode is unavailable).
+      </p>
       <p>
         <a href="https://github.com/mkubicek/swiss-vehicle-stats">github.com/mkubicek/swiss-vehicle-stats</a>
         &nbsp;&middot;&nbsp; Source: ASTRA/IVZ Open Data
@@ -398,10 +402,13 @@
         // Fuel breakdown for latest month
         const latestFuel = fuel.filter(r => +r.year === y && +r.month === m);
         const bev = +latestFuel.find(r => r.fuel_type === 'BEV')?.count || 0;
-        const phev = +latestFuel.find(r => r.fuel_type === 'PHEV')?.count || 0;
+        const electrified = ['BEV', 'PHEV', 'Diesel PHEV', 'Hybrid (Petrol)', 'Hybrid (Diesel)'];
+        const electrifiedTotal = latestFuel
+          .filter(r => electrified.includes(r.fuel_type))
+          .reduce((s, r) => s + +r.count, 0);
         const fuelTotal = latestFuel.reduce((s, r) => s + +r.count, 0);
         const bevPct = fuelTotal ? (bev / fuelTotal) * 100 : 0;
-        const pluginPct = fuelTotal ? ((bev + phev) / fuelTotal) * 100 : 0;
+        const pluginPct = fuelTotal ? (electrifiedTotal / fuelTotal) * 100 : 0;
 
         const monthName = MONTHS_LONG[m - 1];
 

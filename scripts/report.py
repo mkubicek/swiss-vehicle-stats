@@ -83,9 +83,9 @@ def generate_report(target_year: int = None, target_month: int = None):
     fuel_current_dict = dict(zip(fuel_current["fuel_type"], fuel_current["count"]))
     fuel_prev_dict = dict(zip(fuel_prev_year["fuel_type"], fuel_prev_year["count"]))
 
-    # Calculate plug-in share (BEV + PHEV)
+    # Calculate plug-in share (BEV + PHEV + Diesel PHEV)
     bev = fuel_current_dict.get("BEV", 0)
-    phev = fuel_current_dict.get("PHEV", 0)
+    phev = fuel_current_dict.get("PHEV", 0) + fuel_current_dict.get("Diesel PHEV", 0)
     plugin_share = (bev + phev) / current * 100 if current > 0 else 0
     bev_share = bev / current * 100 if current > 0 else 0
 
@@ -117,7 +117,7 @@ def generate_report(target_year: int = None, target_month: int = None):
         "",
         f"- **{current:,.0f}** new passenger cars registered in {month_name} {year}",
         f"- The market {momentum} compared to {month_name} {year - 1}",
-        f"- BEV share: **{bev_share:.1f}%** | Plug-in share (BEV + hybrid): **{plugin_share:.1f}%**",
+        f"- BEV share: **{bev_share:.1f}%** | Plug-in share (BEV + PHEV): **{plugin_share:.1f}%**",
         "",
         "## Key Metrics",
         "",
@@ -141,7 +141,7 @@ def generate_report(target_year: int = None, target_month: int = None):
         "|-----------|------:|------:|-----------:|",
     ])
 
-    for fuel in ["Petrol", "Diesel", "BEV", "Hybrid (Petrol)", "Hybrid (Diesel)"]:
+    for fuel in ["Petrol", "Diesel", "BEV", "PHEV", "Diesel PHEV", "Hybrid (Petrol)", "Hybrid (Diesel)"]:
         c = fuel_current_dict.get(fuel, 0)
         p = fuel_prev_dict.get(fuel, 0)
         share = c / current * 100 if current > 0 else 0

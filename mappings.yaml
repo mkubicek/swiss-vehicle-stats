@@ -370,16 +370,18 @@ country_continent:
 
 # Fuel type normalization
 # NOTE: ASTRA data uses spaces around "/" (e.g. "Benzin / Elektrisch")
+# _petrol_hybrid / _diesel_hybrid are intermediate values resolved at runtime
+# into PHEV vs HEV using Hybridcode (2022+) or CO2 fallback (pre-2022).
 fuel_types:
   Benzin: Petrol
   Diesel: Diesel
   Elektrisch: BEV
-  "Benzin / Elektrisch": PHEV
-  "Diesel / Elektrisch": Diesel Hybrid
-  "Benzin/Elektrisch": PHEV
-  "Diesel/Elektrisch": Diesel Hybrid
-  "Elektrisch mit RE": BEV
-  "Elektrisch mit RE (Range Extender)": BEV
+  "Benzin / Elektrisch": _petrol_hybrid
+  "Diesel / Elektrisch": _diesel_hybrid
+  "Benzin/Elektrisch": _petrol_hybrid
+  "Diesel/Elektrisch": _diesel_hybrid
+  "Elektrisch mit RE": PHEV
+  "Elektrisch mit RE (Range Extender)": PHEV
   Wasserstoff: Hydrogen
   "Wasserstoff / Elektrisch": Hydrogen
   "Erdgas (CNG)": CNG

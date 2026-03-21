@@ -22,6 +22,10 @@ USE_COLS = [
     "Fahrzeugart",
     "Marke",
     "Treibstoff",
+    "Hybridcode",           # OVC-HEV / NOVC-HEV (2022+)
+    "CO2",                  # CO2 g/km NEFZ (2016-2021)
+    "CO2_WLTP",             # CO2 g/km WLTP (2022 only, underscore)
+    "CO2-WLTP",             # CO2 g/km WLTP (2023+, dash)
     "Farbe",
     "Schildfarbe",
     "Antrieb",
@@ -30,9 +34,15 @@ USE_COLS = [
     "Erstinverkehrsetzung_Kanton",
 ]
 
-# Fuel types that count as EV (BEV + PHEV + FCEV)
-EV_FUELS = {"BEV", "PHEV", "Hydrogen"}
+# Fuel types that count as EV (plug-in vehicles only; excludes non-plug-in HEV)
+EV_FUELS = {"BEV", "PHEV", "Diesel PHEV", "Hydrogen"}
 BEV_FUELS = {"BEV"}
+
+# CO2 threshold for PHEV classification when Hybridcode is unavailable
+CO2_PHEV_THRESHOLD = 50  # g/km — EU regulation: PHEV < 50 g/km
+
+# Intermediate fuel types from mappings.yaml that need runtime resolution
+_HYBRID_INTERMEDIATES = {"_petrol_hybrid", "_diesel_hybrid"}
 
 
 def load_mappings() -> dict:
@@ -122,8 +132,17 @@ def process_file(filepath: Path, mappings: dict, warnings: set) -> dict:
         print(f"    Fixed column typos: {col_renames}")
 
     # Load full file with dtype optimization
-    dtype_map = {c: "category" for c in load_cols if c not in ("Erstinverkehrsetzung_Jahr", "Erstinverkehrsetzung_Monat") and col_renames.get(c, c) not in ("Erstinverkehrsetzung_Jahr", "Erstinverkehrsetzung_Monat")}
-    dtype_map.update({c: "Int16" for c in load_cols if col_renames.get(c, c) in ("Erstinverkehrsetzung_Jahr", "Erstinverkehrsetzung_Monat")})
+    _int_cols = {"Erstinverkehrsetzung_Jahr", "Erstinverkehrsetzung_Monat"}
+    _str_cols = {"Hybridcode", "CO2", "CO2_WLTP", "CO2-WLTP"}  # convert later
+    dtype_map = {}
+    for c in load_cols:
+        canonical = col_renames.get(c, c)
+        if canonical in _int_cols:
+            dtype_map[c] = "Int16"
+        elif canonical in _str_cols:
+            dtype_map[c] = "object"
+        else:
+            dtype_map[c] = "category"
 
     try:
         df = pd.read_csv(
@@ -162,6 +181,45 @@ def process_file(filepath: Path, mappings: dict, warnings: set) -> dict:
         for v in df["Treibstoff"].dropna().unique():
             if safe_map(v, m.get("fuel_types", {})) == "Other" and str(v).strip():
                 warnings.add(f"fuel:{v}")
+
+        # Resolve _petrol_hybrid / _diesel_hybrid into PHEV vs HEV
+        # using Hybridcode (2022+) with CO2 fallback (pre-2022)
+        is_hyb = df["_fuel"].isin(_HYBRID_INTERMEDIATES)
+        if is_hyb.any():
+            # Unify CO2 columns (different names across years)
+            co2 = pd.Series(float("nan"), index=df.index, dtype="float32")
+            for col in ["CO2-WLTP", "CO2_WLTP", "CO2"]:
+                if col in df.columns:
+                    co2 = co2.fillna(pd.to_numeric(df[col], errors="coerce"))
+
+            hc = df["Hybridcode"].fillna("").astype(str).str.strip() if "Hybridcode" in df.columns else pd.Series("", index=df.index)
+
+            is_ovc = is_hyb & (hc == "OVC-HEV")
+            is_novc = is_hyb & hc.isin(["NOVC-HEV", "NOVC-FCHV"])
+            has_hc = is_ovc | is_novc
+            is_co2_low = is_hyb & ~has_hc & co2.notna() & (co2 > 0) & (co2 <= CO2_PHEV_THRESHOLD)
+            is_co2_high = is_hyb & ~has_hc & co2.notna() & (co2 > CO2_PHEV_THRESHOLD)
+            no_data = is_hyb & ~has_hc & ~is_co2_low & ~is_co2_high
+
+            is_pet = df["_fuel"] == "_petrol_hybrid"
+
+            # Assign PHEV
+            df.loc[is_ovc & is_pet, "_fuel"] = "PHEV"
+            df.loc[is_ovc & ~is_pet, "_fuel"] = "Diesel PHEV"
+            df.loc[is_co2_low & is_pet, "_fuel"] = "PHEV"
+            df.loc[is_co2_low & ~is_pet, "_fuel"] = "Diesel PHEV"
+
+            # Assign HEV (non-plug-in)
+            df.loc[is_novc & is_pet, "_fuel"] = "Hybrid (Petrol)"
+            df.loc[is_novc & ~is_pet, "_fuel"] = "Hybrid (Diesel)"
+            df.loc[is_co2_high & is_pet, "_fuel"] = "Hybrid (Petrol)"
+            df.loc[is_co2_high & ~is_pet, "_fuel"] = "Hybrid (Diesel)"
+            df.loc[no_data & is_pet, "_fuel"] = "Hybrid (Petrol)"
+            df.loc[no_data & ~is_pet, "_fuel"] = "Hybrid (Diesel)"
+
+            n_phev = (is_ovc | is_co2_low).sum()
+            n_hev = (is_novc | is_co2_high | no_data).sum()
+            print(f"    Hybrid split: {n_phev:,} PHEV + {n_hev:,} HEV (of {is_hyb.sum():,} hybrids)")
 
     # Brand
     if "Marke" in df.columns:
@@ -212,13 +270,13 @@ def process_file(filepath: Path, mappings: dict, warnings: set) -> dict:
         if "_brand" in valid.columns:
             agg["brand_by_year"] = valid.groupby(["_year", "_brand"]).size().reset_index(name="count")
 
-        # Canton EV by month (for ev_wave)
-        if "_canton" in valid.columns and "_is_ev" in valid.columns:
+        # Canton BEV by month (for ev_wave — BEV only, not PHEV, for accuracy)
+        if "_canton" in valid.columns and "_is_bev" in valid.columns:
             canton_grp = valid.groupby(["_canton", "_year", "_month"])
             canton_total = canton_grp.size().reset_index(name="total_count")
-            canton_ev = canton_grp["_is_ev"].sum().reset_index(name="ev_count")
+            canton_bev = canton_grp["_is_bev"].sum().reset_index(name="ev_count")
             agg["canton_ev_by_month"] = canton_total.merge(
-                canton_ev, on=["_canton", "_year", "_month"]
+                canton_bev, on=["_canton", "_year", "_month"]
             )
 
         # Brand BEV by month (for ev_race)
