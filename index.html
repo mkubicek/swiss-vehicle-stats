@@ -238,25 +238,25 @@
     <header>
       <h1>Swiss Vehicle Registration Statistics</h1>
       <p class="subtitle">Monthly analysis of new passenger car registrations</p>
-      <p class="data-date">Data: ASTRA/IVZ Open Data (as of 2026-03-16)</p>
+      <p class="data-date" id="data-date">Data: ASTRA/IVZ Open Data</p>
     </header>
 
-    <div class="stats-grid">
+    <div class="stats-grid" id="stats-grid">
       <div class="stat-card">
-        <div class="stat-value">7,601</div>
-        <div class="stat-label">March 2026 Registrations</div>
+        <div class="stat-value" id="stat-total">&hellip;</div>
+        <div class="stat-label" id="stat-total-label">Registrations</div>
       </div>
       <div class="stat-card">
-        <div class="stat-value" style="color: #f87171;">-65.2%</div>
-        <div class="stat-label">vs. March 2025 (YoY)</div>
+        <div class="stat-value" id="stat-yoy">&hellip;</div>
+        <div class="stat-label" id="stat-yoy-label">YoY Change</div>
       </div>
       <div class="stat-card">
-        <div class="stat-value" style="color: #4ade80;">23.6%</div>
+        <div class="stat-value" id="stat-bev">&hellip;</div>
         <div class="stat-label">BEV Share</div>
       </div>
       <div class="stat-card">
-        <div class="stat-value" style="color: #4ade80;">66.8%</div>
-        <div class="stat-label">Plug-in Share (BEV + Hybrid)</div>
+        <div class="stat-value" id="stat-plugin">&hellip;</div>
+        <div class="stat-label">Plug-in Share (BEV + PHEV)</div>
       </div>
     </div>
 
@@ -334,12 +334,84 @@
   <script type="module">
     import { parseGIF, decompressFrames } from 'https://cdn.jsdelivr.net/npm/gifuct-js@2.1.2/+esm';
 
-    const MONTHS = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
-    const START_YEAR = 2016;
-    const START_MONTH = 1; // January
+    const MONTHS_SHORT = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+    const MONTHS_LONG = ['January','February','March','April','May','June',
+                         'July','August','September','October','November','December'];
+
+    // ---------- Dynamic stats from processed CSVs ----------
+
+    function parseCSV(text) {
+      const [header, ...rows] = text.trim().split('\n');
+      const cols = header.split(',');
+      return rows.map(r => {
+        const vals = r.split(',');
+        return Object.fromEntries(cols.map((c, i) => [c, vals[i]]));
+      });
+    }
+
+    async function loadStats() {
+      try {
+        const [monthlyText, fuelText, meta] = await Promise.all([
+          fetch('data/processed/monthly_totals.csv').then(r => r.text()),
+          fetch('data/processed/fuel_by_month.csv').then(r => r.text()),
+          fetch('data/processed/metadata.json').then(r => r.json()),
+        ]);
+
+        const monthly = parseCSV(monthlyText);
+        const fuel = parseCSV(fuelText);
+
+        // Latest month
+        const latest = monthly[monthly.length - 1];
+        const y = +latest.year, m = +latest.month, count = +latest.count;
+
+        // Same month previous year
+        const prev = monthly.find(r => +r.year === y - 1 && +r.month === m);
+        const yoyPct = prev ? ((count - +prev.count) / +prev.count) * 100 : null;
+
+        // Fuel breakdown for latest month
+        const latestFuel = fuel.filter(r => +r.year === y && +r.month === m);
+        const bev = +latestFuel.find(r => r.fuel_type === 'BEV')?.count || 0;
+        const phev = +latestFuel.find(r => r.fuel_type === 'PHEV')?.count || 0;
+        const fuelTotal = latestFuel.reduce((s, r) => s + +r.count, 0);
+        const bevPct = fuelTotal ? (bev / fuelTotal) * 100 : 0;
+        const pluginPct = fuelTotal ? ((bev + phev) / fuelTotal) * 100 : 0;
+
+        const monthName = MONTHS_LONG[m - 1];
+
+        document.getElementById('stat-total').textContent = count.toLocaleString();
+        document.getElementById('stat-total-label').textContent = `${monthName} ${y} Registrations`;
+
+        if (yoyPct !== null) {
+          const el = document.getElementById('stat-yoy');
+          el.textContent = `${yoyPct > 0 ? '+' : ''}${yoyPct.toFixed(1)}%`;
+          el.style.color = yoyPct >= 0 ? '#4ade80' : '#f87171';
+          document.getElementById('stat-yoy-label').textContent = `vs. ${monthName} ${y - 1} (YoY)`;
+        }
+
+        const bevEl = document.getElementById('stat-bev');
+        bevEl.textContent = `${bevPct.toFixed(1)}%`;
+        bevEl.style.color = '#4ade80';
+
+        const pluginEl = document.getElementById('stat-plugin');
+        pluginEl.textContent = `${pluginPct.toFixed(1)}%`;
+        pluginEl.style.color = '#4ade80';
+
+        document.getElementById('data-date').textContent =
+          `Data: ASTRA/IVZ Open Data (as of ${meta.data_date})`;
+
+        // Return start date for GIF labels
+        const first = monthly[0];
+        return { startYear: +first.year, startMonth: +first.month };
+      } catch (err) {
+        console.error('Failed to load stats:', err);
+        return { startYear: 2016, startMonth: 1 };
+      }
+    }
+
+    // ---------- GIF Player ----------
 
     class GifPlayer {
-      constructor(el) {
+      constructor(el, startYear, startMonth) {
         this.el = el;
         this.url = el.dataset.src;
         this.canvas = el.querySelector('canvas');
@@ -352,7 +424,8 @@
         this.h = 0;
         this.cur = -1;
         this.playing = false;
-        // Off-screen compositing canvas
+        this.startYear = startYear;
+        this.startMonth = startMonth;
         this.comp = document.createElement('canvas');
         this.cctx = this.comp.getContext('2d');
         this.patch = document.createElement('canvas');
@@ -403,7 +476,6 @@
       renderFrame(idx) {
         if (idx === this.cur) return;
         if (idx > this.cur && this.cur >= 0) {
-          // Forward: incremental compositing
           for (let i = this.cur + 1; i <= idx; i++) {
             if (i > 0 && this.frames[i - 1].disposalType === 2) {
               const d = this.frames[i - 1].dims;
@@ -412,7 +484,6 @@
             this.drawPatch(this.frames[i]);
           }
         } else {
-          // Backward or initial: recomposite from frame 0
           this.cctx.clearRect(0, 0, this.w, this.h);
           for (let i = 0; i <= idx; i++) {
             this.drawPatch(this.frames[i]);
@@ -425,8 +496,8 @@
         this.ctx.drawImage(this.comp, 0, 0);
         this.cur = idx;
         this.slider.value = idx;
-        const total = (START_MONTH - 1) + idx;
-        this.label.textContent = `${MONTHS[total % 12]} ${START_YEAR + Math.floor(total / 12)}`;
+        const total = (this.startMonth - 1) + idx;
+        this.label.textContent = `${MONTHS_SHORT[total % 12]} ${this.startYear + Math.floor(total / 12)}`;
       }
 
       bind() {
@@ -448,7 +519,6 @@
           if (!this.playing) return;
           if (this.cur < this.frames.length - 1) {
             this.renderFrame(this.cur + 1);
-            // gifuct-js delay is in ms; clamp minimum to 30ms
             const delay = Math.max(this.frames[this.cur].delay || 300, 30);
             setTimeout(step, delay);
           } else {
@@ -464,11 +534,14 @@
       }
     }
 
-    // Lazy-load each player when it scrolls into view
+    // ---------- Init ----------
+
+    const { startYear, startMonth } = await loadStats();
+
     const observer = new IntersectionObserver((entries) => {
       for (const e of entries) {
         if (e.isIntersecting) {
-          new GifPlayer(e.target).load();
+          new GifPlayer(e.target, startYear, startMonth).load();
           observer.unobserve(e.target);
         }
       }
