@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Swiss Vehicle Registration Statistics</title>
+  <meta name="description" content="Monthly analysis of new passenger car registrations in Switzerland, including EV adoption trends, brand rankings, and cantonal breakdowns.">
+  <meta name="theme-color" content="#0d1117">
+  <meta property="og:title" content="Swiss Vehicle Registration Statistics">
+  <meta property="og:description" content="Interactive dashboard tracking EV adoption, brand rankings, and cantonal trends across Switzerland.">
+  <meta property="og:image" content="charts/ev_wave.gif">
+  <meta property="og:type" content="website">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🇨🇭</text></svg>">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #0d1117;
+      color: #e6edf3;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem 1rem;
+    }
+
+    /* Header */
+    header {
+      text-align: center;
+      margin-bottom: 3rem;
+      padding-bottom: 2rem;
+      border-bottom: 1px solid #21262d;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+
+    header .subtitle {
+      color: #8b949e;
+      font-size: 1.1rem;
+    }
+
+    header .data-date {
+      color: #6e7681;
+      font-size: 0.85rem;
+      margin-top: 0.5rem;
+    }
+
+    /* Stats cards */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 3rem;
+    }
+
+    .stat-card {
+      background: #161b22;
+      border: 1px solid #21262d;
+      border-radius: 8px;
+      padding: 1.5rem;
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #58a6ff;
+    }
+
+    .stat-label {
+      color: #8b949e;
+      font-size: 0.85rem;
+      margin-top: 0.25rem;
+    }
+
+    /* Sections */
+    section {
+      margin-bottom: 3rem;
+    }
+
+    h2 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: #f0f6fc;
+    }
+
+    .section-desc {
+      color: #8b949e;
+      margin-bottom: 1rem;
+      font-size: 0.95rem;
+    }
+
+    /* Chart images */
+    .chart-img {
+      width: 100%;
+      border-radius: 8px;
+      display: block;
+    }
+
+    .chart-pair {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+
+    /* GIF Player */
+    .gif-player {
+      background: #161b22;
+      border: 1px solid #21262d;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .gif-player canvas {
+      width: 100%;
+      display: block;
+    }
+
+    .gif-player .loading-overlay {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      aspect-ratio: 12 / 7;
+      color: #8b949e;
+      text-align: center;
+    }
+
+    .gif-player.loaded .loading-overlay { display: none; }
+    .gif-player:not(.loaded) canvas { display: none; }
+    .gif-player:not(.loaded) .controls { display: none; }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem 1rem;
+      background: #0d1117;
+      border-top: 1px solid #21262d;
+    }
+
+    .play-btn {
+      background: none;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      color: #e6edf3;
+      cursor: pointer;
+      font-size: 1.1rem;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: background 0.15s;
+    }
+
+    .play-btn:hover { background: #21262d; }
+
+    .slider {
+      flex: 1;
+      -webkit-appearance: none;
+      appearance: none;
+      height: 6px;
+      border-radius: 3px;
+      background: #21262d;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #58a6ff;
+      cursor: pointer;
+    }
+
+    .slider::-moz-range-thumb {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #58a6ff;
+      cursor: pointer;
+      border: none;
+    }
+
+    .frame-label {
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      font-size: 0.9rem;
+      color: #fbbf24;
+      font-weight: 600;
+      min-width: 5.5rem;
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    /* Spinner */
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid #21262d;
+      border-top-color: #58a6ff;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 1rem;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding-top: 2rem;
+      border-top: 1px solid #21262d;
+      color: #8b949e;
+      font-size: 0.85rem;
+    }
+
+    footer a {
+      color: #58a6ff;
+      text-decoration: none;
+    }
+
+    footer a:hover { text-decoration: underline; }
+
+    @media (max-width: 768px) {
+      h1 { font-size: 1.8rem; }
+      .chart-pair { gap: 1rem; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Swiss Vehicle Registration Statistics</h1>
+      <p class="subtitle">Monthly analysis of new passenger car registrations</p>
+      <p class="data-date" id="data-date">Data: ASTRA/IVZ Open Data</p>
+    </header>
+
+    <div class="stats-grid" id="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value" id="stat-total">&hellip;</div>
+        <div class="stat-label" id="stat-total-label">Registrations</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="stat-yoy">&hellip;</div>
+        <div class="stat-label" id="stat-yoy-label">YoY Change</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="stat-bev">&hellip;</div>
+        <div class="stat-label">BEV Share</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="stat-plugin">&hellip;</div>
+        <div class="stat-label">Plug-in Share (BEV + PHEV)</div>
+      </div>
+    </div>
+
+    <section>
+      <h2>Yearly Registrations</h2>
+      <p class="section-desc">Total new passenger car registrations per year.</p>
+      <img class="chart-img" src="charts/yearly_registrations.png" alt="Yearly registration trends" loading="lazy">
+    </section>
+
+    <section>
+      <h2>Powertrain Breakdown</h2>
+      <p class="section-desc">Market share evolution by powertrain type.</p>
+      <img class="chart-img" src="charts/powertrain_absolute.png" alt="Powertrain market share" loading="lazy">
+    </section>
+
+    <section>
+      <h2>EV Adoption by Canton</h2>
+      <p class="section-desc">12-month trailing EV share (BEV + PHEV + FCEV) of new registrations by canton. Use the slider to scrub through time.</p>
+      <div class="gif-player" id="ev-wave" data-src="charts/ev_wave.gif">
+        <div class="loading-overlay"><div><div class="spinner"></div>Loading animation&hellip;</div></div>
+        <canvas></canvas>
+        <div class="controls">
+          <button class="play-btn" title="Play / Pause">&#x25B6;</button>
+          <input type="range" class="slider" min="0" value="0">
+          <span class="frame-label">&mdash;</span>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>BEV Brand Race &mdash; Trailing 12 Months</h2>
+      <p class="section-desc">Top 10 battery-electric brands ranked by registrations in the preceding 12 months.</p>
+      <div class="gif-player" id="ev-race" data-src="charts/ev_race.gif">
+        <div class="loading-overlay"><div><div class="spinner"></div>Loading animation&hellip;</div></div>
+        <canvas></canvas>
+        <div class="controls">
+          <button class="play-btn" title="Play / Pause">&#x25B6;</button>
+          <input type="range" class="slider" min="0" value="0">
+          <span class="frame-label">&mdash;</span>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>BEV Brand Race &mdash; Cumulative</h2>
+      <p class="section-desc">Top 10 battery-electric brands ranked by total registrations since 2016.</p>
+      <div class="gif-player" id="brand-race" data-src="charts/brand_race.gif">
+        <div class="loading-overlay"><div><div class="spinner"></div>Loading animation&hellip;</div></div>
+        <canvas></canvas>
+        <div class="controls">
+          <button class="play-btn" title="Play / Pause">&#x25B6;</button>
+          <input type="range" class="slider" min="0" value="0">
+          <span class="frame-label">&mdash;</span>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Brand Analysis</h2>
+      <p class="section-desc">Overall brand rankings and geographic EV brand preferences by canton.</p>
+      <div class="chart-pair">
+        <img class="chart-img" src="charts/brand_rankings.png" alt="Brand rankings" loading="lazy">
+        <img class="chart-img" src="charts/ev_taste_lq.png" alt="EV taste location quotient by canton" loading="lazy">
+      </div>
+    </section>
+
+    <footer>
+      <p>
+        <a href="https://github.com/mkubicek/swiss-vehicle-stats">github.com/mkubicek/swiss-vehicle-stats</a>
+        &nbsp;&middot;&nbsp; Source: ASTRA/IVZ Open Data
+      </p>
+    </footer>
+  </div>
+
+  <noscript>
+    <style>.stats-grid, .gif-player { display: none; }</style>
+    <p style="text-align:center; color:#8b949e; padding:2rem;">
+      JavaScript is required to load the interactive dashboard and animated charts.
+    </p>
+  </noscript>
+
+  <script type="module">
+    import { parseGIF, decompressFrame } from 'https://cdn.jsdelivr.net/npm/gifuct-js@2.1.2/+esm';
+
+    const MONTHS_SHORT = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+    const MONTHS_LONG = ['January','February','March','April','May','June',
+                         'July','August','September','October','November','December'];
+
+    // ---------- Dynamic stats from processed CSVs ----------
+
+    function parseCSV(text) {
+      const [header, ...rows] = text.trim().split('\n');
+      const cols = header.split(',');
+      return rows.map(r => {
+        const vals = r.split(',');
+        return Object.fromEntries(cols.map((c, i) => [c, vals[i]]));
+      });
+    }
+
+    async function loadStats() {
+      try {
+        const [monthlyText, fuelText, meta] = await Promise.all([
+          fetch('data/processed/monthly_totals.csv').then(r => r.text()),
+          fetch('data/processed/fuel_by_month.csv').then(r => r.text()),
+          fetch('data/processed/metadata.json').then(r => r.json()),
+        ]);
+
+        const monthly = parseCSV(monthlyText);
+        const fuel = parseCSV(fuelText);
+
+        // Last complete month (second-to-last row; last row may be partial current month)
+        const latest = monthly[monthly.length >= 2 ? monthly.length - 2 : monthly.length - 1];
+        const y = +latest.year, m = +latest.month, count = +latest.count;
+
+        // Same month previous year
+        const prev = monthly.find(r => +r.year === y - 1 && +r.month === m);
+        const yoyPct = prev ? ((count - +prev.count) / +prev.count) * 100 : null;
+
+        // Fuel breakdown for latest month
+        const latestFuel = fuel.filter(r => +r.year === y && +r.month === m);
+        const bev = +latestFuel.find(r => r.fuel_type === 'BEV')?.count || 0;
+        const phev = +latestFuel.find(r => r.fuel_type === 'PHEV')?.count || 0;
+        const fuelTotal = latestFuel.reduce((s, r) => s + +r.count, 0);
+        const bevPct = fuelTotal ? (bev / fuelTotal) * 100 : 0;
+        const pluginPct = fuelTotal ? ((bev + phev) / fuelTotal) * 100 : 0;
+
+        const monthName = MONTHS_LONG[m - 1];
+
+        document.getElementById('stat-total').textContent = count.toLocaleString();
+        document.getElementById('stat-total-label').textContent = `${monthName} ${y} Registrations`;
+
+        if (yoyPct !== null) {
+          const el = document.getElementById('stat-yoy');
+          el.textContent = `${yoyPct > 0 ? '+' : ''}${yoyPct.toFixed(1)}%`;
+          el.style.color = yoyPct >= 0 ? '#4ade80' : '#f87171';
+          document.getElementById('stat-yoy-label').textContent = `vs. ${monthName} ${y - 1} (YoY)`;
+        }
+
+        const bevEl = document.getElementById('stat-bev');
+        bevEl.textContent = `${bevPct.toFixed(1)}%`;
+        bevEl.style.color = '#4ade80';
+
+        const pluginEl = document.getElementById('stat-plugin');
+        pluginEl.textContent = `${pluginPct.toFixed(1)}%`;
+        pluginEl.style.color = '#4ade80';
+
+        document.getElementById('data-date').textContent =
+          `Data: ASTRA/IVZ Open Data (as of ${meta.data_date})`;
+
+        const first = monthly[0];
+        return { startYear: +first.year, startMonth: +first.month };
+      } catch (err) {
+        console.error('Failed to load stats:', err);
+        return { startYear: 2016, startMonth: 1 };
+      }
+    }
+
+    // ---------- GIF Player (lazy decompression — one frame at a time) ----------
+
+    class GifPlayer {
+      constructor(el, startYear, startMonth) {
+        this.el = el;
+        this.url = el.dataset.src;
+        this.canvas = el.querySelector('canvas');
+        this.ctx = this.canvas.getContext('2d');
+        this.slider = el.querySelector('.slider');
+        this.label = el.querySelector('.frame-label');
+        this.playBtn = el.querySelector('.play-btn');
+        this.gif = null;       // parsed GIF (compact, keeps compressed data)
+        this.rawFrames = null; // parsed frames with image data
+        this.meta = null;      // lightweight dims/delay/disposal per frame
+        this.w = 0;
+        this.h = 0;
+        this.cur = -1;
+        this.playing = false;
+        this.startYear = startYear;
+        this.startMonth = startMonth;
+        this.comp = document.createElement('canvas');
+        this.cctx = this.comp.getContext('2d');
+        this.patch = document.createElement('canvas');
+        this.pctx = this.patch.getContext('2d');
+      }
+
+      async load() {
+        try {
+          const buf = await (await fetch(this.url)).arrayBuffer();
+          this.gif = parseGIF(buf);
+          this.rawFrames = this.gif.frames.filter(f => f.image);
+
+          // Extract lightweight metadata without decompressing pixels
+          this.meta = this.rawFrames.map(f => ({
+            dims: {
+              top: f.image.descriptor.top,
+              left: f.image.descriptor.left,
+              width: f.image.descriptor.width,
+              height: f.image.descriptor.height,
+            },
+            delay: f.gce ? (f.gce.delay || 10) * 10 : 100,
+            disposalType: f.gce ? f.gce.extras.disposal : 0,
+          }));
+
+          this.w = this.meta[0].dims.width;
+          this.h = this.meta[0].dims.height;
+          this.canvas.width = this.w;
+          this.canvas.height = this.h;
+          this.comp.width = this.w;
+          this.comp.height = this.h;
+          this.slider.max = this.rawFrames.length - 1;
+          this.slider.value = 0;
+          this.renderFrame(0);
+          this.bind();
+          this.el.classList.add('loaded');
+          this.play();
+        } catch (err) {
+          console.error('GIF player error, falling back to <img>:', err);
+          this.fallback();
+        }
+      }
+
+      fallback() {
+        const img = document.createElement('img');
+        img.src = this.url;
+        img.style.width = '100%';
+        img.style.display = 'block';
+        this.el.querySelector('.loading-overlay').replaceWith(img);
+        this.canvas.style.display = 'none';
+        this.el.querySelector('.controls').style.display = 'none';
+        this.el.classList.add('loaded');
+      }
+
+      // Decompress a single frame on demand (~3 MB, immediately GC-able)
+      decomp(idx) {
+        return decompressFrame(this.rawFrames[idx], this.gif.gct, true);
+      }
+
+      drawPatch(f) {
+        this.patch.width = f.dims.width;
+        this.patch.height = f.dims.height;
+        this.pctx.putImageData(
+          new ImageData(new Uint8ClampedArray(f.patch), f.dims.width, f.dims.height), 0, 0
+        );
+        this.cctx.drawImage(this.patch, f.dims.left, f.dims.top);
+      }
+
+      renderFrame(idx) {
+        if (idx === this.cur) return;
+        if (idx > this.cur && this.cur >= 0) {
+          // Forward: decompress and composite incrementally
+          for (let i = this.cur + 1; i <= idx; i++) {
+            if (i > 0 && this.meta[i - 1].disposalType === 2) {
+              const d = this.meta[i - 1].dims;
+              this.cctx.clearRect(d.left, d.top, d.width, d.height);
+            }
+            this.drawPatch(this.decomp(i));
+          }
+        } else {
+          // Backward or initial: recomposite from frame 0
+          this.cctx.clearRect(0, 0, this.w, this.h);
+          for (let i = 0; i <= idx; i++) {
+            this.drawPatch(this.decomp(i));
+            if (i < idx && this.meta[i].disposalType === 2) {
+              const d = this.meta[i].dims;
+              this.cctx.clearRect(d.left, d.top, d.width, d.height);
+            }
+          }
+        }
+        this.ctx.drawImage(this.comp, 0, 0);
+        this.cur = idx;
+        this.slider.value = idx;
+        const total = (this.startMonth - 1) + idx;
+        this.label.textContent = `${MONTHS_SHORT[total % 12]} ${this.startYear + Math.floor(total / 12)}`;
+      }
+
+      bind() {
+        this.slider.addEventListener('input', () => {
+          this.stop();
+          this.renderFrame(+this.slider.value);
+        });
+        this.playBtn.addEventListener('click', () => this.playing ? this.stop() : this.play());
+      }
+
+      play() {
+        this.playing = true;
+        this.playBtn.textContent = '\u23F8';
+        if (this.cur >= this.rawFrames.length - 1) {
+          this.cur = -1;
+          this.cctx.clearRect(0, 0, this.w, this.h);
+        }
+        const step = () => {
+          if (!this.playing) return;
+          if (this.cur < this.rawFrames.length - 1) {
+            this.renderFrame(this.cur + 1);
+            const delay = Math.max(this.meta[this.cur].delay || 300, 30);
+            setTimeout(step, delay);
+          } else {
+            this.stop();
+          }
+        };
+        step();
+      }
+
+      stop() {
+        this.playing = false;
+        this.playBtn.textContent = '\u25B6';
+      }
+    }
+
+    // ---------- Init ----------
+
+    const { startYear, startMonth } = await loadStats();
+
+    const observer = new IntersectionObserver((entries) => {
+      for (const e of entries) {
+        if (e.isIntersecting) {
+          new GifPlayer(e.target, startYear, startMonth).load();
+          observer.unobserve(e.target);
+        }
+      }
+    }, { rootMargin: '300px' });
+
+    document.querySelectorAll('.gif-player').forEach(el => observer.observe(el));
+  </script>
+</body>
+</html>
