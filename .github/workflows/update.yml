@@ -5,6 +5,11 @@ on:
     # 5th, 15th, 25th of each month at 08:00 UTC
     - cron: '0 8 5,15,25 * *'
   workflow_dispatch:
+    inputs:
+      generate_gifs:
+        description: 'Generate GIF animations'
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -84,7 +89,7 @@ jobs:
         if: steps.download.outputs.timed_out != 'true'
         run: |
           DAY=$(date -u +%d)
-          if [ "$DAY" = "05" ]; then
+          if [ "$DAY" = "05" ] || [ "${{ inputs.generate_gifs }}" = "true" ]; then
             uv run scripts/chart.py
           else
             uv run scripts/chart.py --skip-gifs
