@@ -406,7 +406,7 @@ def chart_ev_wave():
         ax_spark = fig.add_axes([0.66, 0.08, 0.31, 0.78])
 
         # Title block
-        fig.text(0.30, 0.97, f"{MONTH_NAMES[m]} {y}", ha="center", va="top",
+        fig.text(0.30, 0.97, f"{MONTH_NAMES[m].upper()} {y}", ha="center", va="top",
                  fontsize=32, fontweight="bold", color="#fbbf24", fontfamily="monospace")
         fig.text(0.30, 0.91, "EV Share of New Car Registrations by Canton",
                  ha="center", va="top", fontsize=16, fontweight="bold", color=TEXT)
@@ -551,7 +551,7 @@ def chart_ev_race():
         ax.spines["left"].set_color(GRID_COLOR)
         ax.grid(axis="x", alpha=0.2, color=GRID_COLOR)
 
-        fig.text(0.50, 0.97, f"{MONTH_NAMES[m]} {y}", ha="center", va="top",
+        fig.text(0.50, 0.97, f"{MONTH_NAMES[m].upper()} {y}", ha="center", va="top",
                  fontsize=28, fontweight="bold", color="#fbbf24", fontfamily="monospace")
         fig.text(0.50, 0.92, "Top 10 BEV Brands — Trailing 12-Month Registrations",
                  ha="center", va="top", fontsize=14, fontweight="bold", color=TEXT)
@@ -651,7 +651,7 @@ def chart_brand_race():
         ax.spines["left"].set_color(GRID_COLOR)
         ax.grid(axis="x", alpha=0.2, color=GRID_COLOR)
 
-        fig.text(0.50, 0.97, f"{MONTH_NAMES[m]} {y}", ha="center", va="top",
+        fig.text(0.50, 0.97, f"{MONTH_NAMES[m].upper()} {y}", ha="center", va="top",
                  fontsize=28, fontweight="bold", color="#fbbf24", fontfamily="monospace")
         fig.text(0.50, 0.92, f"Top 10 BEV Brands — Total Registrations Since {start_year}",
                  ha="center", va="top", fontsize=14, fontweight="bold", color=TEXT)
