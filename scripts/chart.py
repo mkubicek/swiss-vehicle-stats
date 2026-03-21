@@ -788,6 +788,9 @@ def chart_ev_taste():
 
 
 def main():
+    import sys
+    skip_gifs = "--skip-gifs" in sys.argv
+
     print("=== Generating Charts ===\n")
 
     if not (DATA_DIR / "monthly_totals.csv").exists():
@@ -797,9 +800,14 @@ def main():
     chart_yearly_registrations()
     chart_powertrain_absolute()
     chart_brand_rankings()
-    chart_ev_wave()
-    chart_ev_race()
-    chart_brand_race()
+
+    if skip_gifs:
+        print("  Skipping GIF generation (--skip-gifs)")
+    else:
+        chart_ev_wave()
+        chart_ev_race()
+        chart_brand_race()
+
     chart_ev_taste()
 
     print("\nDone.")

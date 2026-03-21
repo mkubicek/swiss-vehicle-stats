@@ -1,9 +1,9 @@
-name: Monthly Update
+name: Update
 
 on:
   schedule:
-    # 5th of each month at 08:00 UTC (09:00 CET / 10:00 CEST)
-    - cron: '0 8 5 * *'
+    # 5th, 15th, 25th of each month at 08:00 UTC
+    - cron: '0 8 5,15,25 * *'
   workflow_dispatch:
 
 permissions:
@@ -77,7 +77,13 @@ jobs:
         run: uv run scripts/project.py
 
       - name: Generate charts
-        run: uv run scripts/chart.py
+        run: |
+          DAY=$(date -u +%d)
+          if [ "$DAY" = "05" ]; then
+            uv run scripts/chart.py
+          else
+            uv run scripts/chart.py --skip-gifs
+          fi
 
       - name: Generate report
         run: uv run scripts/report.py
