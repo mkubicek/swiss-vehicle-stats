@@ -454,8 +454,7 @@ def chart_ev_wave():
             ax_spark.plot(spark_x[-1], sparkline_data[i], "o", color="#fbbf24", markersize=8, zorder=5)
         ax_spark.set_xlim(0, len(target_months) - 1)
         ax_spark.set_ylim(0, max(sparkline_data) * 1.15)
-        ax_spark.set_title("National BEV %", fontsize=10,
-                           color=TEXT, fontweight="bold")
+        ax_spark.set_title("", fontsize=10)
         ax_spark.spines["top"].set_visible(False)
         ax_spark.spines["right"].set_visible(False)
         ax_spark.spines["bottom"].set_color(GRID_COLOR)
