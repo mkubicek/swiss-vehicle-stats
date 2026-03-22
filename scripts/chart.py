@@ -417,7 +417,7 @@ def chart_ev_wave():
                  ha="center", va="top", fontsize=8, color=SUBTLE)
         fig.text(0.82, 0.97, f"{nat_pct:.1f}%", ha="center", va="top",
                  fontsize=36, fontweight="bold", color="#52b788")
-        fig.text(0.82, 0.90, "National Average", ha="center", va="top",
+        fig.text(0.82, 0.90, "National 12-Month Trailing Average", ha="center", va="top",
                  fontsize=9, color=SUBTLE)
 
         # Map
@@ -452,7 +452,7 @@ def chart_ev_wave():
             ax_spark.plot(spark_x[-1], sparkline_data[i], "o", color="#fbbf24", markersize=8, zorder=5)
         ax_spark.set_xlim(0, len(target_months) - 1)
         ax_spark.set_ylim(0, max(sparkline_data) * 1.15)
-        ax_spark.set_title("National BEV % of New Registrations", fontsize=10,
+        ax_spark.set_title("National BEV %", fontsize=10,
                            color=TEXT, fontweight="bold")
         ax_spark.spines["top"].set_visible(False)
         ax_spark.spines["right"].set_visible(False)
