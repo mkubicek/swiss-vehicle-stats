@@ -272,11 +272,11 @@
       </div>
       <div class="stat-card">
         <div class="stat-value" id="stat-bev">&hellip;</div>
-        <div class="stat-label">BEV Share</div>
+        <div class="stat-label" id="stat-bev-label">BEV Share</div>
       </div>
       <div class="stat-card">
         <div class="stat-value" id="stat-plugin">&hellip;</div>
-        <div class="stat-label">Electrified Share (BEV + Hybrid)</div>
+        <div class="stat-label" id="stat-plugin-label">Electrified Share (BEV + Hybrid)</div>
       </div>
     </div>
 
@@ -429,10 +429,12 @@
         const bevEl = document.getElementById('stat-bev');
         bevEl.textContent = `${bevPct.toFixed(1)}%`;
         bevEl.style.color = '#4ade80';
+        document.getElementById('stat-bev-label').textContent = `${monthName} ${y} BEV Share`;
 
         const pluginEl = document.getElementById('stat-plugin');
         pluginEl.textContent = `${pluginPct.toFixed(1)}%`;
         pluginEl.style.color = '#4ade80';
+        document.getElementById('stat-plugin-label').textContent = `${monthName} ${y} Electrified Share (BEV + Hybrid)`;
 
         document.getElementById('data-date').textContent =
           `Data: ASTRA/IVZ Open Data (as of ${meta.data_date})`;
