@@ -417,7 +417,9 @@ def chart_ev_wave():
                  ha="center", va="top", fontsize=8, color=SUBTLE)
         fig.text(0.82, 0.97, f"{nat_pct:.1f}%", ha="center", va="top",
                  fontsize=36, fontweight="bold", color="#52b788")
-        fig.text(0.82, 0.90, "National 12-Month Trailing Average", ha="center", va="top",
+        fig.text(0.82, 0.90, "National BEV %", ha="center", va="top",
+                 fontsize=11, fontweight="bold", color=TEXT)
+        fig.text(0.82, 0.87, "12-month trailing average", ha="center", va="top",
                  fontsize=9, color=SUBTLE)
 
         # Map
