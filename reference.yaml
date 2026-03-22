@@ -1,121 +1,121 @@
 2016:
-  bev: 269
+  bev: 3300
   months:
     1:
-      bev: 7
+      bev: 234
       total: 20205
     2:
-      bev: 21
+      bev: 138
       total: 22653
     3:
-      bev: 21
+      bev: 416
       total: 29099
     4:
-      bev: 20
+      bev: 222
       total: 28698
     5:
-      bev: 14
+      bev: 174
       total: 26123
     6:
-      bev: 47
+      bev: 360
       total: 31259
     7:
-      bev: 13
+      bev: 132
       total: 26074
     8:
-      bev: 38
+      bev: 258
       total: 21927
     9:
-      bev: 37
+      bev: 453
       total: 26145
     10:
-      bev: 13
+      bev: 198
       total: 23396
     11:
-      bev: 7
+      bev: 174
       total: 26414
     12:
-      bev: 31
+      bev: 541
       total: 35325
   total: 317318
 2017:
-  bev: 212
+  bev: 4773
   months:
     1:
-      bev: 14
+      bev: 301
       total: 19451
     2:
-      bev: 18
+      bev: 200
       total: 22809
     3:
-      bev: 24
+      bev: 571
       total: 30509
     4:
-      bev: 16
+      bev: 220
       total: 25815
     5:
-      bev: 27
+      bev: 254
       total: 28411
     6:
-      bev: 15
+      bev: 492
       total: 31923
     7:
-      bev: 13
+      bev: 254
       total: 24885
     8:
-      bev: 16
+      bev: 324
       total: 23160
     9:
-      bev: 16
+      bev: 550
       total: 24520
     10:
-      bev: 16
+      bev: 356
       total: 24724
     11:
-      bev: 22
+      bev: 710
       total: 26749
     12:
-      bev: 15
+      bev: 541
       total: 31072
   total: 314028
 2018:
-  bev: 299
+  bev: 5114
   months:
     1:
-      bev: 16
+      bev: 246
       total: 21671
     2:
-      bev: 18
+      bev: 400
       total: 22292
     3:
-      bev: 23
+      bev: 672
       total: 28126
     4:
-      bev: 28
+      bev: 277
       total: 26519
     5:
-      bev: 35
+      bev: 248
       total: 27826
     6:
-      bev: 29
+      bev: 567
       total: 31476
     7:
-      bev: 15
+      bev: 226
       total: 25483
     8:
-      bev: 13
+      bev: 312
       total: 21484
     9:
-      bev: 12
+      bev: 535
       total: 20409
     10:
-      bev: 45
+      bev: 408
       total: 22788
     11:
-      bev: 46
+      bev: 474
       total: 24103
     12:
-      bev: 19
+      bev: 749
       total: 27539
   total: 299716
 2019:

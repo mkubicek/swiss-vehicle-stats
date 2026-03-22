@@ -269,11 +269,13 @@ def chart_powertrain_absolute():
     yearly = df.groupby(["year", "fuel_type"])["count"].sum().reset_index()
     yearly = yearly[yearly["year"].isin(complete_years) & (yearly["year"] >= 2016)]
 
-    order = ["Petrol", "Diesel", "BEV", "PHEV", "Diesel Hybrid", "Hydrogen", "CNG", "LPG", "Other"]
+    order = ["Petrol", "Diesel", "BEV", "PHEV", "Diesel PHEV",
+             "Hybrid (Petrol)", "Hybrid (Diesel)", "Hydrogen", "CNG", "LPG", "Other"]
     color_map = {
         "Petrol": "#6b7280", "Diesel": "#4b5563", "BEV": "#2563eb",
-        "PHEV": "#60a5fa", "Diesel Hybrid": "#93c5fd", "Hydrogen": "#16a34a",
-        "CNG": "#f59e0b", "LPG": "#f97316", "Other": "#9ca3af",
+        "PHEV": "#60a5fa", "Diesel PHEV": "#818cf8",
+        "Hybrid (Petrol)": "#a3e635", "Hybrid (Diesel)": "#65a30d",
+        "Hydrogen": "#16a34a", "CNG": "#f59e0b", "LPG": "#f97316", "Other": "#9ca3af",
     }
 
     pivot = yearly.pivot(index="year", columns="fuel_type", values="count").fillna(0)
@@ -408,10 +410,10 @@ def chart_ev_wave():
         # Title block
         fig.text(0.30, 0.97, f"{MONTH_NAMES[m].upper()} {y}", ha="center", va="top",
                  fontsize=32, fontweight="bold", color="#fbbf24", fontfamily="monospace")
-        fig.text(0.30, 0.91, "EV Share of New Car Registrations by Canton",
+        fig.text(0.30, 0.91, "BEV Share of New Car Registrations by Canton",
                  ha="center", va="top", fontsize=16, fontweight="bold", color=TEXT)
         fig.text(0.30, 0.88,
-                 "BEV + PHEV + FCEV as % of new Personenwagen (passenger car) registrations | 12-month trailing average",
+                 "Fully electric (BEV) as % of new Personenwagen (passenger car) registrations | 12-month trailing average",
                  ha="center", va="top", fontsize=8, color=SUBTLE)
         fig.text(0.82, 0.97, f"{nat_pct:.1f}%", ha="center", va="top",
                  fontsize=36, fontweight="bold", color="#52b788")
@@ -437,7 +439,7 @@ def chart_ev_wave():
         sm = plt.cm.ScalarMappable(cmap=wave_cmap, norm=wave_norm)
         sm.set_array([])
         cbar = fig.colorbar(sm, cax=ax_cb)
-        cbar.set_label("EV % of New Registrations", fontsize=8, color=TEXT)
+        cbar.set_label("BEV % of New Registrations", fontsize=8, color=TEXT)
         cbar.ax.yaxis.set_tick_params(color=TEXT)
         plt.setp(cbar.ax.yaxis.get_ticklabels(), color=TEXT, fontsize=7)
 
@@ -450,7 +452,7 @@ def chart_ev_wave():
             ax_spark.plot(spark_x[-1], sparkline_data[i], "o", color="#fbbf24", markersize=8, zorder=5)
         ax_spark.set_xlim(0, len(target_months) - 1)
         ax_spark.set_ylim(0, max(sparkline_data) * 1.15)
-        ax_spark.set_title("National EV % of New Registrations", fontsize=10,
+        ax_spark.set_title("National BEV % of New Registrations", fontsize=10,
                            color=TEXT, fontweight="bold")
         ax_spark.spines["top"].set_visible(False)
         ax_spark.spines["right"].set_visible(False)
