@@ -118,6 +118,8 @@ Nissan:      #fca5a5
 - **Year-end projection:** `project.py` pro-rates YTD registrations using scaling factors from reference years (2016–present, excluding COVID 2020–21). A capture ratio corrects for ASTRA reporting lag in the partial month. If capture ratio is outside 0.4–1.3, the partial month is excluded. Outputs `projection.json` consumed by chart.py and report.py.
 - Canton codes in data include non-Swiss codes (A, BA, FL, M, P) — filtered out for map charts but harmlessly present in CSVs.
 - 2016–2018 ASTRA files have a typo: "Erstinvekehrsetzung_Kanton" (missing 'r'). `process.py` auto-corrects this.
+- Mild hybrids (48V MHEV) may appear as 'Benzin/Elektrisch' in older ASTRA data. They are correctly classified as HEV by our logic since they cannot achieve CO2 <= 50 g/km and don't have OVC-HEV Hybridcode.
+- Chinese Extended-Range EVs (Li Auto, AITO) entering the Swiss market will be classified as 'Elektrisch mit RE' or OVC-HEV in ASTRA data. Our logic correctly maps these to PHEV.
 
 ## File Structure
 
