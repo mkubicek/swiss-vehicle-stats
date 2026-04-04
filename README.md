@@ -9,9 +9,9 @@ A GitHub Actions pipeline downloads raw registration data monthly, aggregates it
 
 ## Definitions
 
-- **Scope:** `Fahrzeugart = Personenwagen` only (passenger cars). Excludes vans (Lieferwagen), trucks (Lastwagen), motorcycles (Motorrad), buses, tractors, and all other vehicle types.
-- **EV:** BEV + PHEV + FCEV (Treibstoff: Elektrisch, Benzin/Elektrisch, Wasserstoff/Elektrisch, Elektrisch mit RE)
-- **BEV:** Fully electric only (Treibstoff: Elektrisch, Elektrisch mit RE)
+Scope: passenger cars (Personenwagen) only. EV = BEV + PHEV + FCEV (plug-in vehicles; excludes non-plug-in hybrids).
+
+Full definitions, powertrain classification logic, and known limitations: **[METHODOLOGY.md](METHODOLOGY.md)**
 
 ---
 
@@ -82,14 +82,9 @@ Runs automatically on the 5th of each month via GitHub Actions. Can also be trig
 
 ## Classification
 
-All classifications are driven by `mappings.yaml`:
-- **Brand origin** -- brand heritage (Fiat = Italy, even though Stellantis is Dutch-registered)
-- **Corporate group** -- parent company (Fiat = Stellantis, Audi = Volkswagen Group)
-- **Fuel type** -- normalized powertrain categories
-- **Colors** -- German to English translation
-- **Drive type** -- AWD/FWD/RWD
+All classifications are driven by `mappings.yaml` (brand origin, corporate group, fuel type, colors, drive type). Unknown values go to an "Other" bucket and are logged to `warnings.log`. Edit `mappings.yaml` to reclassify -- no code changes needed.
 
-Unknown values go to an "Other" bucket and are logged to `warnings.log` for review. Edit `mappings.yaml` to reclassify -- no code changes needed.
+See [METHODOLOGY.md](METHODOLOGY.md) for the full powertrain decision table, brand classification rules, and edge cases.
 
 ## Local Development
 
@@ -115,6 +110,8 @@ uv run scripts/report.py      # instant
 **Scope:** Passenger cars (Personenwagen) only
 
 Raw data files (~100MB each) are not committed to this repo. Only aggregated CSVs and charts are tracked in git.
+
+For data source details, ASTRA vs auto.swiss comparison, and validation methodology, see [METHODOLOGY.md](METHODOLOGY.md).
 
 ## Data Attribution
 

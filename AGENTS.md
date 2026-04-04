@@ -8,10 +8,11 @@ Pipeline: `download.py` → `process.py` → `validate.py` → `project.py` → 
 
 ## Data Scope
 
-- **Fahrzeugart = Personenwagen** (passenger cars only, ASTRA terminology)
-- **EV:** BEV + PHEV + Diesel PHEV + FCEV (plug-in vehicles only; excludes non-plug-in HEV)
-- **BEV:** Fully electric only
-- **HEV/PHEV split:** "Benzin/Elektrisch" and "Diesel/Elektrisch" include both plug-in (PHEV) and non-pluggable (HEV) hybrids. Split using `Hybridcode` column (OVC-HEV=PHEV, NOVC-HEV=HEV) for 2022+; CO2 <= 50 g/km fallback for pre-2022. Range Extenders ("Elektrisch mit RE") are classified as PHEV.
+All definitions, classifications, and assumptions are documented in **[METHODOLOGY.md](METHODOLOGY.md)** (single source of truth). Key points:
+
+- **Fahrzeugart = Personenwagen** (passenger cars only)
+- **EV:** BEV + PHEV + FCEV (plug-in vehicles only; excludes non-plug-in HEV)
+- **HEV/PHEV split:** via Hybridcode (2022+) or CO2 ≤ 50 g/km fallback (pre-2022)
 - Source files: ~100MB TSV each, 2016–present
 
 ## Chart Styleguide
@@ -112,14 +113,7 @@ Nissan:      #fca5a5
 
 ## Data Notes
 
-- ASTRA and auto.swiss both use the same MOFIS database but at different snapshot times. auto.swiss publishes on the 1st–3rd business day of the following month; ASTRA cumulates with retroactive corrections.
-- Monthly differences typically cancel out over a year (overall diff: +0.027% across 2.67M registrations). July tends to show ASTRA < auto.swiss; January the opposite.
-- 2% tolerance is well-calibrated for yearly comparisons (max observed: 0.07%). Monthly can reach ~5.5% for recent months due to snapshot timing.
-- **Year-end projection:** `project.py` pro-rates YTD registrations using scaling factors from reference years (2016–present, excluding COVID 2020–21). A capture ratio corrects for ASTRA reporting lag in the partial month. If capture ratio is outside 0.4–1.3, the partial month is excluded. Outputs `projection.json` consumed by chart.py and report.py.
-- Canton codes in data include non-Swiss codes (A, BA, FL, M, P) — filtered out for map charts but harmlessly present in CSVs.
-- 2016–2018 ASTRA files have a typo: "Erstinvekehrsetzung_Kanton" (missing 'r'). `process.py` auto-corrects this.
-- Mild hybrids (48V MHEV) may appear as 'Benzin/Elektrisch' in older ASTRA data. They are correctly classified as HEV by our logic since they cannot achieve CO2 <= 50 g/km and don't have OVC-HEV Hybridcode.
-- Chinese Extended-Range EVs (Li Auto, AITO) entering the Swiss market will be classified as 'Elektrisch mit RE' or OVC-HEV in ASTRA data. Our logic correctly maps these to PHEV.
+See [METHODOLOGY.md](METHODOLOGY.md) for full details on data source, ASTRA vs auto.swiss differences, validation tolerances, geographic scope, temporal rules, and known limitations.
 
 ## File Structure
 
@@ -142,6 +136,7 @@ reports/          # Monthly markdown reports (YYYY-MM.md)
 mappings.yaml     # Brand origins, groups, fuel types, colors
 reference.yaml    # auto.swiss totals for plausibility checks
 warnings.log      # Unified: unmapped values + plausibility checks
+METHODOLOGY.md    # Single source of truth: definitions, classifications, assumptions
 .github/workflows/update.yml  # Monthly CI pipeline
 .github/workflows/test.yml   # pytest + coverage on push/PR
 ```
