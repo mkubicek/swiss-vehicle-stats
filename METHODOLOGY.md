@@ -25,7 +25,7 @@ Both ASTRA and auto.swiss use the same underlying MOFIS database but differ in s
 
 - **auto.swiss** publishes on the 1st–3rd business day of the following month
 - **ASTRA** cumulates with retroactive corrections over time
-- Monthly differences can reach ~5.5% for recent months; yearly differences are ≤0.07%
+- Monthly differences can reach ~5.5% for very recent months; yearly differences are ≤0.07%
 - Differences typically cancel out over a full year (+0.027% across 2.67M registrations)
 - We use **ASTRA** as primary source and **auto.swiss** as validation reference
 
@@ -55,18 +55,20 @@ This corresponds to UNECE Category M1 — vehicles designed for passenger carria
 
 This table defines the complete classification logic. All code must implement these rules exactly.
 
-| ASTRA Treibstoff | Hybridcode (2022+) | CO2 (g/km) | Classification |
+| ASTRA Treibstoff | Hybridcode | CO2 (g/km) | Classification |
 |---|---|---|---|
 | Elektrisch | — | — | **BEV** |
 | Elektrisch mit RE | — | — | **PHEV** |
 | Benzin / Elektrisch | OVC-HEV | — | **PHEV** |
-| Benzin / Elektrisch | NOVC-HEV | — | **HEV (Petrol)** |
+| Benzin / Elektrisch | NOVC-HEV or NOVC-FCHV | — | **HEV (Petrol)** |
 | Benzin / Elektrisch | *missing* | ≤ 50 | **PHEV** |
 | Benzin / Elektrisch | *missing* | > 50 | **HEV (Petrol)** |
+| Benzin / Elektrisch | *missing* | *missing* | **HEV (Petrol)** |
 | Diesel / Elektrisch | OVC-HEV | — | **PHEV (Diesel)** |
-| Diesel / Elektrisch | NOVC-HEV | — | **HEV (Diesel)** |
+| Diesel / Elektrisch | NOVC-HEV or NOVC-FCHV | — | **HEV (Diesel)** |
 | Diesel / Elektrisch | *missing* | ≤ 50 | **PHEV (Diesel)** |
 | Diesel / Elektrisch | *missing* | > 50 | **HEV (Diesel)** |
+| Diesel / Elektrisch | *missing* | *missing* | **HEV (Diesel)** |
 | Wasserstoff / Elektrisch | — | — | **FCEV** |
 | Benzin | — | — | **Petrol** |
 | Diesel | — | — | **Diesel** |
@@ -75,9 +77,10 @@ This table defines the complete classification logic. All code must implement th
 
 ### Resolution Priority
 
-1. **Hybridcode** (available 2022+): `OVC-HEV` = PHEV, `NOVC-HEV` = HEV. Most reliable method.
-2. **CO2 ≤ 50 g/km fallback** (pre-2022 data): Matches EU regulation defining PHEV eligibility.
-3. **Range Extenders** ("Elektrisch mit RE"): Always classified as PHEV per auto.swiss, Swiss eMobility, and ACEA standards.
+1. **Hybridcode** (available from 2022, not always populated): `OVC-HEV` = PHEV, `NOVC-HEV` / `NOVC-FCHV` = HEV. Most reliable method.
+2. **CO2 ≤ 50 g/km fallback** (when Hybridcode missing): Matches EU regulation defining PHEV eligibility. CO2 column priority: `CO2-WLTP` (2023+) → `CO2_WLTP` (2022) → `CO2` (NEFZ, pre-2022). The 50 g/km threshold applies to whichever value is available.
+3. **No data fallback** (both Hybridcode and CO2 missing): Defaults to HEV, the conservative classification.
+4. **Range Extenders** ("Elektrisch mit RE"): Always classified as PHEV per auto.swiss, Swiss eMobility, and ACEA standards.
 
 ### Aggregate Categories
 
@@ -88,6 +91,12 @@ This table defines the complete classification logic. All code must implement th
 | **Plug-in** | BEV + PHEV + FCEV | Same as EV (synonym) |
 
 **HEV and MHEV are explicitly excluded from "EV" counts.** They cannot charge from the grid.
+
+### Complete Output Categories
+
+The pipeline produces these fuel/powertrain categories (as seen in `fuel_by_month.csv` and charts):
+
+Petrol, Diesel, BEV, PHEV, Diesel PHEV, Hybrid (Petrol), Hybrid (Diesel), Hydrogen, CNG, LPG, Other
 
 ### Edge Cases
 
@@ -118,7 +127,7 @@ Maps brands to parent companies for group-level analysis:
 ### Display Names
 
 Brand names use Title Case, never ALL CAPS. Exceptions maintained by `display_brand()`:
-BMW, BYD, VW, MG, NIO (stay uppercase by convention).
+BMW, BYD, MG, DS, KGM, NIO, GWM, JAC, GAC, VW (stay uppercase by convention). VOLKSWAGEN is also renamed to VW.
 
 ### Unknown Brands
 
@@ -145,7 +154,7 @@ Any brand not in `mappings.yaml` → "Other" bucket + logged to `warnings.log`.
 
 `project.py` pro-rates YTD registrations using seasonal scaling factors:
 
-1. Reference years: 2016–present, **excluding COVID-affected 2020–2021**
+1. Reference years: 2016–present, **excluding 2020–2021** (COVID-19 lockdowns and supply chain disruptions make these years unrepresentative of normal seasonal patterns)
 2. A capture ratio corrects for ASTRA reporting lag in the partial month
 3. If capture ratio falls outside 0.4–1.3, the partial month is excluded
 4. Output: `projection.json` consumed by chart.py and report.py
@@ -162,13 +171,19 @@ Animated charts use **12-month trailing** sums/averages for trend stability. Thi
 
 `reference.yaml` contains annual totals from auto.swiss for cross-validation.
 
-### Tolerance Thresholds
+### Checks
 
-| Comparison | Tolerance | Rationale |
-|------------|-----------|-----------|
-| Yearly totals | ±2% | Max observed: 0.07%. 2% provides generous margin |
-| Monthly totals | ±2% | Max observed ~5.5% for recent months due to snapshot timing, but 2% catches most anomalies |
-| BEV monthly | ±5% | Smaller absolute numbers make BEV counts more volatile across sources |
+`validate.py` runs 7 checks (warnings only, never blocks the pipeline):
+
+| Check | What it does | Threshold |
+|-------|-------------|-----------|
+| `check_yearly_totals` | Compare yearly totals vs auto.swiss reference | ±2% (max observed: 0.07%) |
+| `check_monthly_totals` | Compare monthly totals vs auto.swiss reference | ±2% (recent months can differ ~5.5% due to snapshot timing) |
+| `check_bev_totals` | Compare BEV monthly totals vs auto.swiss reference | ±5% (smaller absolute numbers = more volatile) |
+| `check_monthly_range` | Flag months outside expected registration range | 5,000–45,000 |
+| `check_complete_years` | Detect missing months in completed years | All 12 months expected (current year excluded) |
+| `check_yoy_spikes` | Flag suspicious month-over-month changes (skips 2020–2021) | >50% change |
+| `check_fuel_consistency` | Verify fuel-type totals sum to monthly totals | Exact match |
 
 ### Warning System
 
