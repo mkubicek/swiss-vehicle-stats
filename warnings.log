@@ -1,4 +1,4 @@
-# Warnings — 2026-04-01 01:43
+# Warnings — 2026-04-05 08:47
 # Unmapped values + plausibility checks
 
 plausibility:bev_monthly:2019-04: ASTRA=1,050 vs auto.swiss=1,122 (diff=6.4%)
@@ -6,9 +6,10 @@ plausibility:bev_monthly:2019-07: ASTRA=686 vs auto.swiss=745 (diff=7.9%)
 plausibility:bev_monthly:2019-10: ASTRA=666 vs auto.swiss=715 (diff=6.9%)
 plausibility:bev_monthly:2020-04: ASTRA=500 vs auto.swiss=532 (diff=6.0%)
 plausibility:bev_monthly:2025-07: ASTRA=3,785 vs auto.swiss=4,083 (diff=7.3%)
-plausibility:mom_spike:2026-03: 7,601 vs prev 15,772 (change=52%, threshold=50%)
 plausibility:monthly_total:2025-06: ASTRA=22,671 vs auto.swiss=21,810 (diff=3.9%)
 plausibility:monthly_total:2025-07: ASTRA=18,548 vs auto.swiss=19,629 (diff=5.5%)
+unmapped:brand:DFM
+unmapped:brand:LYNK&CO
 unmapped:brand:UEBRIGE (SIEHE TYP)
 unmapped:color:Effektlack
 unmapped:color:unbekannt
