@@ -520,7 +520,8 @@ def chart_ev_wave():
 #   MERCEDES-BENZ AMG — AMG GT / C 63 / E 63 / ... all stored as "AMG ..."
 #   AUDI RS           — RS3 / RS6 / RS Q8 / ... all stored as "RS ..."
 #   LAND ROVER RR     — Range Rover Sport / Velar / full-size all "RR ..."
-MODEL_ARTIFACTS = {"MERCEDES-BENZ AMG", "AUDI RS", "LAND ROVER RR"}
+#   TOYOTA GR         — GR Yaris / GR Supra / GR Corolla all stored as "GR ..."
+MODEL_ARTIFACTS = {"MERCEDES-BENZ AMG", "AUDI RS", "LAND ROVER RR", "TOYOTA GR"}
 
 # First frame year for chart_model_race. Data goes back to 2016 but the
 # pre-2020 era has fewer model debuts and weaker climbers/fallers signal,

@@ -507,7 +507,56 @@ model_merges:
   BENTLEY CONTINENTAL: Bentley Continental
   SUZUKI SX4S-CROSS: Suzuki SX4 S-Cross
   SUZUKI SX4S-CROSS1.6: Suzuki SX4 S-Cross
-  # Discovery Sport is distinct from the full-size Discovery — merge only the
-  # "DISCOVERYSP." engine spellings together, leave LAND ROVER DISCOVERY alone.
+  # Land Rover writes models many ways — two-word brand plus glued-on engine
+  # codes ("DISCOVERYSP.SD4", "DISCO.SP") the decimal engine-stripper misses.
+  # Discovery Sport, the full-size Discovery, and Defender are distinct models;
+  # collapse each one's spellings onto itself, keep the three apart.
   LAND ROVER DISCOVERYSP.TD4: Land Rover Discovery Sport
   LAND ROVER DISCOVERYSP.SI4: Land Rover Discovery Sport
+  LAND ROVER DISCOVERYSP.SD4: Land Rover Discovery Sport
+  LAND ROVER DISCOVERYSP.DI4: Land Rover Discovery Sport
+  LAND ROVER DISCOVERYSP.TDE: Land Rover Discovery Sport
+  LAND ROVER DISCOVERYSP.ED4: Land Rover Discovery Sport
+  LAND ROVER DISCOVERYSPPHEV: Land Rover Discovery Sport
+  LAND ROVER DISCOVERYSP: Land Rover Discovery Sport
+  LAND ROVER DISCO.SP: Land Rover Discovery Sport
+  LAND ROVER DISCO.SP.P200: Land Rover Discovery Sport
+  LAND ROVER DISCOVERY: Land Rover Discovery
+  LAND ROVER DISCOV: Land Rover Discovery
+  LAND ROVER DISCOV.2.0SI4: Land Rover Discovery
+  LAND ROVER DEFENDER: Land Rover Defender
+  LAND ROVER DEFENDER110PHEV: Land Rover Defender
+  LAND ROVER DEFENDERSI6MHEV: Land Rover Defender
+
+  # --- Pass 2: typos, trim/battery variants, and German names surfaced by a
+  #     full per-brand scan of the aggregated data. ---
+  # Skoda: "OKTAVIA"/"KODIAK" typos; Enyaq battery/AWD/RS trims; Citi(go).
+  SKODA OKTAVIA: Skoda Octavia
+  SKODA KODIAQ: Skoda Kodiaq
+  SKODA KODIAK: Skoda Kodiaq
+  SKODA ENYAQ: Skoda Enyaq
+  SKODA ENYAQ85: Skoda Enyaq
+  SKODA ENYAQ85X: Skoda Enyaq
+  SKODA ENYAQRS: Skoda Enyaq
+  SKODA CITIGO: Skoda Citigo
+  SKODA CITI: Skoda Citigo
+  # Mercedes V-Class: V250/V300D engine trims + the German "V-Klasse" name.
+  # Vito (the commercial van) stays separate.
+  MERCEDES-BENZ V-KLASSE: Mercedes-Benz V-Class
+  MERCEDES-BENZ V250: Mercedes-Benz V-Class
+  MERCEDES-BENZ V300D: Mercedes-Benz V-Class
+  # Hyundai: Grand Santa Fe folds into Santa Fe; i30 N keeps its own line
+  # (distinct hot hatch) but absorbs the i30 N SE trim.
+  HYUNDAI GRANDSANTA: Hyundai Santa Fe
+  HYUNDAI GRAND: Hyundai Santa Fe
+  HYUNDAI I30N: Hyundai i30 N
+  HYUNDAI I30NSE: Hyundai i30 N
+  # Seat: Sportstourer/ST suffixes and typos ("TERRACO" -> Tarraco).
+  SEAT LEON: Seat Leon
+  SEAT LEONSP: Seat Leon
+  SEAT IBIZA: Seat Ibiza
+  SEAT IBIZAST: Seat Ibiza
+  SEAT ARONA: Seat Arona
+  SEAT ARON: Seat Arona
+  SEAT TARRACO: Seat Tarraco
+  SEAT TERRACO: Seat Tarraco
