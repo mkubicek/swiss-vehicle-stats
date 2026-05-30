@@ -232,6 +232,65 @@ class TestNormalizeModel:
         assert process.normalize_model("VW", "T-ROC", []) == "VW T-ROC"
 
 
+class TestNormalizeModelBrandRules:
+    """Brand-specific specials that collapse trims/performance onto the base
+    model so segments compare across makers (BMW series, AMG/RS fold, etc.)."""
+
+    def test_bmw_collapses_trims_and_m_cars_to_series(self):
+        for typ1, exp in [
+            ("320D xDrive", "BMW 3 Series"), ("330E", "BMW 3 Series"),
+            ("M340I", "BMW 3 Series"), ("M3 Competition", "BMW 3 Series"),
+            ("118i", "BMW 1 Series"), ("M135i", "BMW 1 Series"),
+            ("520d", "BMW 5 Series"), ("M5", "BMW 5 Series"),
+        ]:
+            assert process.normalize_model("BMW", typ1, []) == exp
+
+    def test_bmw_suv_electric_roadster_stay_distinct(self):
+        assert process.normalize_model("BMW", "X3 M40i", []) == "BMW X3"
+        assert process.normalize_model("BMW", "X1", []) == "BMW X1"
+        assert process.normalize_model("BMW", "iX3", []) == "BMW IX3"
+        assert process.normalize_model("BMW", "i4 eDrive40", []) == "BMW I4"
+        assert process.normalize_model("BMW", "i3s", []) == "BMW I3"  # trim folds to i3
+        assert process.normalize_model("BMW", "Z4", []) == "BMW Z4"
+
+    def test_mercedes_amg_folds_to_base_class(self):
+        assert process.normalize_model("MERCEDES-BENZ", "AMG C 63 S E P", []) == "MERCEDES-BENZ C"
+        assert process.normalize_model("MERCEDES-BENZ", "AMG GLC 43 4MA", []) == "MERCEDES-BENZ GLC"
+        assert process.normalize_model("MERCEDES-BENZ", "AMG A 35 4MATI", []) == "MERCEDES-BENZ A"
+        # AMG recorded as its own Marke folds in too; standalone GT keeps "GT".
+        assert process.normalize_model("MERCEDES-AMG", "AMG GT 63 4MATI", []) == "MERCEDES-BENZ GT"
+
+    def test_mercedes_strips_engine_digits_to_alpha_base(self):
+        assert process.normalize_model("MERCEDES-BENZ", "GLA200", []) == "MERCEDES-BENZ GLA"
+        assert process.normalize_model("MERCEDES-BENZ", "CLA250", []) == "MERCEDES-BENZ CLA"
+        assert process.normalize_model("MERCEDES-BENZ", "C 220 d", []) == "MERCEDES-BENZ C"
+        assert process.normalize_model("MERCEDES-BENZ", "V250d", []) == "MERCEDES-BENZ V"
+        assert process.normalize_model("MERCEDES-BENZ", "GLC 300", []) == "MERCEDES-BENZ GLC"
+
+    def test_audi_rs_s_fold_to_base_line(self):
+        assert process.normalize_model("AUDI", "RS 3 Sportback", []) == "AUDI A3"
+        assert process.normalize_model("AUDI", "RS 6 Avant", []) == "AUDI A6"
+        assert process.normalize_model("AUDI", "RS Q8", []) == "AUDI Q8"
+        assert process.normalize_model("AUDI", "S3", []) == "AUDI A3"
+        assert process.normalize_model("AUDI", "SQ5", []) == "AUDI Q5"
+        assert process.normalize_model("AUDI", "TTS", []) == "AUDI TT"
+        assert process.normalize_model("AUDI", "Q445E-TRON", []) == "AUDI Q4"  # concatenated
+
+    def test_audi_standalone_sports_and_etron_gt_distinct(self):
+        assert process.normalize_model("AUDI", "R8 V10", []) == "AUDI R8"
+        assert process.normalize_model("AUDI", "RS e-tron GT", []) == "AUDI E-TRON GT"
+        assert process.normalize_model("AUDI", "e-tron 55", []) == "AUDI E-TRON"  # SUV, distinct
+
+    def test_lexus_strips_hybrid_trim_to_alpha_base(self):
+        assert process.normalize_model("LEXUS", "RX450H", []) == "LEXUS RX"
+        assert process.normalize_model("LEXUS", "NX450H+", []) == "LEXUS NX"
+        assert process.normalize_model("LEXUS", "UX250H", []) == "LEXUS UX"
+
+    def test_ds_number_is_the_model(self):
+        assert process.normalize_model("DS", "DS7 Crossback", []) == "DS DS7"
+        assert process.normalize_model("DS", "DS7CRB.E-TENSE4X4", []) == "DS DS7"
+
+
 # ---------------------------------------------------------------------------
 # find_raw_files
 # ---------------------------------------------------------------------------

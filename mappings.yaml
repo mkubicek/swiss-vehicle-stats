@@ -560,3 +560,178 @@ model_merges:
   SEAT ARON: Seat Arona
   SEAT TARRACO: Seat Tarraco
   SEAT TERRACO: Seat Tarraco
+  # Mercedes: ASTRA stores the sedans as bare class letters ("C 220 D" ->
+  # first token "C"). Relabel to the proper "<X>-Class" name so model and
+  # segment charts read cleanly. (CLA/CLS/GLA/GLC/etc. are separate keys.)
+  MERCEDES-BENZ A: Mercedes-Benz A-Class
+  MERCEDES-BENZ B: Mercedes-Benz B-Class
+  MERCEDES-BENZ C: Mercedes-Benz C-Class
+  MERCEDES-BENZ E: Mercedes-Benz E-Class
+  MERCEDES-BENZ S: Mercedes-Benz S-Class
+  MERCEDES-BENZ G: Mercedes-Benz G-Class
+  MERCEDES-BENZ V: Mercedes-Benz V-Class
+  # AMG GT folds (via normalize_model) to "MERCEDES-BENZ GT"; relabel it. The
+  # standalone AMG GT sports car is the only Mercedes whose base token is "GT".
+  MERCEDES-BENZ GT: Mercedes-AMG GT
+  # Audi e-tron GT (sport sedan) — pretty label; kept distinct from the SUV.
+  AUDI E-TRON GT: Audi e-tron GT
+  # Land Rover Range Rover: ASTRA's "RR ..." first token lumps the full-size
+  # Range Rover and RR Sport (both Large SUV); relabel the bucket. Evoque /
+  # Velar / Discovery are separate keys and stay separate.
+  LAND ROVER RR: Land Rover Range Rover
+
+# Market segment per canonical model, for cross-maker comparison (e.g. BMW
+# 3 Series vs Mercedes C-Class vs Audi A4 = "Compact Executive"). Keyed on the
+# canonical model emitted by normalize_model (case-insensitive). Unmapped
+# models fall to "Other" and are excluded from segment charts.
+#
+# Principle: segment = body/market class. A performance variant inherits its
+# base model's segment (BMW M3 -> Compact Executive, with the 3 Series). Only
+# standalone sports cars with no volume base get "Sports / GT" (Z4, TT).
+#
+# Known gap: ASTRA lumps every AMG into one "MERCEDES-BENZ AMG" bucket and
+# every Audi RS into "AUDI RS" — those span many segments (C 63 is compact-exec,
+# GLE 63 is large-SUV), so they can't be placed and stay "Other". BMW M cars
+# ARE placeable because the M<series> name encodes the class. This makes the
+# performance tail lopsided across makers; see issue #7 to split the buckets.
+#
+# Scoped to premium/luxury makers (the comparison set). Extend as needed.
+model_segments:
+  # --- BMW (post series-collapse: "BMW 3 Series", plus X/i/Z nameplates;
+  #     M2-M8 fold into their series, M340i etc. likewise) ---
+  BMW 1 Series: Compact
+  BMW 2 Series: Compact
+  BMW 3 Series: Compact Executive
+  BMW 4 Series: Compact Executive
+  BMW 5 Series: Executive
+  BMW 6 Series: Executive
+  BMW 7 Series: Luxury
+  BMW 8 Series: Luxury
+  BMW X1: Compact SUV
+  BMW X2: Compact SUV
+  BMW X3: Mid-size SUV
+  BMW X4: Mid-size SUV
+  BMW X5: Large SUV
+  BMW X6: Large SUV
+  BMW X7: Large SUV
+  BMW XM: Large SUV
+  BMW Z4: Sports / GT
+  BMW i8: Sports / GT        # plug-in hybrid sports car
+  BMW i3: City / Supermini   # ~4.0 m B-segment city EV
+  BMW i4: Compact Executive
+  BMW i5: Executive
+  BMW i7: Luxury
+  BMW iX1: Compact SUV
+  BMW iX2: Compact SUV
+  BMW iX3: Mid-size SUV
+  BMW iX: Large SUV
+  # --- Mercedes-Benz ---
+  Mercedes-Benz A-Class: Compact
+  Mercedes-Benz B-Class: Compact
+  Mercedes-Benz CLA: Compact   # FWD A-Class platform; rivals A3 sedan, not C-Class
+  Mercedes-Benz C-Class: Compact Executive
+  Mercedes-Benz CLE: Compact Executive
+  Mercedes-Benz E-Class: Executive
+  Mercedes-Benz CLS: Executive
+  Mercedes-Benz S-Class: Luxury
+  Mercedes-Benz GLA: Compact SUV
+  Mercedes-Benz GLB: Compact SUV
+  Mercedes-Benz GLC: Mid-size SUV
+  Mercedes-Benz GLE: Large SUV
+  Mercedes-Benz GLS: Large SUV
+  Mercedes-Benz G-Class: Large SUV
+  Mercedes-Benz EQA: Compact SUV
+  Mercedes-Benz EQB: Compact SUV
+  Mercedes-Benz EQV: MPV             # electric V-Class
+  Mercedes-Benz EQC: Mid-size SUV
+  Mercedes-Benz EQE: Executive
+  Mercedes-Benz EQS: Luxury
+  Mercedes-Benz V-Class: MPV
+  Mercedes-Benz SL: Sports / GT
+  Mercedes-Benz SLC: Sports / GT     # roadster (ex-SLK)
+  Mercedes-AMG GT: Sports / GT       # standalone AMG sports car (no base model)
+  # --- Audi (S/RS fold into the base A/Q line via normalize_model) ---
+  Audi A1: City / Supermini
+  Audi A3: Compact
+  Audi A4: Compact Executive
+  Audi A5: Compact Executive
+  Audi A6: Executive
+  Audi A7: Executive
+  Audi A8: Luxury
+  Audi Q2: Compact SUV
+  Audi Q3: Compact SUV
+  Audi Q4: Compact SUV
+  Audi Q5: Mid-size SUV
+  Audi Q6: Mid-size SUV              # Q6 e-tron ~4.77 m, Q5/GLC class not Q7
+  Audi Q7: Large SUV
+  Audi Q8: Large SUV
+  Audi e-tron: Large SUV             # Q8 e-tron SUV
+  Audi e-tron GT: Executive          # sport sedan, Taycan peer (distinct from the SUV)
+  Audi TT: Sports / GT
+  Audi R8: Sports / GT
+  # --- Other premium / luxury makers (headline models) ---
+  Tesla Model 3: Compact Executive
+  Tesla Model S: Executive
+  Tesla Model Y: Mid-size SUV
+  Tesla Model X: Large SUV
+  Polestar 2: Compact Executive
+  Polestar 3: Large SUV
+  Polestar 4: Mid-size SUV
+  Volvo S60: Compact Executive
+  Volvo V40: Compact
+  Volvo V60: Compact Executive
+  Volvo S90: Executive
+  Volvo V90: Executive
+  Volvo XC40: Compact SUV
+  Volvo EX30: Compact SUV
+  Volvo EX40: Compact SUV
+  Volvo C40: Compact SUV
+  Volvo EC40: Compact SUV
+  Volvo XC60: Mid-size SUV
+  Volvo XC90: Large SUV
+  Volvo EX90: Large SUV
+  Porsche Macan: Mid-size SUV
+  Porsche Cayenne: Large SUV
+  Porsche Panamera: Executive
+  Porsche Taycan: Executive
+  Porsche 911: Sports / GT
+  Porsche 718: Sports / GT
+  Porsche Cayman: Sports / GT
+  Porsche Boxster: Sports / GT
+  Lexus CT: Compact
+  Lexus UX: Compact SUV
+  Lexus LBX: Compact SUV
+  Lexus NX: Mid-size SUV
+  Lexus RZ: Mid-size SUV
+  Lexus RX: Large SUV
+  Lexus ES: Executive
+  Lexus LC: Sports / GT
+  Jaguar XE: Compact Executive
+  Jaguar XF: Executive
+  Jaguar E-Pace: Compact SUV
+  Jaguar F-Pace: Mid-size SUV
+  Jaguar I-Pace: Mid-size SUV
+  Jaguar F-Type: Sports / GT
+  Land Rover Evoque: Compact SUV
+  Land Rover Discovery Sport: Compact SUV
+  Land Rover Velar: Mid-size SUV
+  Land Rover Discovery: Large SUV   # full-size ~4.97 m, X5/GLE/Q7 class
+  Land Rover Defender: Large SUV
+  Land Rover Range Rover: Large SUV  # RR bucket: full-size + RR Sport, both large
+  Alfa Romeo Giulia: Compact Executive
+  Alfa Romeo Giulietta: Compact
+  Alfa Romeo MiTo: City / Supermini
+  Alfa Romeo 4C: Sports / GT
+  Alfa Romeo Stelvio: Mid-size SUV
+  Alfa Romeo Tonale: Compact SUV
+  Alfa Romeo Junior: Compact SUV
+  Maserati Ghibli: Executive
+  Maserati Levante: Large SUV
+  Maserati Grecale: Mid-size SUV
+  Genesis G70: Compact Executive
+  Genesis GV60: Compact SUV
+  Genesis GV70: Mid-size SUV
+  Genesis GV80: Large SUV
+  DS DS3: City / Supermini
+  DS DS4: Compact
+  DS DS7: Mid-size SUV

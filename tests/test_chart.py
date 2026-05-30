@@ -464,14 +464,13 @@ class TestChartEvWave:
 
 class TestChartModelRace:
     def test_filters_artifacts(self, chart_dirs):
-        """MERCEDES-BENZ AMG must not appear in rendered race labels.
-
-        Indirect check: we can't inspect rendered text from the GIF, but
-        we can verify the artifact set contains the expected entry so the
-        filter at chart_model_race's `if model in MODEL_ARTIFACTS` line is
-        structurally in place.
+        """Cross-segment buckets that can't be placed (TOYOTA GR mixes GR Yaris
+        / Supra / Corolla) stay filtered. AMG/RS are NO LONGER filtered — they
+        fold into their base model in normalize_model — so they must be absent.
         """
-        assert "MERCEDES-BENZ AMG" in chart.MODEL_ARTIFACTS
+        assert "TOYOTA GR" in chart.MODEL_ARTIFACTS
+        assert "MERCEDES-BENZ AMG" not in chart.MODEL_ARTIFACTS
+        assert "AUDI RS" not in chart.MODEL_ARTIFACTS
 
     def test_file_missing(self, chart_dirs, capsys):
         chart.chart_model_race()

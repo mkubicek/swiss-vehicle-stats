@@ -517,11 +517,14 @@ def chart_ev_wave():
 # name (so the key mixes several distinct nameplates). Filtered out of
 # chart_model_race. To split one into real nameplates instead of filtering,
 # add per-variant model_overrides/model_merges in mappings.yaml.
-#   MERCEDES-BENZ AMG — AMG GT / C 63 / E 63 / ... all stored as "AMG ..."
-#   AUDI RS           — RS3 / RS6 / RS Q8 / ... all stored as "RS ..."
-#   LAND ROVER RR     — Range Rover Sport / Velar / full-size all "RR ..."
-#   TOYOTA GR         — GR Yaris / GR Supra / GR Corolla all stored as "GR ..."
-MODEL_ARTIFACTS = {"MERCEDES-BENZ AMG", "AUDI RS", "LAND ROVER RR", "TOYOTA GR"}
+# Mercedes AMG and Audi RS are NO LONGER filtered — normalize_model now parses
+# them back to their base nameplate (AMG C 63 -> C-Class, RS 3 -> A3), so they
+# fold into the base model instead of forming a cross-segment bucket.
+#   TOYOTA GR — GR Yaris / GR Supra / GR Corolla all stored as "GR ..." across
+#   three different segments, so it can't be placed; kept filtered.
+# (LAND ROVER RR is no longer filtered — it's relabelled to "Land Rover Range
+#  Rover" via model_merges and classified Large SUV; all RR variants are large.)
+MODEL_ARTIFACTS = {"TOYOTA GR"}
 
 # First frame year for chart_model_race. Data goes back to 2016 but the
 # pre-2020 era has fewer model debuts and weaker climbers/fallers signal,

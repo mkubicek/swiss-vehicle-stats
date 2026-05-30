@@ -54,6 +54,12 @@ def load_mappings() -> dict:
 
 _TESLA_RE = re.compile(r"^MODEL\s*([YS3X])")
 _VW_ID_RE = re.compile(r"^ID\.?\s*([0-9]+|BUZZ)")
+# BMW: a series digit + two trim digits + optional fuel letters ("320D",
+# "330E", "M340I", "118I"). Collapse these onto the series so BMW sits at the
+# same grain as Mercedes class letters and Audi A/Q lines. Full M cars (M2-M8,
+# no two-digit tail), X SUVs, i/iX electrics and the Z roadster don't match and
+# stay distinct nameplates.
+_BMW_SERIES_RE = re.compile(r"^M?([1-8])\d{2}[A-Z]*$")
 # ASTRA pre-2022 records often concatenate engine codes onto the model name
 # without a space ("OCTAVIA2.0TDI", "TUCSON1.6TGDIPHEV", "VITARA1.6"). Strip
 # the trailing engine code so those rows aggregate into the real nameplate.
@@ -81,6 +87,10 @@ def normalize_model(brand, typ1, overrides_sorted: list[tuple[str, str]]) -> str
     # literal string "nan", which would otherwise survive into model keys.
     if not b or not t or b == "NAN" or t == "NAN":
         return ""
+    # Mercedes-AMG is recorded both as its own Marke and as "AMG ..." Typ1 under
+    # MERCEDES-BENZ; treat it as Mercedes-Benz so AMG cars fold into the base.
+    if b == "MERCEDES-AMG":
+        b = "MERCEDES-BENZ"
     raw = f"{b} {t}"
     for prefix, canonical in overrides_sorted:
         if raw == prefix or raw.startswith(prefix + " "):
@@ -97,6 +107,64 @@ def normalize_model(brand, typ1, overrides_sorted: list[tuple[str, str]]) -> str
         match = _VW_ID_RE.match(t)
         if match:
             return f"VW ID.{match.group(1)}"
+
+    # BMW: "320D"/"M340I"/"118I" → "BMW 3/3/1 Series". Full M cars (M2-M8) fold
+    # into their series too (M3 -> 3 Series). X SUVs, i/iX electrics, Z stay.
+    if b == "BMW":
+        bmw_tok = t.split()[0]
+        match = _BMW_SERIES_RE.match(bmw_tok)
+        if match:
+            return f"BMW {match.group(1)} Series"
+        m_full = re.match(r"^M([1-8])$", bmw_tok)
+        if m_full:
+            return f"BMW {m_full.group(1)} Series"
+        # i / iX electrics: fold trim suffixes ("I3S" -> I3, "I4EDRIVE40" -> I4).
+        m_i = re.match(r"^(IX[1-9]?|I[1-9])", bmw_tok)
+        if m_i:
+            return f"BMW {m_i.group(1)}"
+
+    # Mercedes-Benz: model names are class letters (A/B/C/E/S/G/V) or letter
+    # groups (GLA/GLC/CLA/EQE/SL/...); the digits are ALWAYS engine displacement.
+    # So the model is the leading alphabetic run. AMG folds into the same base
+    # ("AMG C 63" -> C, "AMG GLC 43" -> GLC, "AMG GT 63" -> GT; "GLA200" -> GLA,
+    # "V250D" -> V). The base then routes through model_merges / model_segments.
+    if b == "MERCEDES-BENZ":
+        tok = t[3:].lstrip(" -") if t.startswith("AMG") else t
+        base = re.match(r"[A-Z]+", tok)
+        return f"MERCEDES-BENZ {base.group()}" if base else ""
+
+    # Lexus: 2-3 letter model names (RX/NX/UX/ES/LC/LBX/RZ...), digits are always
+    # engine/hybrid trim. "RX450H" -> RX, "NX450H+" -> NX, "UX250H" -> UX.
+    if b == "LEXUS":
+        base = re.match(r"[A-Z]+", t.split()[0])
+        if base:
+            return f"LEXUS {base.group()}"
+
+    # Audi RS/S performance fold into the base A/Q line ("RS 3"/"S3" -> A3,
+    # "RS Q8"/"SQ7" -> Q8/Q7). The e-tron GT sport sedan is distinct from the
+    # e-tron SUV; R8 is a standalone supercar (falls through). The final A/Q rule
+    # catches concatenated forms ("Q445E-TRON" -> Q4, "A4 Avant" -> A4).
+    if b == "AUDI":
+        atok = t.split()[0]
+        if "E-TRON GT" in t or "E-TRONGT" in t.replace(" ", ""):
+            return "AUDI E-TRON GT"
+        if atok.startswith("TT"):           # TT / TTS / TTRS
+            return "AUDI TT"
+        m_rs = re.match(r"^RS\s*(Q)?\s*([1-8])", t)
+        if m_rs:
+            return f"AUDI {'Q' if m_rs.group(1) else 'A'}{m_rs.group(2)}"
+        m_s = re.match(r"^S(Q)?([1-8])", atok)
+        if m_s:
+            return f"AUDI {'Q' if m_s.group(1) else 'A'}{m_s.group(2)}"
+        m_aq = re.match(r"^(A|Q)([1-8])", atok)
+        if m_aq:
+            return f"AUDI {m_aq.group(1)}{m_aq.group(2)}"
+
+    # DS: "DS7 Crossback ..." / "DS7CRB.E-TENSE4X4" -> DS DS7 (number = model).
+    if b == "DS":
+        m_ds = re.match(r"^DS\s*([0-9])", t)
+        if m_ds:
+            return f"DS DS{m_ds.group(1)}"
 
     first = t.split()[0].rstrip(",.")
     # Punctuation-only Typ1 (".", ",") strips to nothing — no usable model
@@ -311,6 +379,15 @@ def process_file(filepath: Path, mappings: dict, warnings: set) -> dict:
         if merges:
             df["_model"] = df["_model"].map(lambda k: merges.get(k, k))
 
+        # Segment (market class) — keyed on the canonical model, case-insensitive
+        # so it composes with both UPPER auto-keys and proper-case merge labels.
+        # Lets a future chart compare segments across makers (BMW 3 Series vs
+        # Mercedes C-Class vs Audi A4 = "Compact Executive"). Unmapped → "Other".
+        segments = {k.upper(): v for k, v in (m.get("model_segments", {}) or {}).items()}
+        df["_segment"] = df["_model"].map(
+            lambda k: segments.get(str(k).upper(), "Other") if k else "Other"
+        )
+
     # Color
     if "Farbe" in df.columns:
         df["_color"] = df["Farbe"].apply(lambda x: safe_map(x, m.get("colors", {})))
@@ -359,13 +436,15 @@ def process_file(filepath: Path, mappings: dict, warnings: set) -> dict:
                 canton_bev, on=["_canton", "_year", "_month"]
             )
 
-        # Model by month (for chart_model_race)
+        # Model by month (for chart_model_race), annotated with segment
         if "_model" in valid.columns:
             model_valid = valid[valid["_model"] != ""]
             if not model_valid.empty:
+                group_cols = ["_year", "_month", "_model", "_brand"]
+                if "_segment" in model_valid.columns:
+                    group_cols.append("_segment")
                 agg["model_by_month"] = (
-                    model_valid.groupby(["_year", "_month", "_model", "_brand"])
-                    .size().reset_index(name="count")
+                    model_valid.groupby(group_cols).size().reset_index(name="count")
                 )
 
         # Brand BEV by month (for ev_race)
@@ -490,8 +569,10 @@ def consolidate_and_save(agg: dict):
 
     # Brand BEV by month
     if "model_by_month" in agg:
-        df = agg["model_by_month"].groupby(["_year", "_month", "_model", "_brand"])["count"].sum().reset_index()
-        df.columns = ["year", "month", "model", "brand", "count"]
+        has_seg = "_segment" in agg["model_by_month"].columns
+        keys = ["_year", "_month", "_model", "_brand"] + (["_segment"] if has_seg else [])
+        df = agg["model_by_month"].groupby(keys)["count"].sum().reset_index()
+        df.columns = ["year", "month", "model", "brand"] + (["segment"] if has_seg else []) + ["count"]
         df = df.sort_values(["year", "month", "model"])
         df.to_csv(OUT_DIR / "model_by_month.csv", index=False)
 
