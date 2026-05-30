@@ -257,6 +257,45 @@ class TestFindRawFiles:
 
 
 # ---------------------------------------------------------------------------
+# model_merges (applied after normalize_model in process_file)
+# ---------------------------------------------------------------------------
+
+class TestModelMerges:
+    def test_collapses_concatenation_fragments(self, tmp_path):
+        """OCTAVIAC (combi spelling) and OCTAVIA must land on one model key.
+
+        normalize_model alone splits them ("SKODA OCTAVIA" vs "SKODA OCTAVIAC");
+        model_merges collapses both onto the canonical label.
+        """
+        filepath = tmp_path / "NEUZU_merge.txt"
+        rows = [
+            {**_full_row(Marke="SKODA"), "Typ1": "OCTAVIA 2.0 TDI"},
+            {**_full_row(Marke="SKODA"), "Typ1": "OCTAVIAC1.6TDI"},
+        ]
+        _make_tsv(filepath, rows)
+        mappings = {**MINIMAL_MAPPINGS, "model_merges": {
+            "SKODA OCTAVIA": "Skoda Octavia",
+            "SKODA OCTAVIAC": "Skoda Octavia",
+        }}
+
+        agg = process.process_file(filepath, mappings, set())
+
+        models = set(agg["model_by_month"]["_model"])
+        assert models == {"Skoda Octavia"}
+        assert agg["model_by_month"]["count"].sum() == 2
+
+    def test_no_merges_leaves_keys_untouched(self, tmp_path):
+        filepath = tmp_path / "NEUZU_nomerge.txt"
+        rows = [{**_full_row(Marke="SKODA"), "Typ1": "OCTAVIAC1.6TDI"}]
+        _make_tsv(filepath, rows)
+        mappings = {**MINIMAL_MAPPINGS}  # no model_merges key
+
+        agg = process.process_file(filepath, mappings, set())
+
+        assert set(agg["model_by_month"]["_model"]) == {"SKODA OCTAVIAC"}
+
+
+# ---------------------------------------------------------------------------
 # process_file — full columns, TSV
 # ---------------------------------------------------------------------------
 

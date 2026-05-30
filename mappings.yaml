@@ -460,3 +460,54 @@ model_overrides:
   # first-token-only auto-rule would bucket it as "MITSUBISHI SPACE".
   MITSUBISHI SPACE STAR: Mitsubishi Space Star
   MITSUBISHI SPACESTAR: Mitsubishi Space Star
+
+# Model merges for chart_model_race (applied AFTER normalize_model).
+#
+# model_overrides matches the raw "Marke Typ1" by space-prefix, so it can't
+# reach concatenation fragments — ASTRA glues the body/trim suffix onto the
+# model token with no space ("OCTAVIAC1.6TDI", "PASSATV", "Q3SPORTBACK"),
+# which normalize_model turns into a distinct key. model_merges collapses
+# those normalized keys onto one canonical label.
+#
+# Key   = the normalized model key as emitted by normalize_model (UPPER CASE,
+#         except curated override labels). List EVERY spelling, including the
+#         canonical one, so they all map to the identical final string.
+# Value = the chart label, in proper case.
+# Add an entry only when keys are the SAME nameplate split by spelling. Do NOT
+# merge genuinely distinct models (Fiat 500 vs 500X, BMW iX vs iX1, Mazda
+# CX-3 vs CX-30) or engine/trim variants (left for a later curation pass).
+# Refresh every couple of months as new spellings appear.
+model_merges:
+  # Combi/Variant wagon spellings glued onto the nameplate.
+  SKODA OCTAVIA: Skoda Octavia
+  SKODA OCTAVIAC: Skoda Octavia
+  SKODA SUPERB: Skoda Superb
+  SKODA SUPERBC: Skoda Superb
+  VW PASSAT: VW Passat
+  VW PASSATV: VW Passat
+  # Sportback / body-style suffix glued on.
+  AUDI Q3: Audi Q3
+  AUDI Q3SPORTBACK: Audi Q3
+  AUDI A1: Audi A1
+  AUDI A1SPORTBACK: Audi A1
+  OPEL GRANDLAND: Opel Grandland
+  OPEL GRANDLANDX: Opel Grandland
+  # Two-token nameplates the first-token auto-rule truncates.
+  HYUNDAI SANTA: Hyundai Santa Fe
+  HYUNDAI SANTAFE: Hyundai Santa Fe
+  HYUNDAI SANTAFE16TGDIPHEV: Hyundai Santa Fe
+  MITSUBISHI OUTLAND: Mitsubishi Outlander
+  MITSUBISHI OUTLANDER: Mitsubishi Outlander
+  JEEP GRAND: Jeep Grand Cherokee
+  JEEP GRANDCHEROKEE: Jeep Grand Cherokee
+  JEEP GRANDCHEROKEEPHEV: Jeep Grand Cherokee
+  TOYOTA LAND: Toyota Land Cruiser
+  TOYOTA LANDCRUISER: Toyota Land Cruiser
+  BENTLEY CONTI: Bentley Continental
+  BENTLEY CONTINENTAL: Bentley Continental
+  SUZUKI SX4S-CROSS: Suzuki SX4 S-Cross
+  SUZUKI SX4S-CROSS1.6: Suzuki SX4 S-Cross
+  # Discovery Sport is distinct from the full-size Discovery — merge only the
+  # "DISCOVERYSP." engine spellings together, leave LAND ROVER DISCOVERY alone.
+  LAND ROVER DISCOVERYSP.TD4: Land Rover Discovery Sport
+  LAND ROVER DISCOVERYSP.SI4: Land Rover Discovery Sport

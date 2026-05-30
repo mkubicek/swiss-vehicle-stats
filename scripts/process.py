@@ -303,6 +303,13 @@ def process_file(filepath: Path, mappings: dict, warnings: set) -> dict:
             normalize_model(b, t, overrides_sorted)
             for b, t in zip(df["Marke"].astype(str), df["Typ1"].astype(str))
         ]
+        # Collapse spelling/concatenation variants that the auto-rule splits
+        # ("SKODA OCTAVIAC" -> Skoda Octavia). model_overrides can't reach
+        # these because it matches the raw "Marke Typ1" by space-prefix, and
+        # ASTRA concatenates the suffix onto the model token with no space.
+        merges = {k.upper(): v for k, v in (m.get("model_merges", {}) or {}).items()}
+        if merges:
+            df["_model"] = df["_model"].map(lambda k: merges.get(k, k))
 
     # Color
     if "Farbe" in df.columns:

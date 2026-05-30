@@ -144,7 +144,7 @@ tests/
   test_utils.py   # Pure-function tests (chart, process, report)
 charts/           # Generated PNGs and GIFs
 reports/          # Monthly markdown reports (YYYY-MM.md)
-mappings.yaml     # Brand origins, groups, fuel types, colors, model overrides
+mappings.yaml     # Brand origins, groups, fuel types, colors, model overrides + merges
 reference.yaml    # auto.swiss totals for plausibility checks
 warnings.log      # Unified: unmapped values + plausibility checks
 METHODOLOGY.md    # Single source of truth: definitions, classifications, assumptions

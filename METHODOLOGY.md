@@ -142,10 +142,11 @@ For model-level analytics (`chart_model_race`), ASTRA's `Marke` + `Typ1` columns
    - **Tesla:** `MODEL Y` / `MODELY` / `MODEL3` all collapse to `TESLA MODEL <X>`
    - **VW ID family:** `ID.3 PRO 150 KW` / `ID.3PROS150KW` / `ID4` all collapse to `VW ID.<N>`; `ID. BUZZ GTX` → `VW ID.BUZZ`
 3. **Empty / NaN guard** — rows with missing brand or `Typ1` (including pandas-stringified `"nan"`) drop out of the model aggregation entirely.
+4. **Key merge (`mappings.yaml > model_merges`)** — a final pass collapses normalized keys that are the same nameplate split by ASTRA spelling (`SKODA OCTAVIAC` → Skoda Octavia, `VW PASSATV` → VW Passat, `HYUNDAI SANTA`/`SANTAFE` → Hyundai Santa Fe). This layer exists because `model_overrides` matches the raw `Marke Typ1` by space-prefix and can't reach the body/trim suffix ASTRA concatenates onto the model token with no space. Only merge genuinely identical nameplates — not distinct models (Fiat 500 vs 500X) or engine/trim variants.
 
-Refresh `model_overrides` every couple of months as new nameplates appear.
+Refresh `model_overrides` and `model_merges` every couple of months as new spellings appear.
 
-**Known aggregation artifact:** `MERCEDES-BENZ AMG` aggregates dozens of distinct AMG variants (AMG GT, AMG C 63, etc.) because ASTRA stores all of them with `Typ1` starting with `AMG`. It's filtered from `chart_model_race` via the `MODEL_ARTIFACTS` set in `scripts/chart.py`. Add overrides to split AMG into individual nameplates if a future chart needs that resolution.
+**Known aggregation artifacts:** Some `Typ1` values are sub-brand prefixes shared by many distinct nameplates — `MERCEDES-BENZ AMG` (AMG GT, C 63, …), `AUDI RS` (RS3, RS6, …), `LAND ROVER RR` (Range Rover Sport, Velar, …). These aggregate unrelated models, so they're filtered from `chart_model_race` via the `MODEL_ARTIFACTS` set in `scripts/chart.py`. Add per-variant `model_overrides`/`model_merges` to split one into real nameplates if a future chart needs that resolution.
 
 ---
 
