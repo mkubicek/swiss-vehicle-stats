@@ -432,3 +432,31 @@ colors:
   "Fleckentarnung ( Nur für Militärfahrzeuge)": Camouflage
   Effektlack: Other
   unbekannt: Other
+
+# Model name overrides for chart_model_race (and any future model-level chart).
+#
+# Pattern: longest-prefix match against the uppercased "Marke Typ1" string.
+# Default auto-rule (in scripts/process.py:normalize_model): brand + first
+# Typ1 token, with Tesla / VW-ID regex specials that tolerate ASTRA's
+# inconsistent spacing ("MODEL Y" vs "MODELY", "ID.3 PRO 150 KW" vs "ID.3PROS150KW").
+#
+# Add an override here only when:
+#   (a) the auto-rule MERGES two distinct models — list each with its full
+#       distinguishing prefix and a canonical display name; the auto-rule
+#       still picks up the un-listed sibling.
+#   (b) the auto-rule SPLITS one model across spellings — list each spelling
+#       with the same canonical display name.
+# Values are the chart label, in proper case. Refresh every couple of months
+# as new models appear in the data.
+model_overrides:
+  # Split: Yaris Cross is a distinct compact SUV from the Yaris hatchback.
+  # Longest-prefix wins, so plain "YARIS HYBRID" still falls to the auto-rule.
+  # ASTRA sometimes writes it as one word ("YARISCROSS"); both alias to the same canonical.
+  TOYOTA YARIS CROSS: Toyota Yaris Cross
+  TOYOTA YARISCROSS: Toyota Yaris Cross
+  TOYOTA COROLLA CROSS: Toyota Corolla Cross
+  TOYOTA COROLLACROSS: Toyota Corolla Cross
+  # Merge: ASTRA stores Mitsubishi's compact as "SPACE STAR" (two tokens);
+  # first-token-only auto-rule would bucket it as "MITSUBISHI SPACE".
+  MITSUBISHI SPACE STAR: Mitsubishi Space Star
+  MITSUBISHI SPACESTAR: Mitsubishi Space Star

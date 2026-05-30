@@ -133,6 +133,20 @@ BMW, BYD, MG, DS, KGM, NIO, GWM, JAC, GAC, VW (stay uppercase by convention). VO
 
 Any brand not in `mappings.yaml` → "Other" bucket + logged to `warnings.log`.
 
+### Model Normalization
+
+For model-level analytics (`chart_model_race`), ASTRA's `Marke` + `Typ1` columns are normalized into a stable model key by `process.normalize_model()`:
+
+1. **Override match (longest-prefix wins)** — `mappings.yaml > model_overrides` provides operator-curated splits (e.g. `Toyota Yaris Cross` is distinct from `Toyota Yaris`) and merges (e.g. `MITSUBISHI SPACE STAR` reunites a two-token nameplate that the auto-rule would split as `MITSUBISHI SPACE`). Override values are the proper-cased display label.
+2. **Auto-rule (default)** — brand + first `Typ1` token, with regex specials for marques whose `Typ1` ASTRA writes inconsistently:
+   - **Tesla:** `MODEL Y` / `MODELY` / `MODEL3` all collapse to `TESLA MODEL <X>`
+   - **VW ID family:** `ID.3 PRO 150 KW` / `ID.3PROS150KW` / `ID4` all collapse to `VW ID.<N>`; `ID. BUZZ GTX` → `VW ID.BUZZ`
+3. **Empty / NaN guard** — rows with missing brand or `Typ1` (including pandas-stringified `"nan"`) drop out of the model aggregation entirely.
+
+Refresh `model_overrides` every couple of months as new nameplates appear.
+
+**Known aggregation artifact:** `MERCEDES-BENZ AMG` aggregates dozens of distinct AMG variants (AMG GT, AMG C 63, etc.) because ASTRA stores all of them with `Typ1` starting with `AMG`. It's filtered from `chart_model_race` via the `MODEL_ARTIFACTS` set in `scripts/chart.py`. Add overrides to split AMG into individual nameplates if a future chart needs that resolution.
+
 ---
 
 ## Geographic Scope

@@ -6,6 +6,7 @@ for classification. Unknown values go to "Other" bucket.
 """
 
 import json
+import re
 import yaml
 import pandas as pd
 from pathlib import Path
@@ -21,6 +22,7 @@ WARNINGS_FILE = ROOT / "warnings.log"
 USE_COLS = [
     "Fahrzeugart",
     "Marke",
+    "Typ1",
     "Treibstoff",
     "Hybridcode",           # OVC-HEV / NOVC-HEV (2022+)
     "CO2",                  # CO2 g/km NEFZ (2016-2021)
@@ -48,6 +50,64 @@ _HYBRID_INTERMEDIATES = {"_petrol_hybrid", "_diesel_hybrid"}
 def load_mappings() -> dict:
     with open(MAPPINGS_FILE) as f:
         return yaml.safe_load(f)
+
+
+_TESLA_RE = re.compile(r"^MODEL\s*([YS3X])")
+_VW_ID_RE = re.compile(r"^ID\.?\s*([0-9]+|BUZZ)")
+# ASTRA pre-2022 records often concatenate engine codes onto the model name
+# without a space ("OCTAVIA2.0TDI", "TUCSON1.6TGDIPHEV", "VITARA1.6"). Strip
+# the trailing engine code so those rows aggregate into the real nameplate.
+# The regex requires a decimal (e.g. "2.0", "1.6") after the letters, which
+# is the distinguishing feature of engine displacement codes — model
+# designators like X1, Q3, A4, ID.3 (handled separately) have no decimal.
+_ENGINE_CODE_RE = re.compile(r"^([A-Z][A-Z\-]*)\d+\.\d+.*$")
+
+
+def normalize_model(brand, typ1, overrides_sorted: list[tuple[str, str]]) -> str:
+    """Combine brand + Typ1 into a stable model key for chart_model_race.
+
+    1. Try the longest-prefix override (operator-curated splits/merges from
+       mappings.yaml > model_overrides).
+    2. Fall back to: brand + first Typ1 token, with Tesla / VW-ID regex
+       specials that tolerate ASTRA's inconsistent spacing ("MODEL Y" vs
+       "MODELY", "ID.3 PRO 150 KW" vs "ID.3PROS150KW", "ID4" → "ID.4").
+    Returns "" when the row has no usable model info (filtered out upstream).
+    """
+    if not isinstance(brand, str) or not isinstance(typ1, str):
+        return ""
+    b = brand.strip().upper()
+    t = typ1.strip().upper()
+    # Empty / NaN guard. df["col"].astype(str) renders missing values as the
+    # literal string "nan", which would otherwise survive into model keys.
+    if not b or not t or b == "NAN" or t == "NAN":
+        return ""
+    raw = f"{b} {t}"
+    for prefix, canonical in overrides_sorted:
+        if raw == prefix or raw.startswith(prefix + " "):
+            return canonical
+
+    # Tesla: "MODEL Y", "MODELY", "MODEL3" all collapse to "MODEL <X>".
+    if b == "TESLA":
+        match = _TESLA_RE.match(t)
+        if match:
+            return f"TESLA MODEL {match.group(1)}"
+
+    # VW ID family: "ID.3 PRO 150 KW", "ID.3PROS150KW", "ID4" → "ID.<N>".
+    if b == "VW":
+        match = _VW_ID_RE.match(t)
+        if match:
+            return f"VW ID.{match.group(1)}"
+
+    first = t.split()[0].rstrip(",.")
+    # Punctuation-only Typ1 (".", ",") strips to nothing — no usable model
+    # info, so drop the row rather than emit a malformed "BRAND " key.
+    if not first:
+        return ""
+    # Strip concatenated engine codes ("OCTAVIA2.0TDI" -> "OCTAVIA").
+    engine_match = _ENGINE_CODE_RE.match(first)
+    if engine_match:
+        first = engine_match.group(1)
+    return f"{b} {first}"
 
 
 def safe_map(value, mapping: dict, default: str = "Other") -> str:
@@ -231,6 +291,19 @@ def process_file(filepath: Path, mappings: dict, warnings: set) -> dict:
             if safe_map(v, m.get("brand_origin", {})) == "Other" and str(v).strip():
                 warnings.add(f"brand:{v}")
 
+    # Model (brand + normalized Typ1) — feeds chart_model_race
+    if "Marke" in df.columns and "Typ1" in df.columns:
+        overrides = m.get("model_overrides", {}) or {}
+        overrides_sorted = sorted(
+            ((k.upper(), v) for k, v in overrides.items()),
+            key=lambda kv: len(kv[0]),
+            reverse=True,
+        )
+        df["_model"] = [
+            normalize_model(b, t, overrides_sorted)
+            for b, t in zip(df["Marke"].astype(str), df["Typ1"].astype(str))
+        ]
+
     # Color
     if "Farbe" in df.columns:
         df["_color"] = df["Farbe"].apply(lambda x: safe_map(x, m.get("colors", {})))
@@ -278,6 +351,15 @@ def process_file(filepath: Path, mappings: dict, warnings: set) -> dict:
             agg["canton_ev_by_month"] = canton_total.merge(
                 canton_bev, on=["_canton", "_year", "_month"]
             )
+
+        # Model by month (for chart_model_race)
+        if "_model" in valid.columns:
+            model_valid = valid[valid["_model"] != ""]
+            if not model_valid.empty:
+                agg["model_by_month"] = (
+                    model_valid.groupby(["_year", "_month", "_model", "_brand"])
+                    .size().reset_index(name="count")
+                )
 
         # Brand BEV by month (for ev_race)
         if "_brand" in valid.columns and "_is_bev" in valid.columns:
@@ -400,6 +482,12 @@ def consolidate_and_save(agg: dict):
         df.to_csv(OUT_DIR / "canton_ev_by_month.csv", index=False)
 
     # Brand BEV by month
+    if "model_by_month" in agg:
+        df = agg["model_by_month"].groupby(["_year", "_month", "_model", "_brand"])["count"].sum().reset_index()
+        df.columns = ["year", "month", "model", "brand", "count"]
+        df = df.sort_values(["year", "month", "model"])
+        df.to_csv(OUT_DIR / "model_by_month.csv", index=False)
+
     if "brand_bev_by_month" in agg:
         df = agg["brand_bev_by_month"].groupby(["_year", "_month", "_brand"])["bev_count"].sum().reset_index()
         df.columns = ["year", "month", "brand", "bev_count"]

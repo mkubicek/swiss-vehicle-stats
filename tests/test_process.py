@@ -124,6 +124,115 @@ class TestLoadMappings:
 
 
 # ---------------------------------------------------------------------------
+# normalize_model
+# ---------------------------------------------------------------------------
+
+def _sort_overrides(overrides: dict) -> list[tuple[str, str]]:
+    """Mirror process.process_file's overrides_sorted construction."""
+    return sorted(
+        ((k.upper(), v) for k, v in overrides.items()),
+        key=lambda kv: len(kv[0]),
+        reverse=True,
+    )
+
+
+class TestNormalizeModel:
+    def test_empty_inputs_return_empty(self):
+        assert process.normalize_model("", "TIGUAN", []) == ""
+        assert process.normalize_model("VW", "", []) == ""
+        assert process.normalize_model("   ", "TIGUAN", []) == ""
+
+    def test_punctuation_only_typ1_returns_empty(self):
+        # Punctuation-only Typ1 strips to nothing — must not emit a malformed
+        # "BRAND " key (brand + trailing space + empty model).
+        assert process.normalize_model("JEEP", ".", []) == ""
+        assert process.normalize_model("FIAT", ",", []) == ""
+        assert process.normalize_model("VW", ".,", []) == ""
+
+    def test_nan_string_inputs_return_empty(self):
+        # df["col"].astype(str) renders NaN as the literal string "nan".
+        assert process.normalize_model("nan", "TIGUAN", []) == ""
+        assert process.normalize_model("VW", "nan", []) == ""
+
+    def test_non_string_inputs_return_empty(self):
+        assert process.normalize_model(None, "TIGUAN", []) == ""
+        assert process.normalize_model("VW", None, []) == ""
+        assert process.normalize_model(123, "TIGUAN", []) == ""
+
+    def test_default_rule_brand_plus_first_token(self):
+        assert process.normalize_model("VW", "TIGUAN 2.0 TSI 4M", []) == "VW TIGUAN"
+        assert process.normalize_model("SKODA", "OCTAVIA 2.0TDI 4X4", []) == "SKODA OCTAVIA"
+        assert process.normalize_model("DACIA", "Sandero", []) == "DACIA SANDERO"
+
+    def test_default_rule_strips_trailing_punctuation(self):
+        assert process.normalize_model("BMW", "X1,", []) == "BMW X1"
+        assert process.normalize_model("AUDI", "Q3.", []) == "AUDI Q3"
+
+    def test_tesla_keeps_model_designator(self):
+        # ASTRA writes Tesla models inconsistently across years.
+        assert process.normalize_model("TESLA", "Model Y", []) == "TESLA MODEL Y"
+        assert process.normalize_model("TESLA", "MODELY", []) == "TESLA MODEL Y"
+        assert process.normalize_model("TESLA", "Model 3 LongRange", []) == "TESLA MODEL 3"
+        assert process.normalize_model("TESLA", "MODEL3", []) == "TESLA MODEL 3"
+        assert process.normalize_model("TESLA", "Model S", []) == "TESLA MODEL S"
+        assert process.normalize_model("TESLA", "Model X Plaid", []) == "TESLA MODEL X"
+
+    def test_vw_id_family_keeps_number(self):
+        assert process.normalize_model("VW", "ID.3 PRO 150 KW", []) == "VW ID.3"
+        assert process.normalize_model("VW", "ID.3PROS150KW", []) == "VW ID.3"
+        assert process.normalize_model("VW", "ID4", []) == "VW ID.4"
+        assert process.normalize_model("VW", "ID.7 TOURER", []) == "VW ID.7"
+        assert process.normalize_model("VW", "ID. BUZZ GTX", []) == "VW ID.BUZZ"
+
+    def test_override_longest_prefix_wins(self):
+        overrides = _sort_overrides({
+            "TOYOTA YARIS CROSS": "Toyota Yaris Cross",
+            "TOYOTA YARISCROSS": "Toyota Yaris Cross",
+        })
+        # "YARIS CROSS HYBRID" matches the longer prefix → override applies.
+        assert process.normalize_model("TOYOTA", "YARIS CROSS HYBRID", overrides) == "Toyota Yaris Cross"
+        # Concatenated spelling aliases to the same canonical.
+        assert process.normalize_model("TOYOTA", "YARISCROSS", overrides) == "Toyota Yaris Cross"
+        # Plain Yaris still falls through to the default rule.
+        assert process.normalize_model("TOYOTA", "YARIS HYBRID", overrides) == "TOYOTA YARIS"
+
+    def test_override_exact_match(self):
+        overrides = _sort_overrides({"MITSUBISHI SPACE STAR": "Mitsubishi Space Star"})
+        assert process.normalize_model("MITSUBISHI", "SPACE STAR", overrides) == "Mitsubishi Space Star"
+        # Without override, first-token-only rule would mis-merge as "SPACE".
+        assert process.normalize_model("MITSUBISHI", "SPACE STAR", []) == "MITSUBISHI SPACE"
+
+    def test_unknown_brand_uses_default_rule(self):
+        # No specials for non-Tesla / non-VW brands.
+        assert process.normalize_model("FAKE", "Model Y", []) == "FAKE MODEL"
+        assert process.normalize_model("FAKE", "ID.3", []) == "FAKE ID.3"
+
+    def test_strips_concatenated_engine_codes(self):
+        # ASTRA pre-2022 records often concatenate the trim/engine code onto
+        # the model name without a space. Strip the engine code so those rows
+        # aggregate into the real nameplate.
+        assert process.normalize_model("SKODA", "OCTAVIA2.0TDI", []) == "SKODA OCTAVIA"
+        assert process.normalize_model("SKODA", "OCTAVIA2.0TSI", []) == "SKODA OCTAVIA"
+        assert process.normalize_model("HYUNDAI", "TUCSON1.6TGDIPHEV", []) == "HYUNDAI TUCSON"
+        assert process.normalize_model("SUZUKI", "VITARA1.6TDI", []) == "SUZUKI VITARA"
+        assert process.normalize_model("SEAT", "ALHAMBRA2.0TDI", []) == "SEAT ALHAMBRA"
+        # Pure-decimal forms (no letters after the digits) also strip.
+        assert process.normalize_model("SUZUKI", "VITARA1.5", []) == "SUZUKI VITARA"
+        assert process.normalize_model("HYUNDAI", "TUCSON1.6", []) == "HYUNDAI TUCSON"
+
+    def test_does_not_strip_model_designators(self):
+        # The conservative regex (requires DECIMAL engine code) must NOT
+        # over-strip short alphanumeric model designators.
+        assert process.normalize_model("BMW", "X1", []) == "BMW X1"
+        assert process.normalize_model("BMW", "X5 M50", []) == "BMW X5"
+        assert process.normalize_model("AUDI", "Q3", []) == "AUDI Q3"
+        assert process.normalize_model("AUDI", "A4 Avant", []) == "AUDI A4"
+        assert process.normalize_model("FIAT", "500", []) == "FIAT 500"
+        assert process.normalize_model("FORD", "C-MAX", []) == "FORD C-MAX"
+        assert process.normalize_model("VW", "T-ROC", []) == "VW T-ROC"
+
+
+# ---------------------------------------------------------------------------
 # find_raw_files
 # ---------------------------------------------------------------------------
 
