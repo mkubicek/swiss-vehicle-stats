@@ -58,6 +58,17 @@ Nissan:      #fca5a5
 - **Brand names:** Title case, never ALL CAPS (Tesla, not TESLA; Mitsubishi, not MITSUBISHI). Use `display_brand()` which handles overrides (BMW, BYD, VW, MG, NIO stay uppercase).
 - **ASTRA terms:** When using German terminology (e.g. "Personenwagen"), always annotate with English equivalent or note "(ASTRA terminology)" on first use
 
+### Titles & Labels
+
+Every chart has a bold **title** (Title Case) and a SUBTLE (`#94a3b8`) **subtitle** directly beneath it. New charts must match the existing set — same vocabulary, same shape.
+
+- **Name the metric, not a vibe.** The title states what is measured (the quantity and the cut), not a theme. Good: "New Passenger Car Registrations in Switzerland", "Top 10 BEV Brands — Trailing 12-Month Registrations", "Fastest-Growing & Declining Car Models in Switzerland". Avoid evocative labels that imply mechanics the chart doesn't show — "Movers" / "Race" / "Climbers" suggest rank/position movement, but these charts plot registration **counts** and their **changes**, not ranking position. Internal function names (`chart_model_race`) may stay playful; the on-chart title may not.
+- **Geography is market, never origin.** The data is vehicles *registered in Switzerland*, overwhelmingly foreign brands. Frame as "in Switzerland", "Swiss ... registrations", or "by Canton". Never phrase a title so it reads as Swiss-made (e.g. "Swiss Car Models" implies the models themselves are Swiss).
+- **Title form:** Title Case. Use " — " (em dash) for a "Subject — Qualifier" split. Use "&" only for paired opposites ("Gains & Losses", "Growing & Declining"). Use "Top N" for ranked subsets. No ALL CAPS, no trailing punctuation.
+- **Subtitle = scope + method**, one line in SUBTLE. State the population and any methodology, with a `|` separating a secondary qualifier or the source. Pattern: `<scope> Personenwagen (passenger cars) ... | <qualifier or "Source: ASTRA/IVZ Open Data">`.
+- **Gloss every term in the title block:** "Personenwagen (passenger cars)" and "BEV" → "Fully electric (BEV)" on first use (matches the Language rules below).
+- **Reuse the house metric vocabulary** so charts read as a set: "New ... registrations" (counts), "Trailing 12-month" (rolling window), "Year-over-year" (YoY change), "... Share of ..." (percentages), "Location Quotient (LQ)" (over/under-representation), "Top N ... Over Time" (rankings).
+
 ### Layout
 
 - **Dark theme:** Background `#0d1117`, text white/light gray

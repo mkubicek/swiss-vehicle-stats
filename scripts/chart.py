@@ -666,7 +666,7 @@ def chart_model_race():
         # 3) methodology subtitle in SUBTLE (fontsize 8)
         fig.text(0.50, 0.975, f"{MONTH_NAMES[m].upper()} {y}", ha="center", va="top",
                  fontsize=28, fontweight="bold", color="#fbbf24", fontfamily="monospace")
-        fig.text(0.50, 0.925, "Swiss Car Model Movers — Year-over-Year Change",
+        fig.text(0.50, 0.925, "Fastest-Growing & Declining Car Models in Switzerland",
                  ha="center", va="top", fontsize=14, fontweight="bold", color=TEXT)
         fig.text(0.50, 0.900,
                  "Year-over-year change in trailing 12-month new Personenwagen (passenger car) registrations",
