@@ -1052,19 +1052,22 @@ class TestMain:
 # ---------------------------------------------------------------------------
 
 class TestMainGuard:
-    def test_run_as_main(self, tmp_path, monkeypatch):
-        """Cover the ``if __name__ == '__main__'`` block."""
-        monkeypatch.setattr(process, "RAW_DIR", tmp_path / "raw")
-        monkeypatch.setattr(process, "OUT_DIR", tmp_path / "out")
-        monkeypatch.setattr(process, "WARNINGS_FILE", tmp_path / "w.log")
-        monkeypatch.setattr(process, "MAPPINGS_FILE", tmp_path / "m.yaml")
-        (tmp_path / "m.yaml").write_text(yaml.dump({"fuel_types": {}}))
-        raw = tmp_path / "raw"
-        raw.mkdir()
+    def test_run_as_main(self, tmp_path):
+        """Cover the ``if __name__ == '__main__'`` block — sandboxed.
+
+        The exec recomputes ROOT/RAW_DIR/OUT_DIR from __file__, so monkeypatching
+        the module attrs has no effect — it would otherwise process the real
+        1 GB data/raw and overwrite tracked outputs. Point __file__ at a tmp tree
+        with one tiny raw file so main() runs fully but in isolation.
+        """
+        (tmp_path / "scripts").mkdir()
+        raw = tmp_path / "data" / "raw"
+        raw.mkdir(parents=True)
         (raw / "NEUZU-test.txt").write_text("Fahrzeugart\nPersonenwagen\n")
-        out = tmp_path / "out"
-        out.mkdir()
+        (tmp_path / "data" / "processed").mkdir(parents=True)
+        (tmp_path / "mappings.yaml").write_text(yaml.dump({"fuel_types": {}}))
+        fake_file = tmp_path / "scripts" / "process.py"  # -> ROOT = tmp_path
         source = Path(process.__file__).read_text()
         code = compile(source, process.__file__, "exec")
         with patch("builtins.print"):
-            exec(code, {"__name__": "__main__", "__file__": process.__file__})
+            exec(code, {"__name__": "__main__", "__file__": str(fake_file)})

@@ -635,10 +635,18 @@ class TestChartEvTaste:
 
 class TestMainGuard:
     def test_run_as_main(self, chart_dirs):
-        """Cover the ``if __name__ == '__main__'`` block."""
+        """Cover the ``if __name__ == '__main__'`` block — sandboxed.
+
+        The exec recomputes DATA_DIR/CHART_DIR from __file__ (ignoring the
+        monkeypatch), so point __file__ at the empty tmp tree. main() then finds
+        no monthly_totals.csv and returns early — no real GIFs re-rendered (which
+        was slow enough to time out CI) and no tracked charts overwritten.
+        """
+        data_dir, _, _ = chart_dirs
+        fake_file = data_dir.parent.parent / "scripts" / "chart.py"  # -> ROOT = tmp
         source = Path(chart.__file__).read_text()
         code = compile(source, chart.__file__, "exec")
-        exec(code, {"__name__": "__main__", "__file__": chart.__file__})
+        exec(code, {"__name__": "__main__", "__file__": str(fake_file)})
 
 
 class TestMain:
