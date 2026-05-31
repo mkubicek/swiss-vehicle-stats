@@ -575,10 +575,11 @@ model_merges:
   MERCEDES-BENZ GT: Mercedes-AMG GT
   # Audi e-tron GT (sport sedan) — pretty label; kept distinct from the SUV.
   AUDI E-TRON GT: Audi e-tron GT
-  # Land Rover Range Rover: ASTRA's "RR ..." first token lumps the full-size
-  # Range Rover and RR Sport (both Large SUV); relabel the bucket. Evoque /
-  # Velar / Discovery are separate keys and stay separate.
-  LAND ROVER RR: Land Rover Range Rover
+  # Land Rover Range Rover: normalize_model splits the "RR ..." family by
+  # sub-model (Evoque/Velar peeled off to their own keys); relabel the full-size
+  # Range Rover and Range Rover Sport (both Large SUV).
+  LAND ROVER RANGE ROVER: Land Rover Range Rover
+  LAND ROVER RANGE ROVER SPORT: Land Rover Range Rover Sport
 
 # Market segment per canonical model, for cross-maker comparison (e.g. BMW
 # 3 Series vs Mercedes C-Class vs Audi A4 = "Compact Executive"). Keyed on the
@@ -717,7 +718,8 @@ model_segments:
   Land Rover Velar: Mid-size SUV
   Land Rover Discovery: Large SUV   # full-size ~4.97 m, X5/GLE/Q7 class
   Land Rover Defender: Large SUV
-  Land Rover Range Rover: Large SUV  # RR bucket: full-size + RR Sport, both large
+  Land Rover Range Rover: Large SUV       # full-size flagship
+  Land Rover Range Rover Sport: Large SUV
   Alfa Romeo Giulia: Compact Executive
   Alfa Romeo Giulietta: Compact
   Alfa Romeo MiTo: City / Supermini
@@ -726,9 +728,12 @@ model_segments:
   Alfa Romeo Tonale: Compact SUV
   Alfa Romeo Junior: Compact SUV
   Maserati Ghibli: Executive
+  Maserati Quattroporte: Luxury
   Maserati Levante: Large SUV
   Maserati Grecale: Mid-size SUV
   Genesis G70: Compact Executive
+  Genesis G80: Executive
+  Genesis G90: Luxury
   Genesis GV60: Compact SUV
   Genesis GV70: Mid-size SUV
   Genesis GV80: Large SUV

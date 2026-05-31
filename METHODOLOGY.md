@@ -145,6 +145,7 @@ For model-level analytics (`chart_model_race`), ASTRA's `Marke` + `Typ1` columns
    - **Mercedes-Benz:** model names are class letters or letter groups and the digits are always engine displacement, so the model is the leading alphabetic run (`GLA200` → GLA, `C 220 d` → C, `V250d` → V). **AMG folds into the base** — the class after `AMG` decides it (`AMG C 63` → C-Class, `AMG GLC 43` → GLC); the standalone `AMG GT` keeps its own line. `MERCEDES-AMG` (a separate `Marke`) is treated as Mercedes-Benz.
    - **Audi RS/S:** performance trims fold into the base A/Q line (`RS 3`/`S3` → A3, `RS Q8`/`SQ7` → Q8/Q7, `TTS` → TT). `R8` and the `e-tron GT` sport sedan stay standalone (the GT is kept distinct from the `e-tron` SUV).
    - **Lexus:** 2–3 letter names, digits are hybrid trim — leading letters win (`RX450H` → RX, `NX450H+` → NX).
+   - **Land Rover:** the `RR ...` / `RANGE ROVER ...` family spans three segments, so it's split by sub-model — Evoque (Compact SUV), Velar (Mid), Range Rover Sport + full-size Range Rover (Large). Discovery / Defender are separate keys.
 3. **Empty / NaN guard** — rows with missing brand or `Typ1` (including pandas-stringified `"nan"`) drop out of the model aggregation entirely.
 4. **Key merge (`mappings.yaml > model_merges`)** — a final pass collapses normalized keys that are the same nameplate split by ASTRA spelling (`SKODA OCTAVIAC` → Skoda Octavia, `VW PASSATV` → VW Passat, `HYUNDAI SANTA`/`SANTAFE` → Hyundai Santa Fe) and applies proper-case display labels (`MERCEDES-BENZ C` → Mercedes-Benz C-Class). This layer exists because `model_overrides` matches the raw `Marke Typ1` by space-prefix and can't reach the body/trim suffix ASTRA concatenates onto the model token with no space. Only merge genuinely identical nameplates — not distinct models (Fiat 500 vs 500X) or engine/trim variants.
 
@@ -153,6 +154,8 @@ Refresh `model_overrides` and `model_merges` every couple of months as new spell
 ### Market Segment
 
 Each canonical model is tagged with a market segment (`mappings.yaml > model_segments`, emitted as the `segment` column of `model_by_month.csv`) for cross-maker comparison — BMW 3 Series, Mercedes C-Class and Audi A4 all map to **Compact Executive**. The map is scoped to premium/luxury makers; everything else is `Other`. The brand-fold rules above are the prerequisite: AMG/RS/M variants inherit their **base model's segment** (M3 sits with the 3 Series), and because they're folded into the base, the segment volume is complete — no separate "performance" bucket that would be lopsided across makers (ASTRA records AMG/RS differently than BMW M).
+
+For a segment-by-maker comparison, the `brand` column on `model_by_month.csv` rolls `MERCEDES-AMG` (a separate ASTRA `Marke`) into Mercedes-Benz so a maker isn't split in two. This rollup is scoped to the model data — the global `_brand` and the brand-level charts are unchanged, and `chart_model_race` groups by model and ignores brand.
 
 **Known aggregation artifacts:** `TOYOTA GR` (GR Yaris / Supra / Corolla) spans three segments and can't be placed from the `GR` first token alone, so it's filtered from `chart_model_race` via `MODEL_ARTIFACTS` in `scripts/chart.py`. Commercial vans (Vito, Citan) and a small tail of unparseable `Typ1` junk fall to segment `Other` and are excluded from segment charts.
 

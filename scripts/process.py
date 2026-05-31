@@ -166,6 +166,18 @@ def normalize_model(brand, typ1, overrides_sorted: list[tuple[str, str]]) -> str
         if m_ds:
             return f"DS DS{m_ds.group(1)}"
 
+    # Land Rover Range Rover family: ASTRA writes it as "RR ..." / "RANGE ROVER
+    # ..." and the sub-model is a keyword. These span THREE segments, so split
+    # them: Evoque (Compact SUV), Velar (Mid), Sport + full-size (Large).
+    if b == "LAND ROVER" and (t.startswith("RR") or t.split()[0].startswith("RANGE")):
+        if "EVOQUE" in t:
+            return "LAND ROVER EVOQUE"
+        if "VELAR" in t:
+            return "LAND ROVER VELAR"
+        if "SPORT" in t:
+            return "LAND ROVER RANGE ROVER SPORT"
+        return "LAND ROVER RANGE ROVER"
+
     first = t.split()[0].rstrip(",.")
     # Punctuation-only Typ1 (".", ",") strips to nothing — no usable model
     # info, so drop the row rather than emit a malformed "BRAND " key.
@@ -387,6 +399,13 @@ def process_file(filepath: Path, mappings: dict, warnings: set) -> dict:
         df["_segment"] = df["_model"].map(
             lambda k: segments.get(str(k).upper(), "Other") if k else "Other"
         )
+        # Brand for model/segment purposes only: ASTRA records some AMG cars
+        # under the Marke "MERCEDES-AMG", which would split Mercedes-Benz across
+        # two "makers" in a segment-by-maker comparison. normalize_model already
+        # folds the AMG *model* into Mercedes-Benz; fold the brand to match.
+        # (Scoped to _model_brand — the global _brand / brand charts are
+        # unchanged. chart_model_race groups by model and ignores brand.)
+        df["_model_brand"] = df["_brand"].replace({"MERCEDES-AMG": "MERCEDES-BENZ"})
 
     # Color
     if "Farbe" in df.columns:
@@ -440,11 +459,13 @@ def process_file(filepath: Path, mappings: dict, warnings: set) -> dict:
         if "_model" in valid.columns:
             model_valid = valid[valid["_model"] != ""]
             if not model_valid.empty:
-                group_cols = ["_year", "_month", "_model", "_brand"]
+                brand_col = "_model_brand" if "_model_brand" in model_valid.columns else "_brand"
+                group_cols = ["_year", "_month", "_model", brand_col]
                 if "_segment" in model_valid.columns:
                     group_cols.append("_segment")
                 agg["model_by_month"] = (
                     model_valid.groupby(group_cols).size().reset_index(name="count")
+                    .rename(columns={brand_col: "_brand"})
                 )
 
         # Brand BEV by month (for ev_race)

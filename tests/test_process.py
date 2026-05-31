@@ -290,6 +290,17 @@ class TestNormalizeModelBrandRules:
         assert process.normalize_model("DS", "DS7 Crossback", []) == "DS DS7"
         assert process.normalize_model("DS", "DS7CRB.E-TENSE4X4", []) == "DS DS7"
 
+    def test_land_rover_range_rover_family_splits_by_submodel(self):
+        # The "RR ..." bucket spans three segments — split it, don't lump.
+        assert process.normalize_model("LAND ROVER", "RR EVOQUE", []) == "LAND ROVER EVOQUE"
+        assert process.normalize_model("LAND ROVER", "RR VELAR", []) == "LAND ROVER VELAR"
+        assert process.normalize_model("LAND ROVER", "RR SPORT 3.0", []) == "LAND ROVER RANGE ROVER SPORT"
+        assert process.normalize_model("LAND ROVER", "RRSPORT", []) == "LAND ROVER RANGE ROVER SPORT"
+        assert process.normalize_model("LAND ROVER", "RR", []) == "LAND ROVER RANGE ROVER"
+        assert process.normalize_model("LAND ROVER", "RANGE ROVER", []) == "LAND ROVER RANGE ROVER"
+        # Non-Range-Rover Land Rovers are untouched by this rule.
+        assert process.normalize_model("LAND ROVER", "DEFENDER 110", []) == "LAND ROVER DEFENDER"
+
 
 # ---------------------------------------------------------------------------
 # find_raw_files
