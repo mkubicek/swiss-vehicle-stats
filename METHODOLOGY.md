@@ -147,6 +147,7 @@ For model-level analytics (`chart_model_race`), ASTRA's `Marke` + `Typ1` columns
    - **Audi RS/S:** performance trims fold into the base A/Q line (`RS 3`/`S3` → A3, `RS Q8`/`SQ7` → Q8/Q7, `TTS` → TT). `R8` and the `e-tron GT` sport sedan stay standalone (the GT is kept distinct from the `e-tron` SUV).
    - **Mini:** body-style/trim-first names collapse to nameplates (`3DOOR COOPER S`, `5DOOR ONE`, `COOPER S` → Mini Cooper; `COOPER S CLUBMAN` → Clubman; `COUNTRYMAN SE` → Countryman).
    - **Porsche:** concatenated trim/body suffixes fold back to the base nameplate (`911CARRERA` → 911, `TAYCAN4S` → Taycan, `CAYENNET` → Cayenne).
+   - **Cupra:** concatenated trims/batteries fold to the nameplate (`FORMENTORE-HYBRID` → Cupra Formentor, `BORN170KW...` → Cupra Born, `LEONSP` → Cupra Leon). The proper-case label matches the SEAT-era `model_overrides`, so Marke=CUPRA and historical Marke=SEAT rows land on one key.
    - **Lexus:** 2–3 letter names, digits are hybrid trim — leading letters win (`RX450H` → RX, `NX450H+` → NX).
    - **Land Rover:** the `RR ...` / `RANGE ROVER ...` family spans three segments, so it's split by sub-model — Evoque (Compact SUV), Velar (Mid), Range Rover Sport + full-size Range Rover (Large). Discovery / Defender are separate keys.
 4. **Empty / NaN guard** — rows with missing brand or `Typ1` (including pandas-stringified `"nan"`) drop out of the model aggregation entirely.
