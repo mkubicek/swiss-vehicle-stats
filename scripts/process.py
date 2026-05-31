@@ -129,7 +129,11 @@ def normalize_model(brand, typ1, overrides_sorted: list[tuple[str, str]]) -> str
     # ("AMG C 63" -> C, "AMG GLC 43" -> GLC, "AMG GT 63" -> GT; "GLA200" -> GLA,
     # "V250D" -> V). The base then routes through model_merges / model_segments.
     if b == "MERCEDES-BENZ":
-        tok = t[3:].lstrip(" -") if t.startswith("AMG") else t
+        tok = t
+        if tok.startswith("Z "):          # stray "Z " prefix on some AMG rows
+            tok = tok[2:].lstrip()
+        if tok.startswith("AMG"):
+            tok = tok[3:].lstrip(" -")
         base = re.match(r"[A-Z]+", tok)
         return f"MERCEDES-BENZ {base.group()}" if base else ""
 
@@ -148,6 +152,11 @@ def normalize_model(brand, typ1, overrides_sorted: list[tuple[str, str]]) -> str
         atok = t.split()[0]
         if "E-TRON GT" in t or "E-TRONGT" in t.replace(" ", ""):
             return "AUDI E-TRON GT"
+        # Q8 e-tron is the electric SUV (the renamed original "e-tron"); it must
+        # NOT merge with the combustion Q8. Route it to the e-tron key. Q4/Q6
+        # e-tron are EV-only (no combustion twin) so they keep their Q key.
+        if re.match(r"^S?Q8", atok) and "E-TRON" in t.replace(" ", ""):
+            return "AUDI E-TRON"
         if atok.startswith("TT"):           # TT / TTS / TTRS
             return "AUDI TT"
         m_rs = re.match(r"^RS\s*(Q)?\s*([1-8])", t)
@@ -174,7 +183,8 @@ def normalize_model(brand, typ1, overrides_sorted: list[tuple[str, str]]) -> str
             return "LAND ROVER EVOQUE"
         if "VELAR" in t:
             return "LAND ROVER VELAR"
-        if "SPORT" in t:
+        # ASTRA abbreviates Range Rover Sport as "RR SP." / "RR SP" (no "SPORT").
+        if "SPORT" in t or re.search(r"\bSP\b", t):
             return "LAND ROVER RANGE ROVER SPORT"
         return "LAND ROVER RANGE ROVER"
 

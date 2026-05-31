@@ -296,10 +296,29 @@ class TestNormalizeModelBrandRules:
         assert process.normalize_model("LAND ROVER", "RR VELAR", []) == "LAND ROVER VELAR"
         assert process.normalize_model("LAND ROVER", "RR SPORT 3.0", []) == "LAND ROVER RANGE ROVER SPORT"
         assert process.normalize_model("LAND ROVER", "RRSPORT", []) == "LAND ROVER RANGE ROVER SPORT"
+        # ASTRA abbreviates Sport as "RR SP." — must not fall through to full-size.
+        assert process.normalize_model("LAND ROVER", "RR SP.3.0SDV6", []) == "LAND ROVER RANGE ROVER SPORT"
+        assert process.normalize_model("LAND ROVER", "RR SP. SI4 PHEV", []) == "LAND ROVER RANGE ROVER SPORT"
         assert process.normalize_model("LAND ROVER", "RR", []) == "LAND ROVER RANGE ROVER"
+        assert process.normalize_model("LAND ROVER", "RR 3.0 TDV6", []) == "LAND ROVER RANGE ROVER"
         assert process.normalize_model("LAND ROVER", "RANGE ROVER", []) == "LAND ROVER RANGE ROVER"
         # Non-Range-Rover Land Rovers are untouched by this rule.
         assert process.normalize_model("LAND ROVER", "DEFENDER 110", []) == "LAND ROVER DEFENDER"
+
+    def test_audi_q8_etron_does_not_merge_into_combustion_q8(self):
+        # The electric Q8 e-tron (renamed original e-tron) must stay out of the
+        # combustion Q8 key. Q4/Q6 e-tron are EV-only and keep their Q key.
+        assert process.normalize_model("AUDI", "Q8 55 E-TRON", []) == "AUDI E-TRON"
+        assert process.normalize_model("AUDI", "SQ8 E-TRON", []) == "AUDI E-TRON"
+        assert process.normalize_model("AUDI", "E-TRON 55 QU", []) == "AUDI E-TRON"
+        assert process.normalize_model("AUDI", "Q8 50 TDI", []) == "AUDI Q8"      # combustion
+        assert process.normalize_model("AUDI", "SQ8 TDI", []) == "AUDI Q8"        # combustion perf
+        assert process.normalize_model("AUDI", "Q4 45 E-TRON", []) == "AUDI Q4"   # EV-only, keeps Q
+
+    def test_mercedes_strips_stray_z_prefix(self):
+        # Some AMG rows carry a stray "Z " prefix that would corrupt the class key.
+        assert process.normalize_model("MERCEDES-BENZ", "Z AMG G 63", []) == "MERCEDES-BENZ G"
+        assert process.normalize_model("MERCEDES-BENZ", "Z AMG GLS 63 4MA", []) == "MERCEDES-BENZ GLS"
 
 
 # ---------------------------------------------------------------------------

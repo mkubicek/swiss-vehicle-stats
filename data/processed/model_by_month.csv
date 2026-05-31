@@ -1667,7 +1667,6 @@ year,month,model,brand,segment,count
 2016,5,MERCEDES-BENZ SL,MERCEDES-BENZ,Sports / GT,3
 2016,5,MERCEDES-BENZ SLC,MERCEDES-BENZ,Sports / GT,16
 2016,5,MERCEDES-BENZ VITO,MERCEDES-BENZ,Other,48
-2016,5,MERCEDES-BENZ Z,MERCEDES-BENZ,Other,1
 2016,5,MINI COOPER,MINI,Other,399
 2016,5,MINI JCW,MINI,Other,32
 2016,5,MINI JOHN,MINI,Other,30
@@ -1685,7 +1684,7 @@ year,month,model,brand,segment,count
 2016,5,Mercedes-Benz B-Class,MERCEDES-BENZ,Compact,123
 2016,5,Mercedes-Benz C-Class,MERCEDES-BENZ,Compact Executive,317
 2016,5,Mercedes-Benz E-Class,MERCEDES-BENZ,Executive,99
-2016,5,Mercedes-Benz G-Class,MERCEDES-BENZ,Large SUV,12
+2016,5,Mercedes-Benz G-Class,MERCEDES-BENZ,Large SUV,13
 2016,5,Mercedes-Benz S-Class,MERCEDES-BENZ,Luxury,43
 2016,5,Mercedes-Benz V-Class,MERCEDES-BENZ,MPV,118
 2016,5,Mitsubishi Outlander,MITSUBISHI,Other,57
@@ -6913,8 +6912,8 @@ year,month,model,brand,segment,count
 2017,7,LOTUS EXIGE,LOTUS,Other,6
 2017,7,Land Rover Discovery,LAND ROVER,Large SUV,41
 2017,7,Land Rover Discovery Sport,LAND ROVER,Compact SUV,64
-2017,7,Land Rover Range Rover,LAND ROVER,Large SUV,13
-2017,7,Land Rover Range Rover Sport,LAND ROVER,Large SUV,102
+2017,7,Land Rover Range Rover,LAND ROVER,Large SUV,12
+2017,7,Land Rover Range Rover Sport,LAND ROVER,Large SUV,103
 2017,7,MASERATI GHIBLI,MASERATI,Executive,33
 2017,7,MASERATI GRANTURISMO,MASERATI,Other,1
 2017,7,MASERATI LEVANTE,MASERATI,Large SUV,36
@@ -11040,8 +11039,8 @@ year,month,model,brand,segment,count
 2018,6,LOTUS EXIGE,LOTUS,Other,1
 2018,6,Land Rover Discovery,LAND ROVER,Large SUV,22
 2018,6,Land Rover Discovery Sport,LAND ROVER,Compact SUV,65
-2018,6,Land Rover Range Rover,LAND ROVER,Large SUV,37
-2018,6,Land Rover Range Rover Sport,LAND ROVER,Large SUV,93
+2018,6,Land Rover Range Rover,LAND ROVER,Large SUV,31
+2018,6,Land Rover Range Rover Sport,LAND ROVER,Large SUV,99
 2018,6,MAN TGE,MAN,Other,1
 2018,6,MASERATI GHIBLI,MASERATI,Executive,19
 2018,6,MASERATI GRANCABRIO,MASERATI,Other,2
@@ -11431,8 +11430,8 @@ year,month,model,brand,segment,count
 2018,7,LOTUS EXIGE,LOTUS,Other,6
 2018,7,Land Rover Discovery,LAND ROVER,Large SUV,18
 2018,7,Land Rover Discovery Sport,LAND ROVER,Compact SUV,39
-2018,7,Land Rover Range Rover,LAND ROVER,Large SUV,26
-2018,7,Land Rover Range Rover Sport,LAND ROVER,Large SUV,35
+2018,7,Land Rover Range Rover,LAND ROVER,Large SUV,17
+2018,7,Land Rover Range Rover Sport,LAND ROVER,Large SUV,44
 2018,7,MASERATI GHIBLI,MASERATI,Executive,18
 2018,7,MASERATI GRANCABRIO,MASERATI,Other,2
 2018,7,MASERATI GRANTURISMO,MASERATI,Other,2
@@ -11812,8 +11811,8 @@ year,month,model,brand,segment,count
 2018,8,LOTUS EXIGE,LOTUS,Other,5
 2018,8,Land Rover Discovery,LAND ROVER,Large SUV,11
 2018,8,Land Rover Discovery Sport,LAND ROVER,Compact SUV,22
-2018,8,Land Rover Range Rover,LAND ROVER,Large SUV,27
-2018,8,Land Rover Range Rover Sport,LAND ROVER,Large SUV,24
+2018,8,Land Rover Range Rover,LAND ROVER,Large SUV,21
+2018,8,Land Rover Range Rover Sport,LAND ROVER,Large SUV,30
 2018,8,MASERATI GHIBLI,MASERATI,Executive,10
 2018,8,MASERATI GRANTURISMO,MASERATI,Other,2
 2018,8,MASERATI LEVANTE,MASERATI,Large SUV,10
@@ -12176,8 +12175,8 @@ year,month,model,brand,segment,count
 2018,9,LOTUS EXIGE,LOTUS,Other,2
 2018,9,Land Rover Discovery,LAND ROVER,Large SUV,13
 2018,9,Land Rover Discovery Sport,LAND ROVER,Compact SUV,57
-2018,9,Land Rover Range Rover,LAND ROVER,Large SUV,28
-2018,9,Land Rover Range Rover Sport,LAND ROVER,Large SUV,11
+2018,9,Land Rover Range Rover,LAND ROVER,Large SUV,6
+2018,9,Land Rover Range Rover Sport,LAND ROVER,Large SUV,33
 2018,9,MASERATI GHIBLI,MASERATI,Executive,22
 2018,9,MASERATI GRANTURISMO,MASERATI,Other,2
 2018,9,MASERATI LEVANTE,MASERATI,Large SUV,22
@@ -12546,8 +12545,8 @@ year,month,model,brand,segment,count
 2018,10,LOTUS EXIGE,LOTUS,Other,3
 2018,10,Land Rover Discovery,LAND ROVER,Large SUV,26
 2018,10,Land Rover Discovery Sport,LAND ROVER,Compact SUV,55
-2018,10,Land Rover Range Rover,LAND ROVER,Large SUV,73
-2018,10,Land Rover Range Rover Sport,LAND ROVER,Large SUV,22
+2018,10,Land Rover Range Rover,LAND ROVER,Large SUV,33
+2018,10,Land Rover Range Rover Sport,LAND ROVER,Large SUV,62
 2018,10,MASERATI GHIBLI,MASERATI,Executive,8
 2018,10,MASERATI GRANTURISMO,MASERATI,Other,1
 2018,10,MASERATI LEVANTE,MASERATI,Large SUV,40
@@ -12917,8 +12916,8 @@ year,month,model,brand,segment,count
 2018,11,LOTUS EVORA,LOTUS,Other,1
 2018,11,Land Rover Discovery,LAND ROVER,Large SUV,18
 2018,11,Land Rover Discovery Sport,LAND ROVER,Compact SUV,64
-2018,11,Land Rover Range Rover,LAND ROVER,Large SUV,74
-2018,11,Land Rover Range Rover Sport,LAND ROVER,Large SUV,32
+2018,11,Land Rover Range Rover,LAND ROVER,Large SUV,32
+2018,11,Land Rover Range Rover Sport,LAND ROVER,Large SUV,74
 2018,11,MASERATI GHIBLI,MASERATI,Executive,13
 2018,11,MASERATI LEVANTE,MASERATI,Large SUV,33
 2018,11,MASERATI QUATTROPORTE,MASERATI,Luxury,2
@@ -13282,8 +13281,8 @@ year,month,model,brand,segment,count
 2018,12,LOTUS EXIGE,LOTUS,Other,1
 2018,12,Land Rover Discovery,LAND ROVER,Large SUV,21
 2018,12,Land Rover Discovery Sport,LAND ROVER,Compact SUV,119
-2018,12,Land Rover Range Rover,LAND ROVER,Large SUV,83
-2018,12,Land Rover Range Rover Sport,LAND ROVER,Large SUV,40
+2018,12,Land Rover Range Rover,LAND ROVER,Large SUV,40
+2018,12,Land Rover Range Rover Sport,LAND ROVER,Large SUV,83
 2018,12,MASERATI GHIBLI,MASERATI,Executive,10
 2018,12,MASERATI GRANTURISMO,MASERATI,Other,1
 2018,12,MASERATI LEVANTE,MASERATI,Large SUV,32
@@ -13642,8 +13641,8 @@ year,month,model,brand,segment,count
 2019,1,LOTUS EXIGE,LOTUS,Other,1
 2019,1,Land Rover Discovery,LAND ROVER,Large SUV,12
 2019,1,Land Rover Discovery Sport,LAND ROVER,Compact SUV,49
-2019,1,Land Rover Range Rover,LAND ROVER,Large SUV,84
-2019,1,Land Rover Range Rover Sport,LAND ROVER,Large SUV,39
+2019,1,Land Rover Range Rover,LAND ROVER,Large SUV,42
+2019,1,Land Rover Range Rover Sport,LAND ROVER,Large SUV,81
 2019,1,MASERATI GHIBLI,MASERATI,Executive,6
 2019,1,MASERATI LEVANTE,MASERATI,Large SUV,19
 2019,1,MASERATI QUATTROPORTE,MASERATI,Luxury,1
@@ -13996,8 +13995,8 @@ year,month,model,brand,segment,count
 2019,2,LOTUS EXIGE,LOTUS,Other,3
 2019,2,Land Rover Discovery,LAND ROVER,Large SUV,19
 2019,2,Land Rover Discovery Sport,LAND ROVER,Compact SUV,87
-2019,2,Land Rover Range Rover,LAND ROVER,Large SUV,62
-2019,2,Land Rover Range Rover Sport,LAND ROVER,Large SUV,42
+2019,2,Land Rover Range Rover,LAND ROVER,Large SUV,29
+2019,2,Land Rover Range Rover Sport,LAND ROVER,Large SUV,75
 2019,2,MASERATI GHIBLI,MASERATI,Executive,8
 2019,2,MASERATI LEVANTE,MASERATI,Large SUV,14
 2019,2,MASERATI QUATTROPORTE,MASERATI,Luxury,2
@@ -14199,7 +14198,6 @@ year,month,model,brand,segment,count
 2019,3,AUDI A6,AUDI,Executive,95
 2019,3,AUDI A7,AUDI,Executive,33
 2019,3,AUDI A8,AUDI,Luxury,5
-2019,3,AUDI E-TRON,AUDI,Large SUV,94
 2019,3,AUDI Q2,AUDI,Compact SUV,327
 2019,3,AUDI Q5,AUDI,Mid-size SUV,121
 2019,3,AUDI Q7,AUDI,Large SUV,45
@@ -14208,6 +14206,7 @@ year,month,model,brand,segment,count
 2019,3,AUDI TT,AUDI,Sports / GT,25
 2019,3,Audi A1,AUDI,City / Supermini,270
 2019,3,Audi Q3,AUDI,Compact SUV,391
+2019,3,Audi e-tron,AUDI,Large SUV,94
 2019,3,BENTLEY BENTAYGA,BENTLEY,Other,6
 2019,3,BENTLEY MULSANNE,BENTLEY,Other,1
 2019,3,BMW 1 Series,BMW,Compact,144
@@ -14357,8 +14356,8 @@ year,month,model,brand,segment,count
 2019,3,LOTUS EXIGE,LOTUS,Other,8
 2019,3,Land Rover Discovery,LAND ROVER,Large SUV,26
 2019,3,Land Rover Discovery Sport,LAND ROVER,Compact SUV,76
-2019,3,Land Rover Range Rover,LAND ROVER,Large SUV,77
-2019,3,Land Rover Range Rover Sport,LAND ROVER,Large SUV,49
+2019,3,Land Rover Range Rover,LAND ROVER,Large SUV,28
+2019,3,Land Rover Range Rover Sport,LAND ROVER,Large SUV,98
 2019,3,MASERATI GHIBLI,MASERATI,Executive,11
 2019,3,MASERATI GRANTURISMO,MASERATI,Other,1
 2019,3,MASERATI LEVANTE,MASERATI,Large SUV,31
@@ -14573,7 +14572,6 @@ year,month,model,brand,segment,count
 2019,4,AUDI A6,AUDI,Executive,60
 2019,4,AUDI A7,AUDI,Executive,12
 2019,4,AUDI A8,AUDI,Luxury,4
-2019,4,AUDI E-TRON,AUDI,Large SUV,33
 2019,4,AUDI Q2,AUDI,Compact SUV,153
 2019,4,AUDI Q5,AUDI,Mid-size SUV,176
 2019,4,AUDI Q7,AUDI,Large SUV,24
@@ -14582,6 +14580,7 @@ year,month,model,brand,segment,count
 2019,4,AUDI TT,AUDI,Sports / GT,17
 2019,4,Audi A1,AUDI,City / Supermini,124
 2019,4,Audi Q3,AUDI,Compact SUV,268
+2019,4,Audi e-tron,AUDI,Large SUV,33
 2019,4,BENTLEY BENTAYGA,BENTLEY,Other,2
 2019,4,BENTLEY MULSANNE,BENTLEY,Other,1
 2019,4,BMW 1 Series,BMW,Compact,251
@@ -14726,8 +14725,8 @@ year,month,model,brand,segment,count
 2019,4,LOTUS EXIGE,LOTUS,Other,2
 2019,4,Land Rover Discovery,LAND ROVER,Large SUV,17
 2019,4,Land Rover Discovery Sport,LAND ROVER,Compact SUV,49
-2019,4,Land Rover Range Rover,LAND ROVER,Large SUV,94
-2019,4,Land Rover Range Rover Sport,LAND ROVER,Large SUV,47
+2019,4,Land Rover Range Rover,LAND ROVER,Large SUV,37
+2019,4,Land Rover Range Rover Sport,LAND ROVER,Large SUV,104
 2019,4,MASERATI GHIBLI,MASERATI,Executive,15
 2019,4,MASERATI GRANCABRIO,MASERATI,Other,9
 2019,4,MASERATI GRANTURISMO,MASERATI,Other,1
@@ -14954,7 +14953,6 @@ year,month,model,brand,segment,count
 2019,5,AUDI A6,AUDI,Executive,132
 2019,5,AUDI A7,AUDI,Executive,20
 2019,5,AUDI A8,AUDI,Luxury,4
-2019,5,AUDI E-TRON,AUDI,Large SUV,50
 2019,5,AUDI Q2,AUDI,Compact SUV,215
 2019,5,AUDI Q5,AUDI,Mid-size SUV,206
 2019,5,AUDI Q7,AUDI,Large SUV,42
@@ -14962,6 +14960,7 @@ year,month,model,brand,segment,count
 2019,5,AUDI TT,AUDI,Sports / GT,25
 2019,5,Audi A1,AUDI,City / Supermini,136
 2019,5,Audi Q3,AUDI,Compact SUV,436
+2019,5,Audi e-tron,AUDI,Large SUV,50
 2019,5,BENTLEY BENTAYGA,BENTLEY,Other,1
 2019,5,BENTLEY FLYING,BENTLEY,Other,1
 2019,5,BMW 1 Series,BMW,Compact,201
@@ -15121,8 +15120,8 @@ year,month,model,brand,segment,count
 2019,5,LOTUS EXIGE,LOTUS,Other,3
 2019,5,Land Rover Discovery,LAND ROVER,Large SUV,25
 2019,5,Land Rover Discovery Sport,LAND ROVER,Compact SUV,27
-2019,5,Land Rover Range Rover,LAND ROVER,Large SUV,61
-2019,5,Land Rover Range Rover Sport,LAND ROVER,Large SUV,22
+2019,5,Land Rover Range Rover,LAND ROVER,Large SUV,20
+2019,5,Land Rover Range Rover Sport,LAND ROVER,Large SUV,63
 2019,5,MASERATI GHIBLI,MASERATI,Executive,16
 2019,5,MASERATI GRANTURISMO,MASERATI,Other,4
 2019,5,MASERATI LEVANTE,MASERATI,Large SUV,18
@@ -15347,7 +15346,6 @@ year,month,model,brand,segment,count
 2019,6,AUDI A6,AUDI,Executive,102
 2019,6,AUDI A7,AUDI,Executive,14
 2019,6,AUDI A8,AUDI,Luxury,6
-2019,6,AUDI E-TRON,AUDI,Large SUV,55
 2019,6,AUDI Q2,AUDI,Compact SUV,215
 2019,6,AUDI Q5,AUDI,Mid-size SUV,170
 2019,6,AUDI Q7,AUDI,Large SUV,29
@@ -15355,6 +15353,7 @@ year,month,model,brand,segment,count
 2019,6,AUDI TT,AUDI,Sports / GT,29
 2019,6,Audi A1,AUDI,City / Supermini,126
 2019,6,Audi Q3,AUDI,Compact SUV,249
+2019,6,Audi e-tron,AUDI,Large SUV,55
 2019,6,BENTLEY BENTAYGA,BENTLEY,Other,4
 2019,6,BENTLEY MULSANNE,BENTLEY,Other,1
 2019,6,BMW 1 Series,BMW,Compact,173
@@ -15499,8 +15498,8 @@ year,month,model,brand,segment,count
 2019,6,LOTUS EXIGE,LOTUS,Other,4
 2019,6,Land Rover Discovery,LAND ROVER,Large SUV,21
 2019,6,Land Rover Discovery Sport,LAND ROVER,Compact SUV,15
-2019,6,Land Rover Range Rover,LAND ROVER,Large SUV,67
-2019,6,Land Rover Range Rover Sport,LAND ROVER,Large SUV,18
+2019,6,Land Rover Range Rover,LAND ROVER,Large SUV,12
+2019,6,Land Rover Range Rover Sport,LAND ROVER,Large SUV,73
 2019,6,MAN TGE,MAN,Other,2
 2019,6,MASERATI GHIBLI,MASERATI,Executive,4
 2019,6,MASERATI GRANCABRIO,MASERATI,Other,3
@@ -15722,7 +15721,6 @@ year,month,model,brand,segment,count
 2019,7,AUDI A6,AUDI,Executive,148
 2019,7,AUDI A7,AUDI,Executive,14
 2019,7,AUDI A8,AUDI,Luxury,1
-2019,7,AUDI E-TRON,AUDI,Large SUV,77
 2019,7,AUDI Q2,AUDI,Compact SUV,197
 2019,7,AUDI Q5,AUDI,Mid-size SUV,230
 2019,7,AUDI Q7,AUDI,Large SUV,42
@@ -15731,6 +15729,7 @@ year,month,model,brand,segment,count
 2019,7,AUDI TT,AUDI,Sports / GT,29
 2019,7,Audi A1,AUDI,City / Supermini,188
 2019,7,Audi Q3,AUDI,Compact SUV,256
+2019,7,Audi e-tron,AUDI,Large SUV,77
 2019,7,BENTLEY BENTAYGA,BENTLEY,Other,3
 2019,7,BMW 1 Series,BMW,Compact,151
 2019,7,BMW 2 Series,BMW,Compact,312
@@ -15876,8 +15875,8 @@ year,month,model,brand,segment,count
 2019,7,LOTUS EXIGE,LOTUS,Other,2
 2019,7,Land Rover Discovery,LAND ROVER,Large SUV,15
 2019,7,Land Rover Discovery Sport,LAND ROVER,Compact SUV,28
-2019,7,Land Rover Range Rover,LAND ROVER,Large SUV,57
-2019,7,Land Rover Range Rover Sport,LAND ROVER,Large SUV,25
+2019,7,Land Rover Range Rover,LAND ROVER,Large SUV,23
+2019,7,Land Rover Range Rover Sport,LAND ROVER,Large SUV,59
 2019,7,MAN TGE,MAN,Other,3
 2019,7,MASERATI GHIBLI,MASERATI,Executive,12
 2019,7,MASERATI GRANCABRIO,MASERATI,Other,5
@@ -16103,7 +16102,6 @@ year,month,model,brand,segment,count
 2019,8,AUDI A5,AUDI,Compact Executive,55
 2019,8,AUDI A6,AUDI,Executive,73
 2019,8,AUDI A7,AUDI,Executive,7
-2019,8,AUDI E-TRON,AUDI,Large SUV,38
 2019,8,AUDI Q2,AUDI,Compact SUV,80
 2019,8,AUDI Q5,AUDI,Mid-size SUV,190
 2019,8,AUDI Q7,AUDI,Large SUV,20
@@ -16112,6 +16110,7 @@ year,month,model,brand,segment,count
 2019,8,AUDI TT,AUDI,Sports / GT,16
 2019,8,Audi A1,AUDI,City / Supermini,80
 2019,8,Audi Q3,AUDI,Compact SUV,119
+2019,8,Audi e-tron,AUDI,Large SUV,38
 2019,8,BENTLEY BENTAYGA,BENTLEY,Other,6
 2019,8,BMW 1 Series,BMW,Compact,80
 2019,8,BMW 2 Series,BMW,Compact,205
@@ -16253,8 +16252,8 @@ year,month,model,brand,segment,count
 2019,8,LOTUS EXIGE,LOTUS,Other,5
 2019,8,Land Rover Discovery,LAND ROVER,Large SUV,6
 2019,8,Land Rover Discovery Sport,LAND ROVER,Compact SUV,29
-2019,8,Land Rover Range Rover,LAND ROVER,Large SUV,77
-2019,8,Land Rover Range Rover Sport,LAND ROVER,Large SUV,20
+2019,8,Land Rover Range Rover,LAND ROVER,Large SUV,32
+2019,8,Land Rover Range Rover Sport,LAND ROVER,Large SUV,65
 2019,8,MAN TGE,MAN,Other,1
 2019,8,MASERATI GHIBLI,MASERATI,Executive,8
 2019,8,MASERATI GRANTURISMO,MASERATI,Other,1
@@ -16457,7 +16456,6 @@ year,month,model,brand,segment,count
 2019,9,AUDI A6,AUDI,Executive,74
 2019,9,AUDI A7,AUDI,Executive,9
 2019,9,AUDI A8,AUDI,Luxury,1
-2019,9,AUDI E-TRON,AUDI,Large SUV,29
 2019,9,AUDI Q2,AUDI,Compact SUV,123
 2019,9,AUDI Q5,AUDI,Mid-size SUV,210
 2019,9,AUDI Q7,AUDI,Large SUV,21
@@ -16466,6 +16464,7 @@ year,month,model,brand,segment,count
 2019,9,AUDI TT,AUDI,Sports / GT,4
 2019,9,Audi A1,AUDI,City / Supermini,75
 2019,9,Audi Q3,AUDI,Compact SUV,142
+2019,9,Audi e-tron,AUDI,Large SUV,29
 2019,9,BENTLEY BENTAYGA,BENTLEY,Other,3
 2019,9,BENTLEY CONT,BENTLEY,Other,1
 2019,9,BENTLEY MULSANNE,BENTLEY,Other,2
@@ -16610,8 +16609,8 @@ year,month,model,brand,segment,count
 2019,9,LOTUS EXIGE,LOTUS,Other,3
 2019,9,Land Rover Discovery,LAND ROVER,Large SUV,19
 2019,9,Land Rover Discovery Sport,LAND ROVER,Compact SUV,25
-2019,9,Land Rover Range Rover,LAND ROVER,Large SUV,65
-2019,9,Land Rover Range Rover Sport,LAND ROVER,Large SUV,24
+2019,9,Land Rover Range Rover,LAND ROVER,Large SUV,25
+2019,9,Land Rover Range Rover Sport,LAND ROVER,Large SUV,64
 2019,9,MASERATI GHIBLI,MASERATI,Executive,3
 2019,9,MASERATI GRANCABRIO,MASERATI,Other,1
 2019,9,MASERATI GRANTURISMO,MASERATI,Other,3
@@ -16831,7 +16830,6 @@ year,month,model,brand,segment,count
 2019,10,AUDI A6,AUDI,Executive,167
 2019,10,AUDI A7,AUDI,Executive,6
 2019,10,AUDI A8,AUDI,Luxury,4
-2019,10,AUDI E-TRON,AUDI,Large SUV,26
 2019,10,AUDI Q2,AUDI,Compact SUV,200
 2019,10,AUDI Q5,AUDI,Mid-size SUV,236
 2019,10,AUDI Q7,AUDI,Large SUV,26
@@ -16839,6 +16837,7 @@ year,month,model,brand,segment,count
 2019,10,AUDI TT,AUDI,Sports / GT,19
 2019,10,Audi A1,AUDI,City / Supermini,142
 2019,10,Audi Q3,AUDI,Compact SUV,313
+2019,10,Audi e-tron,AUDI,Large SUV,26
 2019,10,BENTLEY BENTAYGA,BENTLEY,Other,9
 2019,10,BMW 1 Series,BMW,Compact,205
 2019,10,BMW 2 Series,BMW,Compact,227
@@ -16983,8 +16982,8 @@ year,month,model,brand,segment,count
 2019,10,LOTUS EXIGE,LOTUS,Other,3
 2019,10,Land Rover Discovery,LAND ROVER,Large SUV,7
 2019,10,Land Rover Discovery Sport,LAND ROVER,Compact SUV,55
-2019,10,Land Rover Range Rover,LAND ROVER,Large SUV,39
-2019,10,Land Rover Range Rover Sport,LAND ROVER,Large SUV,20
+2019,10,Land Rover Range Rover,LAND ROVER,Large SUV,15
+2019,10,Land Rover Range Rover Sport,LAND ROVER,Large SUV,44
 2019,10,MAN TGE,MAN,Other,1
 2019,10,MASERATI GHIBLI,MASERATI,Executive,6
 2019,10,MASERATI GRANTURISMO,MASERATI,Other,2
@@ -17195,7 +17194,6 @@ year,month,model,brand,segment,count
 2019,11,AUDI A6,AUDI,Executive,67
 2019,11,AUDI A7,AUDI,Executive,5
 2019,11,AUDI A8,AUDI,Luxury,2
-2019,11,AUDI E-TRON,AUDI,Large SUV,35
 2019,11,AUDI Q2,AUDI,Compact SUV,180
 2019,11,AUDI Q5,AUDI,Mid-size SUV,225
 2019,11,AUDI Q7,AUDI,Large SUV,32
@@ -17205,6 +17203,7 @@ year,month,model,brand,segment,count
 2019,11,AUDI TT,AUDI,Sports / GT,12
 2019,11,Audi A1,AUDI,City / Supermini,162
 2019,11,Audi Q3,AUDI,Compact SUV,226
+2019,11,Audi e-tron,AUDI,Large SUV,35
 2019,11,BENTLEY BENTAYGA,BENTLEY,Other,5
 2019,11,BMW 1 Series,BMW,Compact,231
 2019,11,BMW 2 Series,BMW,Compact,210
@@ -17353,8 +17352,8 @@ year,month,model,brand,segment,count
 2019,11,LOTUS EXIGE,LOTUS,Other,2
 2019,11,Land Rover Discovery,LAND ROVER,Large SUV,18
 2019,11,Land Rover Discovery Sport,LAND ROVER,Compact SUV,80
-2019,11,Land Rover Range Rover,LAND ROVER,Large SUV,48
-2019,11,Land Rover Range Rover Sport,LAND ROVER,Large SUV,18
+2019,11,Land Rover Range Rover,LAND ROVER,Large SUV,19
+2019,11,Land Rover Range Rover Sport,LAND ROVER,Large SUV,47
 2019,11,MASERATI GHIBLI,MASERATI,Executive,8
 2019,11,MASERATI GRANCABRIO,MASERATI,Other,1
 2019,11,MASERATI LEVANTE,MASERATI,Large SUV,12
@@ -17560,7 +17559,6 @@ year,month,model,brand,segment,count
 2019,12,AUDI AI,AUDI,Other,1
 2019,12,AUDI AUDI,AUDI,Other,30
 2019,12,AUDI AV,AUDI,Other,1
-2019,12,AUDI E-TRON,AUDI,Large SUV,249
 2019,12,AUDI Q2,AUDI,Compact SUV,272
 2019,12,AUDI Q5,AUDI,Mid-size SUV,292
 2019,12,AUDI Q7,AUDI,Large SUV,68
@@ -17570,6 +17568,7 @@ year,month,model,brand,segment,count
 2019,12,AUDI TT,AUDI,Sports / GT,19
 2019,12,Audi A1,AUDI,City / Supermini,216
 2019,12,Audi Q3,AUDI,Compact SUV,332
+2019,12,Audi e-tron,AUDI,Large SUV,249
 2019,12,BENTLEY BENTAYGA,BENTLEY,Other,6
 2019,12,BMW 1 Series,BMW,Compact,394
 2019,12,BMW 2 Series,BMW,Compact,284
@@ -17720,8 +17719,8 @@ year,month,model,brand,segment,count
 2019,12,LOTUS EXIGE,LOTUS,Other,2
 2019,12,Land Rover Discovery,LAND ROVER,Large SUV,19
 2019,12,Land Rover Discovery Sport,LAND ROVER,Compact SUV,104
-2019,12,Land Rover Range Rover,LAND ROVER,Large SUV,81
-2019,12,Land Rover Range Rover Sport,LAND ROVER,Large SUV,37
+2019,12,Land Rover Range Rover,LAND ROVER,Large SUV,32
+2019,12,Land Rover Range Rover Sport,LAND ROVER,Large SUV,86
 2019,12,MAN TGE,MAN,Other,1
 2019,12,MASERATI GHIBLI,MASERATI,Executive,12
 2019,12,MASERATI GRANTURISMO,MASERATI,Other,1
@@ -17931,7 +17930,6 @@ year,month,model,brand,segment,count
 2020,1,AUDI A7,AUDI,Executive,7
 2020,1,AUDI A8,AUDI,Luxury,7
 2020,1,AUDI AUDI,AUDI,Other,15
-2020,1,AUDI E-TRON,AUDI,Large SUV,13
 2020,1,AUDI Q2,AUDI,Compact SUV,94
 2020,1,AUDI Q5,AUDI,Mid-size SUV,86
 2020,1,AUDI Q7,AUDI,Large SUV,22
@@ -17940,6 +17938,7 @@ year,month,model,brand,segment,count
 2020,1,AUDI TT,AUDI,Sports / GT,14
 2020,1,Audi A1,AUDI,City / Supermini,117
 2020,1,Audi Q3,AUDI,Compact SUV,205
+2020,1,Audi e-tron,AUDI,Large SUV,13
 2020,1,BENTLEY BENTAYGA,BENTLEY,Other,4
 2020,1,BENTLEY FLYING,BENTLEY,Other,3
 2020,1,BENTLEY MULSANNE,BENTLEY,Other,1
@@ -18069,8 +18068,8 @@ year,month,model,brand,segment,count
 2020,1,LEXUS UX,LEXUS,Compact SUV,17
 2020,1,Land Rover Discovery,LAND ROVER,Large SUV,9
 2020,1,Land Rover Discovery Sport,LAND ROVER,Compact SUV,46
-2020,1,Land Rover Range Rover,LAND ROVER,Large SUV,42
-2020,1,Land Rover Range Rover Sport,LAND ROVER,Large SUV,15
+2020,1,Land Rover Range Rover,LAND ROVER,Large SUV,17
+2020,1,Land Rover Range Rover Sport,LAND ROVER,Large SUV,40
 2020,1,MASERATI GHIBLI,MASERATI,Executive,6
 2020,1,MASERATI GRANCABRIO,MASERATI,Other,1
 2020,1,MASERATI LEVANTE,MASERATI,Large SUV,21
@@ -18254,7 +18253,6 @@ year,month,model,brand,segment,count
 2020,2,AUDI A7,AUDI,Executive,4
 2020,2,AUDI A8,AUDI,Luxury,2
 2020,2,AUDI AUDI,AUDI,Other,31
-2020,2,AUDI E-TRON,AUDI,Large SUV,27
 2020,2,AUDI Q2,AUDI,Compact SUV,66
 2020,2,AUDI Q5,AUDI,Mid-size SUV,100
 2020,2,AUDI Q7,AUDI,Large SUV,33
@@ -18262,6 +18260,7 @@ year,month,model,brand,segment,count
 2020,2,AUDI TT,AUDI,Sports / GT,5
 2020,2,Audi A1,AUDI,City / Supermini,82
 2020,2,Audi Q3,AUDI,Compact SUV,219
+2020,2,Audi e-tron,AUDI,Large SUV,27
 2020,2,BENTLEY BENTAYGA,BENTLEY,Other,3
 2020,2,BENTLEY CONTINETAL,BENTLEY,Other,1
 2020,2,BENTLEY FLYING,BENTLEY,Other,3
@@ -18390,8 +18389,8 @@ year,month,model,brand,segment,count
 2020,2,LOTUS ELISE,LOTUS,Other,2
 2020,2,Land Rover Discovery,LAND ROVER,Large SUV,7
 2020,2,Land Rover Discovery Sport,LAND ROVER,Compact SUV,51
-2020,2,Land Rover Range Rover,LAND ROVER,Large SUV,46
-2020,2,Land Rover Range Rover Sport,LAND ROVER,Large SUV,17
+2020,2,Land Rover Range Rover,LAND ROVER,Large SUV,18
+2020,2,Land Rover Range Rover Sport,LAND ROVER,Large SUV,45
 2020,2,MASERATI GHIBLI,MASERATI,Executive,3
 2020,2,MASERATI LEVANTE,MASERATI,Large SUV,7
 2020,2,MASERATI QUATTROPORTE,MASERATI,Luxury,2
@@ -18582,7 +18581,6 @@ year,month,model,brand,segment,count
 2020,3,AUDI A7,AUDI,Executive,8
 2020,3,AUDI A8,AUDI,Luxury,3
 2020,3,AUDI AUDI,AUDI,Other,63
-2020,3,AUDI E-TRON,AUDI,Large SUV,36
 2020,3,AUDI Q2,AUDI,Compact SUV,74
 2020,3,AUDI Q5,AUDI,Mid-size SUV,116
 2020,3,AUDI Q7,AUDI,Large SUV,37
@@ -18590,6 +18588,7 @@ year,month,model,brand,segment,count
 2020,3,AUDI TT,AUDI,Sports / GT,14
 2020,3,Audi A1,AUDI,City / Supermini,80
 2020,3,Audi Q3,AUDI,Compact SUV,213
+2020,3,Audi e-tron,AUDI,Large SUV,36
 2020,3,BMW 1 Series,BMW,Compact,177
 2020,3,BMW 2 Series,BMW,Compact,171
 2020,3,BMW 3 Series,BMW,Compact Executive,223
@@ -18725,8 +18724,8 @@ year,month,model,brand,segment,count
 2020,3,LOTUS EXIGE,LOTUS,Other,4
 2020,3,Land Rover Discovery,LAND ROVER,Large SUV,12
 2020,3,Land Rover Discovery Sport,LAND ROVER,Compact SUV,38
-2020,3,Land Rover Range Rover,LAND ROVER,Large SUV,50
-2020,3,Land Rover Range Rover Sport,LAND ROVER,Large SUV,20
+2020,3,Land Rover Range Rover,LAND ROVER,Large SUV,19
+2020,3,Land Rover Range Rover Sport,LAND ROVER,Large SUV,51
 2020,3,MAN ETGE,MAN,Other,1
 2020,3,MAN TGE,MAN,Other,2
 2020,3,MASERATI GHIBLI,MASERATI,Executive,3
@@ -18924,7 +18923,6 @@ year,month,model,brand,segment,count
 2020,4,AUDI A7,AUDI,Executive,5
 2020,4,AUDI A8,AUDI,Luxury,2
 2020,4,AUDI AUDI,AUDI,Other,16
-2020,4,AUDI E-TRON,AUDI,Large SUV,7
 2020,4,AUDI Q2,AUDI,Compact SUV,30
 2020,4,AUDI Q5,AUDI,Mid-size SUV,26
 2020,4,AUDI Q7,AUDI,Large SUV,14
@@ -18932,6 +18930,7 @@ year,month,model,brand,segment,count
 2020,4,AUDI TT,AUDI,Sports / GT,5
 2020,4,Audi A1,AUDI,City / Supermini,26
 2020,4,Audi Q3,AUDI,Compact SUV,101
+2020,4,Audi e-tron,AUDI,Large SUV,7
 2020,4,BENTLEY BENTAYGA,BENTLEY,Other,3
 2020,4,BENTLEY FLYING,BENTLEY,Other,5
 2020,4,BMW 1 Series,BMW,Compact,69
@@ -19056,8 +19055,8 @@ year,month,model,brand,segment,count
 2020,4,LOTUS EXIGE,LOTUS,Other,3
 2020,4,Land Rover Discovery,LAND ROVER,Large SUV,2
 2020,4,Land Rover Discovery Sport,LAND ROVER,Compact SUV,15
-2020,4,Land Rover Range Rover,LAND ROVER,Large SUV,17
-2020,4,Land Rover Range Rover Sport,LAND ROVER,Large SUV,9
+2020,4,Land Rover Range Rover,LAND ROVER,Large SUV,10
+2020,4,Land Rover Range Rover Sport,LAND ROVER,Large SUV,16
 2020,4,MASERATI GHIBLI,MASERATI,Executive,3
 2020,4,MASERATI GRANCABRIO,MASERATI,Other,2
 2020,4,MASERATI LEVANTE,MASERATI,Large SUV,4
@@ -19235,7 +19234,6 @@ year,month,model,brand,segment,count
 2020,5,AUDI A7,AUDI,Executive,3
 2020,5,AUDI A8,AUDI,Luxury,5
 2020,5,AUDI AUDI,AUDI,Other,31
-2020,5,AUDI E-TRON,AUDI,Large SUV,19
 2020,5,AUDI Q2,AUDI,Compact SUV,80
 2020,5,AUDI Q5,AUDI,Mid-size SUV,45
 2020,5,AUDI Q7,AUDI,Large SUV,30
@@ -19243,6 +19241,7 @@ year,month,model,brand,segment,count
 2020,5,AUDI TT,AUDI,Sports / GT,10
 2020,5,Audi A1,AUDI,City / Supermini,122
 2020,5,Audi Q3,AUDI,Compact SUV,212
+2020,5,Audi e-tron,AUDI,Large SUV,19
 2020,5,BENTLEY BENTAYGA,BENTLEY,Other,2
 2020,5,BMW 1 Series,BMW,Compact,97
 2020,5,BMW 2 Series,BMW,Compact,160
@@ -19363,8 +19362,8 @@ year,month,model,brand,segment,count
 2020,5,Land Rover Defender,LAND ROVER,Large SUV,2
 2020,5,Land Rover Discovery,LAND ROVER,Large SUV,3
 2020,5,Land Rover Discovery Sport,LAND ROVER,Compact SUV,14
-2020,5,Land Rover Range Rover,LAND ROVER,Large SUV,28
-2020,5,Land Rover Range Rover Sport,LAND ROVER,Large SUV,11
+2020,5,Land Rover Range Rover,LAND ROVER,Large SUV,9
+2020,5,Land Rover Range Rover Sport,LAND ROVER,Large SUV,30
 2020,5,MASERATI GHIBLI,MASERATI,Executive,3
 2020,5,MASERATI GRANCABRIO,MASERATI,Other,1
 2020,5,MASERATI GRANTURISMO,MASERATI,Other,1
@@ -19557,7 +19556,6 @@ year,month,model,brand,segment,count
 2020,6,AUDI A7,AUDI,Executive,6
 2020,6,AUDI A8,AUDI,Luxury,2
 2020,6,AUDI AUDI,AUDI,Other,9
-2020,6,AUDI E-TRON,AUDI,Large SUV,48
 2020,6,AUDI Q2,AUDI,Compact SUV,158
 2020,6,AUDI Q5,AUDI,Mid-size SUV,120
 2020,6,AUDI Q7,AUDI,Large SUV,55
@@ -19565,6 +19563,7 @@ year,month,model,brand,segment,count
 2020,6,AUDI TT,AUDI,Sports / GT,9
 2020,6,Audi A1,AUDI,City / Supermini,179
 2020,6,Audi Q3,AUDI,Compact SUV,383
+2020,6,Audi e-tron,AUDI,Large SUV,48
 2020,6,BENTLEY BENTAYGA,BENTLEY,Other,2
 2020,6,BENTLEY FLYING,BENTLEY,Other,3
 2020,6,BENTLEY MULSANNE,BENTLEY,Other,1
@@ -19698,8 +19697,8 @@ year,month,model,brand,segment,count
 2020,6,Land Rover Defender,LAND ROVER,Large SUV,51
 2020,6,Land Rover Discovery,LAND ROVER,Large SUV,15
 2020,6,Land Rover Discovery Sport,LAND ROVER,Compact SUV,29
-2020,6,Land Rover Range Rover,LAND ROVER,Large SUV,39
-2020,6,Land Rover Range Rover Sport,LAND ROVER,Large SUV,6
+2020,6,Land Rover Range Rover,LAND ROVER,Large SUV,15
+2020,6,Land Rover Range Rover Sport,LAND ROVER,Large SUV,30
 2020,6,MAN TGE,MAN,Other,4
 2020,6,MASERATI GHIBLI,MASERATI,Executive,5
 2020,6,MASERATI LEVANTE,MASERATI,Large SUV,15
@@ -19896,7 +19895,6 @@ year,month,model,brand,segment,count
 2020,7,AUDI A7,AUDI,Executive,7
 2020,7,AUDI A8,AUDI,Luxury,13
 2020,7,AUDI AUDI,AUDI,Other,64
-2020,7,AUDI E-TRON,AUDI,Large SUV,116
 2020,7,AUDI Q2,AUDI,Compact SUV,155
 2020,7,AUDI Q5,AUDI,Mid-size SUV,56
 2020,7,AUDI Q7,AUDI,Large SUV,43
@@ -19905,6 +19903,7 @@ year,month,model,brand,segment,count
 2020,7,AUDI TT,AUDI,Sports / GT,7
 2020,7,Audi A1,AUDI,City / Supermini,104
 2020,7,Audi Q3,AUDI,Compact SUV,402
+2020,7,Audi e-tron,AUDI,Large SUV,116
 2020,7,BENTLEY BENTAYGA,BENTLEY,Other,8
 2020,7,BENTLEY FLYING,BENTLEY,Other,1
 2020,7,BENTLEY MULSANNE,BENTLEY,Other,1
@@ -20044,8 +20043,8 @@ year,month,model,brand,segment,count
 2020,7,Land Rover Defender,LAND ROVER,Large SUV,45
 2020,7,Land Rover Discovery,LAND ROVER,Large SUV,10
 2020,7,Land Rover Discovery Sport,LAND ROVER,Compact SUV,23
-2020,7,Land Rover Range Rover,LAND ROVER,Large SUV,38
-2020,7,Land Rover Range Rover Sport,LAND ROVER,Large SUV,9
+2020,7,Land Rover Range Rover,LAND ROVER,Large SUV,11
+2020,7,Land Rover Range Rover Sport,LAND ROVER,Large SUV,36
 2020,7,MAN TGE,MAN,Other,1
 2020,7,MASERATI GHIBLI,MASERATI,Executive,8
 2020,7,MASERATI GRANCABRIO,MASERATI,Other,2
@@ -20242,7 +20241,6 @@ year,month,model,brand,segment,count
 2020,8,AUDI A7,AUDI,Executive,1
 2020,8,AUDI A8,AUDI,Luxury,2
 2020,8,AUDI AUDI,AUDI,Other,59
-2020,8,AUDI E-TRON,AUDI,Large SUV,83
 2020,8,AUDI Q2,AUDI,Compact SUV,87
 2020,8,AUDI Q5,AUDI,Mid-size SUV,41
 2020,8,AUDI Q7,AUDI,Large SUV,21
@@ -20251,6 +20249,7 @@ year,month,model,brand,segment,count
 2020,8,AUDI TT,AUDI,Sports / GT,8
 2020,8,Audi A1,AUDI,City / Supermini,43
 2020,8,Audi Q3,AUDI,Compact SUV,326
+2020,8,Audi e-tron,AUDI,Large SUV,83
 2020,8,BENTLEY BENTAYGA,BENTLEY,Other,6
 2020,8,BENTLEY MULSANNE,BENTLEY,Other,1
 2020,8,BMW 1 Series,BMW,Compact,146
@@ -20379,8 +20378,8 @@ year,month,model,brand,segment,count
 2020,8,Land Rover Defender,LAND ROVER,Large SUV,38
 2020,8,Land Rover Discovery,LAND ROVER,Large SUV,4
 2020,8,Land Rover Discovery Sport,LAND ROVER,Compact SUV,14
-2020,8,Land Rover Range Rover,LAND ROVER,Large SUV,19
-2020,8,Land Rover Range Rover Sport,LAND ROVER,Large SUV,6
+2020,8,Land Rover Range Rover,LAND ROVER,Large SUV,8
+2020,8,Land Rover Range Rover Sport,LAND ROVER,Large SUV,17
 2020,8,MAN TGE,MAN,Other,1
 2020,8,MASERATI GHIBLI,MASERATI,Executive,4
 2020,8,MASERATI GRANSPORT,MASERATI,Other,1
@@ -20582,7 +20581,6 @@ year,month,model,brand,segment,count
 2020,9,AUDI A7,AUDI,Executive,4
 2020,9,AUDI A8,AUDI,Luxury,3
 2020,9,AUDI AUDI,AUDI,Other,25
-2020,9,AUDI E-TRON,AUDI,Large SUV,78
 2020,9,AUDI Q2,AUDI,Compact SUV,90
 2020,9,AUDI Q5,AUDI,Mid-size SUV,137
 2020,9,AUDI Q7,AUDI,Large SUV,36
@@ -20591,6 +20589,7 @@ year,month,model,brand,segment,count
 2020,9,AUDI TT,AUDI,Sports / GT,11
 2020,9,Audi A1,AUDI,City / Supermini,56
 2020,9,Audi Q3,AUDI,Compact SUV,402
+2020,9,Audi e-tron,AUDI,Large SUV,78
 2020,9,BENTLEY BENTAYGA,BENTLEY,Other,2
 2020,9,BENTLEY FLYING,BENTLEY,Other,4
 2020,9,BMW 1 Series,BMW,Compact,209
@@ -20728,8 +20727,8 @@ year,month,model,brand,segment,count
 2020,9,Land Rover Defender,LAND ROVER,Large SUV,47
 2020,9,Land Rover Discovery,LAND ROVER,Large SUV,7
 2020,9,Land Rover Discovery Sport,LAND ROVER,Compact SUV,42
-2020,9,Land Rover Range Rover,LAND ROVER,Large SUV,31
-2020,9,Land Rover Range Rover Sport,LAND ROVER,Large SUV,12
+2020,9,Land Rover Range Rover,LAND ROVER,Large SUV,9
+2020,9,Land Rover Range Rover Sport,LAND ROVER,Large SUV,34
 2020,9,MAN ETGE,MAN,Other,1
 2020,9,MAN TGE,MAN,Other,1
 2020,9,MASERATI GHIBLI,MASERATI,Executive,2
@@ -20941,7 +20940,6 @@ year,month,model,brand,segment,count
 2020,10,AUDI A7,AUDI,Executive,9
 2020,10,AUDI A8,AUDI,Luxury,6
 2020,10,AUDI AUDI,AUDI,Other,49
-2020,10,AUDI E-TRON,AUDI,Large SUV,92
 2020,10,AUDI Q2,AUDI,Compact SUV,138
 2020,10,AUDI Q5,AUDI,Mid-size SUV,161
 2020,10,AUDI Q7,AUDI,Large SUV,48
@@ -20950,6 +20948,7 @@ year,month,model,brand,segment,count
 2020,10,AUDI TT,AUDI,Sports / GT,6
 2020,10,Audi A1,AUDI,City / Supermini,152
 2020,10,Audi Q3,AUDI,Compact SUV,478
+2020,10,Audi e-tron,AUDI,Large SUV,92
 2020,10,BENTLEY BENTAYGA,BENTLEY,Other,3
 2020,10,BENTLEY CONTINENTEL,BENTLEY,Other,1
 2020,10,BENTLEY FLYING,BENTLEY,Other,4
@@ -21086,8 +21085,8 @@ year,month,model,brand,segment,count
 2020,10,Land Rover Defender,LAND ROVER,Large SUV,52
 2020,10,Land Rover Discovery,LAND ROVER,Large SUV,1
 2020,10,Land Rover Discovery Sport,LAND ROVER,Compact SUV,29
-2020,10,Land Rover Range Rover,LAND ROVER,Large SUV,38
-2020,10,Land Rover Range Rover Sport,LAND ROVER,Large SUV,9
+2020,10,Land Rover Range Rover,LAND ROVER,Large SUV,10
+2020,10,Land Rover Range Rover Sport,LAND ROVER,Large SUV,37
 2020,10,MASERATI GHIBLI,MASERATI,Executive,3
 2020,10,MASERATI GRANTURISMO,MASERATI,Other,1
 2020,10,MASERATI LEVANTE,MASERATI,Large SUV,18
@@ -21284,7 +21283,6 @@ year,month,model,brand,segment,count
 2020,11,AUDI A7,AUDI,Executive,11
 2020,11,AUDI A8,AUDI,Luxury,5
 2020,11,AUDI AUDI,AUDI,Other,67
-2020,11,AUDI E-TRON,AUDI,Large SUV,163
 2020,11,AUDI Q2,AUDI,Compact SUV,100
 2020,11,AUDI Q5,AUDI,Mid-size SUV,143
 2020,11,AUDI Q7,AUDI,Large SUV,35
@@ -21293,6 +21291,7 @@ year,month,model,brand,segment,count
 2020,11,AUDI TT,AUDI,Sports / GT,4
 2020,11,Audi A1,AUDI,City / Supermini,140
 2020,11,Audi Q3,AUDI,Compact SUV,586
+2020,11,Audi e-tron,AUDI,Large SUV,163
 2020,11,BENTLEY BENTAYGA,BENTLEY,Other,3
 2020,11,BENTLEY FLYING,BENTLEY,Other,4
 2020,11,BMW 1 Series,BMW,Compact,219
@@ -21423,8 +21422,8 @@ year,month,model,brand,segment,count
 2020,11,Land Rover Defender,LAND ROVER,Large SUV,39
 2020,11,Land Rover Discovery,LAND ROVER,Large SUV,7
 2020,11,Land Rover Discovery Sport,LAND ROVER,Compact SUV,32
-2020,11,Land Rover Range Rover,LAND ROVER,Large SUV,25
-2020,11,Land Rover Range Rover Sport,LAND ROVER,Large SUV,7
+2020,11,Land Rover Range Rover,LAND ROVER,Large SUV,9
+2020,11,Land Rover Range Rover Sport,LAND ROVER,Large SUV,23
 2020,11,MAN TGE,MAN,Other,1
 2020,11,MASERATI GHIBLI,MASERATI,Executive,4
 2020,11,MASERATI GRAN,MASERATI,Other,1
@@ -21635,7 +21634,6 @@ year,month,model,brand,segment,count
 2020,12,AUDI A7,AUDI,Executive,6
 2020,12,AUDI A8,AUDI,Luxury,8
 2020,12,AUDI AUDI,AUDI,Other,46
-2020,12,AUDI E-TRON,AUDI,Large SUV,224
 2020,12,AUDI Q2,AUDI,Compact SUV,78
 2020,12,AUDI Q5,AUDI,Mid-size SUV,169
 2020,12,AUDI Q7,AUDI,Large SUV,48
@@ -21644,6 +21642,7 @@ year,month,model,brand,segment,count
 2020,12,AUDI TT,AUDI,Sports / GT,1
 2020,12,Audi A1,AUDI,City / Supermini,155
 2020,12,Audi Q3,AUDI,Compact SUV,515
+2020,12,Audi e-tron,AUDI,Large SUV,224
 2020,12,BENTLEY BENTAYGA,BENTLEY,Other,4
 2020,12,BENTLEY FLYING,BENTLEY,Other,4
 2020,12,BMW 1 Series,BMW,Compact,351
@@ -21781,8 +21780,8 @@ year,month,model,brand,segment,count
 2020,12,Land Rover Defender,LAND ROVER,Large SUV,40
 2020,12,Land Rover Discovery,LAND ROVER,Large SUV,5
 2020,12,Land Rover Discovery Sport,LAND ROVER,Compact SUV,21
-2020,12,Land Rover Range Rover,LAND ROVER,Large SUV,49
-2020,12,Land Rover Range Rover Sport,LAND ROVER,Large SUV,12
+2020,12,Land Rover Range Rover,LAND ROVER,Large SUV,12
+2020,12,Land Rover Range Rover Sport,LAND ROVER,Large SUV,49
 2020,12,MAN TGE,MAN,Other,1
 2020,12,MASERATI GHIBLI,MASERATI,Executive,5
 2020,12,MASERATI LEVANTE,MASERATI,Large SUV,10
@@ -21989,7 +21988,6 @@ year,month,model,brand,segment,count
 2021,1,AUDI A7,AUDI,Executive,2
 2021,1,AUDI A8,AUDI,Luxury,5
 2021,1,AUDI AUDI,AUDI,Other,49
-2021,1,AUDI E-TRON,AUDI,Large SUV,75
 2021,1,AUDI Q2,AUDI,Compact SUV,65
 2021,1,AUDI Q5,AUDI,Mid-size SUV,86
 2021,1,AUDI Q7,AUDI,Large SUV,31
@@ -21997,6 +21995,7 @@ year,month,model,brand,segment,count
 2021,1,AUDI TT,AUDI,Sports / GT,2
 2021,1,Audi A1,AUDI,City / Supermini,130
 2021,1,Audi Q3,AUDI,Compact SUV,288
+2021,1,Audi e-tron,AUDI,Large SUV,75
 2021,1,BENTLEY BENTAYGA,BENTLEY,Other,7
 2021,1,BENTLEY FLYING,BENTLEY,Other,1
 2021,1,BMW 1 Series,BMW,Compact,272
@@ -22126,8 +22125,8 @@ year,month,model,brand,segment,count
 2021,1,Land Rover Defender,LAND ROVER,Large SUV,66
 2021,1,Land Rover Discovery,LAND ROVER,Large SUV,8
 2021,1,Land Rover Discovery Sport,LAND ROVER,Compact SUV,25
-2021,1,Land Rover Range Rover,LAND ROVER,Large SUV,38
-2021,1,Land Rover Range Rover Sport,LAND ROVER,Large SUV,12
+2021,1,Land Rover Range Rover,LAND ROVER,Large SUV,13
+2021,1,Land Rover Range Rover Sport,LAND ROVER,Large SUV,37
 2021,1,MAN TGE,MAN,Other,12
 2021,1,MASERATI GHIBLI,MASERATI,Executive,14
 2021,1,MASERATI LEVANTE,MASERATI,Large SUV,12
@@ -22321,7 +22320,6 @@ year,month,model,brand,segment,count
 2021,2,AUDI A7,AUDI,Executive,1
 2021,2,AUDI A8,AUDI,Luxury,1
 2021,2,AUDI AUDI,AUDI,Other,37
-2021,2,AUDI E-TRON,AUDI,Large SUV,64
 2021,2,AUDI Q2,AUDI,Compact SUV,67
 2021,2,AUDI Q5,AUDI,Mid-size SUV,92
 2021,2,AUDI Q7,AUDI,Large SUV,39
@@ -22329,6 +22327,7 @@ year,month,model,brand,segment,count
 2021,2,AUDI TT,AUDI,Sports / GT,3
 2021,2,Audi A1,AUDI,City / Supermini,147
 2021,2,Audi Q3,AUDI,Compact SUV,228
+2021,2,Audi e-tron,AUDI,Large SUV,64
 2021,2,BENTLEY BENTAYGA,BENTLEY,Other,2
 2021,2,BENTLEY FLYING,BENTLEY,Other,1
 2021,2,BMW 1 Series,BMW,Compact,185
@@ -22457,8 +22456,8 @@ year,month,model,brand,segment,count
 2021,2,Land Rover Defender,LAND ROVER,Large SUV,41
 2021,2,Land Rover Discovery,LAND ROVER,Large SUV,5
 2021,2,Land Rover Discovery Sport,LAND ROVER,Compact SUV,31
-2021,2,Land Rover Range Rover,LAND ROVER,Large SUV,33
-2021,2,Land Rover Range Rover Sport,LAND ROVER,Large SUV,14
+2021,2,Land Rover Range Rover,LAND ROVER,Large SUV,19
+2021,2,Land Rover Range Rover Sport,LAND ROVER,Large SUV,28
 2021,2,MAN TGE,MAN,Other,4
 2021,2,MASERATI GHIBLI,MASERATI,Executive,11
 2021,2,MASERATI GRANCABRIO,MASERATI,Other,1
@@ -22659,7 +22658,6 @@ year,month,model,brand,segment,count
 2021,3,AUDI A7,AUDI,Executive,10
 2021,3,AUDI A8,AUDI,Luxury,9
 2021,3,AUDI AUDI,AUDI,Other,47
-2021,3,AUDI E-TRON,AUDI,Large SUV,115
 2021,3,AUDI Q2,AUDI,Compact SUV,159
 2021,3,AUDI Q5,AUDI,Mid-size SUV,133
 2021,3,AUDI Q7,AUDI,Large SUV,41
@@ -22667,6 +22665,7 @@ year,month,model,brand,segment,count
 2021,3,AUDI TT,AUDI,Sports / GT,8
 2021,3,Audi A1,AUDI,City / Supermini,266
 2021,3,Audi Q3,AUDI,Compact SUV,411
+2021,3,Audi e-tron,AUDI,Large SUV,115
 2021,3,Audi e-tron GT,AUDI,Executive,5
 2021,3,BENTLEY BENTAYGA,BENTLEY,Other,6
 2021,3,BENTLEY FLYING,BENTLEY,Other,2
@@ -22799,8 +22798,8 @@ year,month,model,brand,segment,count
 2021,3,Land Rover Defender,LAND ROVER,Large SUV,36
 2021,3,Land Rover Discovery,LAND ROVER,Large SUV,12
 2021,3,Land Rover Discovery Sport,LAND ROVER,Compact SUV,45
-2021,3,Land Rover Range Rover,LAND ROVER,Large SUV,67
-2021,3,Land Rover Range Rover Sport,LAND ROVER,Large SUV,15
+2021,3,Land Rover Range Rover,LAND ROVER,Large SUV,30
+2021,3,Land Rover Range Rover Sport,LAND ROVER,Large SUV,52
 2021,3,MAN TGE,MAN,Other,3
 2021,3,MASERATI GHIBLI,MASERATI,Executive,19
 2021,3,MASERATI LEVANTE,MASERATI,Large SUV,12
@@ -23011,7 +23010,6 @@ year,month,model,brand,segment,count
 2021,4,AUDI A7,AUDI,Executive,7
 2021,4,AUDI A8,AUDI,Luxury,2
 2021,4,AUDI AUDI,AUDI,Other,43
-2021,4,AUDI E-TRON,AUDI,Large SUV,95
 2021,4,AUDI Q2,AUDI,Compact SUV,165
 2021,4,AUDI Q5,AUDI,Mid-size SUV,134
 2021,4,AUDI Q7,AUDI,Large SUV,32
@@ -23020,6 +23018,7 @@ year,month,model,brand,segment,count
 2021,4,AUDI TT,AUDI,Sports / GT,7
 2021,4,Audi A1,AUDI,City / Supermini,229
 2021,4,Audi Q3,AUDI,Compact SUV,421
+2021,4,Audi e-tron,AUDI,Large SUV,95
 2021,4,BENTLEY BENTAYGA,BENTLEY,Other,2
 2021,4,BENTLEY CONT,BENTLEY,Other,1
 2021,4,BENTLEY FLYING,BENTLEY,Other,4
@@ -23157,8 +23156,8 @@ year,month,model,brand,segment,count
 2021,4,Land Rover Defender,LAND ROVER,Large SUV,72
 2021,4,Land Rover Discovery,LAND ROVER,Large SUV,14
 2021,4,Land Rover Discovery Sport,LAND ROVER,Compact SUV,31
-2021,4,Land Rover Range Rover,LAND ROVER,Large SUV,40
-2021,4,Land Rover Range Rover Sport,LAND ROVER,Large SUV,13
+2021,4,Land Rover Range Rover,LAND ROVER,Large SUV,15
+2021,4,Land Rover Range Rover Sport,LAND ROVER,Large SUV,38
 2021,4,MASERATI GHIBLI,MASERATI,Executive,10
 2021,4,MASERATI LEVANTE,MASERATI,Large SUV,12
 2021,4,MASERATI QUATTROPORTE,MASERATI,Luxury,1
@@ -23364,7 +23363,6 @@ year,month,model,brand,segment,count
 2021,5,AUDI A7,AUDI,Executive,3
 2021,5,AUDI A8,AUDI,Luxury,5
 2021,5,AUDI AUDI,AUDI,Other,21
-2021,5,AUDI E-TRON,AUDI,Large SUV,117
 2021,5,AUDI Q2,AUDI,Compact SUV,127
 2021,5,AUDI Q5,AUDI,Mid-size SUV,126
 2021,5,AUDI Q7,AUDI,Large SUV,32
@@ -23372,6 +23370,7 @@ year,month,model,brand,segment,count
 2021,5,AUDI TT,AUDI,Sports / GT,9
 2021,5,Audi A1,AUDI,City / Supermini,203
 2021,5,Audi Q3,AUDI,Compact SUV,493
+2021,5,Audi e-tron,AUDI,Large SUV,117
 2021,5,Audi e-tron GT,AUDI,Executive,60
 2021,5,BENTLEY BENTAYGA,BENTLEY,Other,7
 2021,5,BENTLEY FLYING,BENTLEY,Other,1
@@ -23510,8 +23509,8 @@ year,month,model,brand,segment,count
 2021,5,Land Rover Defender,LAND ROVER,Large SUV,30
 2021,5,Land Rover Discovery,LAND ROVER,Large SUV,7
 2021,5,Land Rover Discovery Sport,LAND ROVER,Compact SUV,21
-2021,5,Land Rover Range Rover,LAND ROVER,Large SUV,35
-2021,5,Land Rover Range Rover Sport,LAND ROVER,Large SUV,8
+2021,5,Land Rover Range Rover,LAND ROVER,Large SUV,17
+2021,5,Land Rover Range Rover Sport,LAND ROVER,Large SUV,26
 2021,5,MASERATI GHIBLI,MASERATI,Executive,4
 2021,5,MASERATI GRANCABRIO,MASERATI,Other,1
 2021,5,MASERATI LEVANTE,MASERATI,Large SUV,8
@@ -23716,7 +23715,6 @@ year,month,model,brand,segment,count
 2021,6,AUDI A7,AUDI,Executive,3
 2021,6,AUDI A8,AUDI,Luxury,3
 2021,6,AUDI AUDI,AUDI,Other,22
-2021,6,AUDI E-TRON,AUDI,Large SUV,74
 2021,6,AUDI Q2,AUDI,Compact SUV,170
 2021,6,AUDI Q4,AUDI,Compact SUV,78
 2021,6,AUDI Q5,AUDI,Mid-size SUV,259
@@ -23726,6 +23724,7 @@ year,month,model,brand,segment,count
 2021,6,AUDI TT,AUDI,Sports / GT,15
 2021,6,Audi A1,AUDI,City / Supermini,213
 2021,6,Audi Q3,AUDI,Compact SUV,426
+2021,6,Audi e-tron,AUDI,Large SUV,74
 2021,6,Audi e-tron GT,AUDI,Executive,54
 2021,6,BENTLEY BENTAYGA,BENTLEY,Other,1
 2021,6,BMW 1 Series,BMW,Compact,368
@@ -23871,8 +23870,8 @@ year,month,model,brand,segment,count
 2021,6,Land Rover Defender,LAND ROVER,Large SUV,48
 2021,6,Land Rover Discovery,LAND ROVER,Large SUV,21
 2021,6,Land Rover Discovery Sport,LAND ROVER,Compact SUV,24
-2021,6,Land Rover Range Rover,LAND ROVER,Large SUV,49
-2021,6,Land Rover Range Rover Sport,LAND ROVER,Large SUV,8
+2021,6,Land Rover Range Rover,LAND ROVER,Large SUV,20
+2021,6,Land Rover Range Rover Sport,LAND ROVER,Large SUV,37
 2021,6,MASERATI GHIBLI,MASERATI,Executive,5
 2021,6,MASERATI LEVANTE,MASERATI,Large SUV,10
 2021,6,MAZDA 2,MAZDA,Other,88
@@ -24080,7 +24079,6 @@ year,month,model,brand,segment,count
 2021,7,AUDI A7,AUDI,Executive,5
 2021,7,AUDI A8,AUDI,Luxury,1
 2021,7,AUDI AUDI,AUDI,Other,35
-2021,7,AUDI E-TRON,AUDI,Large SUV,63
 2021,7,AUDI Q2,AUDI,Compact SUV,68
 2021,7,AUDI Q4,AUDI,Compact SUV,26
 2021,7,AUDI Q5,AUDI,Mid-size SUV,191
@@ -24090,6 +24088,7 @@ year,month,model,brand,segment,count
 2021,7,AUSTIN HEALEY,AUSTIN,Other,1
 2021,7,Audi A1,AUDI,City / Supermini,114
 2021,7,Audi Q3,AUDI,Compact SUV,343
+2021,7,Audi e-tron,AUDI,Large SUV,63
 2021,7,Audi e-tron GT,AUDI,Executive,61
 2021,7,BENTLEY FLYING,BENTLEY,Other,5
 2021,7,BMW 1 Series,BMW,Compact,258
@@ -24223,8 +24222,8 @@ year,month,model,brand,segment,count
 2021,7,Land Rover Defender,LAND ROVER,Large SUV,67
 2021,7,Land Rover Discovery,LAND ROVER,Large SUV,12
 2021,7,Land Rover Discovery Sport,LAND ROVER,Compact SUV,12
-2021,7,Land Rover Range Rover,LAND ROVER,Large SUV,26
-2021,7,Land Rover Range Rover Sport,LAND ROVER,Large SUV,4
+2021,7,Land Rover Range Rover,LAND ROVER,Large SUV,14
+2021,7,Land Rover Range Rover Sport,LAND ROVER,Large SUV,16
 2021,7,MASERATI GHIBLI,MASERATI,Executive,13
 2021,7,MASERATI LEVANTE,MASERATI,Large SUV,15
 2021,7,MASERATI QUATTROPORTE,MASERATI,Luxury,3
@@ -24430,7 +24429,6 @@ year,month,model,brand,segment,count
 2021,8,AUDI A7,AUDI,Executive,1
 2021,8,AUDI A8,AUDI,Luxury,4
 2021,8,AUDI AUDI,AUDI,Other,18
-2021,8,AUDI E-TRON,AUDI,Large SUV,95
 2021,8,AUDI Q2,AUDI,Compact SUV,77
 2021,8,AUDI Q4,AUDI,Compact SUV,45
 2021,8,AUDI Q5,AUDI,Mid-size SUV,232
@@ -24439,6 +24437,7 @@ year,month,model,brand,segment,count
 2021,8,AUDI TT,AUDI,Sports / GT,9
 2021,8,Audi A1,AUDI,City / Supermini,62
 2021,8,Audi Q3,AUDI,Compact SUV,299
+2021,8,Audi e-tron,AUDI,Large SUV,95
 2021,8,Audi e-tron GT,AUDI,Executive,53
 2021,8,BENTLEY BENTAYGA,BENTLEY,Other,7
 2021,8,BENTLEY FLYING,BENTLEY,Other,1
@@ -24577,8 +24576,8 @@ year,month,model,brand,segment,count
 2021,8,Land Rover Defender,LAND ROVER,Large SUV,49
 2021,8,Land Rover Discovery,LAND ROVER,Large SUV,1
 2021,8,Land Rover Discovery Sport,LAND ROVER,Compact SUV,18
-2021,8,Land Rover Range Rover,LAND ROVER,Large SUV,15
-2021,8,Land Rover Range Rover Sport,LAND ROVER,Large SUV,8
+2021,8,Land Rover Range Rover,LAND ROVER,Large SUV,9
+2021,8,Land Rover Range Rover Sport,LAND ROVER,Large SUV,14
 2021,8,MAN TGE,MAN,Other,1
 2021,8,MASERATI GHIBLI,MASERATI,Executive,4
 2021,8,MASERATI LEVANTE,MASERATI,Large SUV,14
@@ -24783,7 +24782,6 @@ year,month,model,brand,segment,count
 2021,9,AUDI A6,AUDI,Executive,40
 2021,9,AUDI A8,AUDI,Luxury,2
 2021,9,AUDI AUDI,AUDI,Other,17
-2021,9,AUDI E-TRON,AUDI,Large SUV,82
 2021,9,AUDI Q2,AUDI,Compact SUV,70
 2021,9,AUDI Q4,AUDI,Compact SUV,127
 2021,9,AUDI Q5,AUDI,Mid-size SUV,276
@@ -24792,6 +24790,7 @@ year,month,model,brand,segment,count
 2021,9,AUDI TT,AUDI,Sports / GT,10
 2021,9,Audi A1,AUDI,City / Supermini,36
 2021,9,Audi Q3,AUDI,Compact SUV,248
+2021,9,Audi e-tron,AUDI,Large SUV,82
 2021,9,Audi e-tron GT,AUDI,Executive,33
 2021,9,BENTLEY BENTAYGA,BENTLEY,Other,8
 2021,9,BENTLEY FLYING,BENTLEY,Other,3
@@ -24929,8 +24928,8 @@ year,month,model,brand,segment,count
 2021,9,Land Rover Defender,LAND ROVER,Large SUV,45
 2021,9,Land Rover Discovery,LAND ROVER,Large SUV,2
 2021,9,Land Rover Discovery Sport,LAND ROVER,Compact SUV,14
-2021,9,Land Rover Range Rover,LAND ROVER,Large SUV,22
-2021,9,Land Rover Range Rover Sport,LAND ROVER,Large SUV,13
+2021,9,Land Rover Range Rover,LAND ROVER,Large SUV,12
+2021,9,Land Rover Range Rover Sport,LAND ROVER,Large SUV,23
 2021,9,MASERATI GHIBLI,MASERATI,Executive,6
 2021,9,MASERATI LEVANTE,MASERATI,Large SUV,16
 2021,9,MASERATI MC20,MASERATI,Other,6
@@ -25134,7 +25133,6 @@ year,month,model,brand,segment,count
 2021,10,AUDI A5,AUDI,Compact Executive,23
 2021,10,AUDI A6,AUDI,Executive,16
 2021,10,AUDI AUDI,AUDI,Other,10
-2021,10,AUDI E-TRON,AUDI,Large SUV,37
 2021,10,AUDI Q2,AUDI,Compact SUV,26
 2021,10,AUDI Q4,AUDI,Compact SUV,92
 2021,10,AUDI Q5,AUDI,Mid-size SUV,192
@@ -25143,6 +25141,7 @@ year,month,model,brand,segment,count
 2021,10,AUDI TT,AUDI,Sports / GT,3
 2021,10,Audi A1,AUDI,City / Supermini,54
 2021,10,Audi Q3,AUDI,Compact SUV,198
+2021,10,Audi e-tron,AUDI,Large SUV,37
 2021,10,Audi e-tron GT,AUDI,Executive,34
 2021,10,BENTLEY BENTAYGA,BENTLEY,Other,2
 2021,10,BENTLEY FLYING,BENTLEY,Other,1
@@ -25276,8 +25275,8 @@ year,month,model,brand,segment,count
 2021,10,Land Rover Defender,LAND ROVER,Large SUV,31
 2021,10,Land Rover Discovery,LAND ROVER,Large SUV,9
 2021,10,Land Rover Discovery Sport,LAND ROVER,Compact SUV,25
-2021,10,Land Rover Range Rover,LAND ROVER,Large SUV,14
-2021,10,Land Rover Range Rover Sport,LAND ROVER,Large SUV,12
+2021,10,Land Rover Range Rover,LAND ROVER,Large SUV,11
+2021,10,Land Rover Range Rover Sport,LAND ROVER,Large SUV,15
 2021,10,MAN TGE,MAN,Other,2
 2021,10,MASERATI GHIBLI,MASERATI,Executive,3
 2021,10,MASERATI LEVANTE,MASERATI,Large SUV,21
@@ -25496,7 +25495,6 @@ year,month,model,brand,segment,count
 2021,11,AUDI A7,AUDI,Executive,3
 2021,11,AUDI A8,AUDI,Luxury,1
 2021,11,AUDI AUDI,AUDI,Other,16
-2021,11,AUDI E-TRON,AUDI,Large SUV,86
 2021,11,AUDI Q2,AUDI,Compact SUV,64
 2021,11,AUDI Q4,AUDI,Compact SUV,135
 2021,11,AUDI Q5,AUDI,Mid-size SUV,189
@@ -25505,6 +25503,7 @@ year,month,model,brand,segment,count
 2021,11,AUDI TT,AUDI,Sports / GT,6
 2021,11,Audi A1,AUDI,City / Supermini,140
 2021,11,Audi Q3,AUDI,Compact SUV,313
+2021,11,Audi e-tron,AUDI,Large SUV,86
 2021,11,Audi e-tron GT,AUDI,Executive,62
 2021,11,BENTLEY BENTAYGA,BENTLEY,Other,3
 2021,11,BENTLEY FLYING,BENTLEY,Other,3
@@ -25641,8 +25640,8 @@ year,month,model,brand,segment,count
 2021,11,Land Rover Defender,LAND ROVER,Large SUV,28
 2021,11,Land Rover Discovery,LAND ROVER,Large SUV,11
 2021,11,Land Rover Discovery Sport,LAND ROVER,Compact SUV,30
-2021,11,Land Rover Range Rover,LAND ROVER,Large SUV,5
-2021,11,Land Rover Range Rover Sport,LAND ROVER,Large SUV,28
+2021,11,Land Rover Range Rover,LAND ROVER,Large SUV,3
+2021,11,Land Rover Range Rover Sport,LAND ROVER,Large SUV,30
 2021,11,MAN TGE,MAN,Other,3
 2021,11,MASERATI GHIBLI,MASERATI,Executive,9
 2021,11,MASERATI LEVANTE,MASERATI,Large SUV,11
@@ -25848,7 +25847,6 @@ year,month,model,brand,segment,count
 2021,12,AUDI A7,AUDI,Executive,6
 2021,12,AUDI A8,AUDI,Luxury,5
 2021,12,AUDI AUDI,AUDI,Other,27
-2021,12,AUDI E-TRON,AUDI,Large SUV,109
 2021,12,AUDI Q2,AUDI,Compact SUV,165
 2021,12,AUDI Q4,AUDI,Compact SUV,342
 2021,12,AUDI Q5,AUDI,Mid-size SUV,206
@@ -25858,6 +25856,7 @@ year,month,model,brand,segment,count
 2021,12,AUDI TT,AUDI,Sports / GT,7
 2021,12,Audi A1,AUDI,City / Supermini,120
 2021,12,Audi Q3,AUDI,Compact SUV,293
+2021,12,Audi e-tron,AUDI,Large SUV,109
 2021,12,Audi e-tron GT,AUDI,Executive,40
 2021,12,BENTLEY BENTAYGA,BENTLEY,Other,1
 2021,12,BENTLEY FLYING,BENTLEY,Other,1
@@ -26223,7 +26222,6 @@ year,month,model,brand,segment,count
 2022,1,AUDI A6,AUDI,Executive,42
 2022,1,AUDI A7,AUDI,Executive,12
 2022,1,AUDI AUDI,AUDI,Other,29
-2022,1,AUDI E-TRON,AUDI,Large SUV,61
 2022,1,AUDI Q2,AUDI,Compact SUV,108
 2022,1,AUDI Q4,AUDI,Compact SUV,270
 2022,1,AUDI Q5,AUDI,Mid-size SUV,122
@@ -26233,6 +26231,7 @@ year,month,model,brand,segment,count
 2022,1,AUDI TT,AUDI,Sports / GT,3
 2022,1,Audi A1,AUDI,City / Supermini,75
 2022,1,Audi Q3,AUDI,Compact SUV,202
+2022,1,Audi e-tron,AUDI,Large SUV,61
 2022,1,Audi e-tron GT,AUDI,Executive,39
 2022,1,BENTLEY BENTAYGA,BENTLEY,Other,8
 2022,1,BENTLEY FLYING,BENTLEY,Other,1
@@ -26563,7 +26562,6 @@ year,month,model,brand,segment,count
 2022,2,AUDI A6,AUDI,Executive,33
 2022,2,AUDI A7,AUDI,Executive,3
 2022,2,AUDI AUDI,AUDI,Other,20
-2022,2,AUDI E-TRON,AUDI,Large SUV,46
 2022,2,AUDI Q2,AUDI,Compact SUV,125
 2022,2,AUDI Q4,AUDI,Compact SUV,169
 2022,2,AUDI Q5,AUDI,Mid-size SUV,103
@@ -26572,6 +26570,7 @@ year,month,model,brand,segment,count
 2022,2,AUDI TT,AUDI,Sports / GT,2
 2022,2,Audi A1,AUDI,City / Supermini,74
 2022,2,Audi Q3,AUDI,Compact SUV,205
+2022,2,Audi e-tron,AUDI,Large SUV,46
 2022,2,Audi e-tron GT,AUDI,Executive,28
 2022,2,BENTLEY BENTAYGA,BENTLEY,Other,6
 2022,2,BENTLEY FLYING,BENTLEY,Other,3
@@ -26703,8 +26702,8 @@ year,month,model,brand,segment,count
 2022,2,Land Rover Defender,LAND ROVER,Large SUV,38
 2022,2,Land Rover Discovery,LAND ROVER,Large SUV,1
 2022,2,Land Rover Discovery Sport,LAND ROVER,Compact SUV,2
-2022,2,Land Rover Range Rover,LAND ROVER,Large SUV,6
-2022,2,Land Rover Range Rover Sport,LAND ROVER,Large SUV,14
+2022,2,Land Rover Range Rover,LAND ROVER,Large SUV,4
+2022,2,Land Rover Range Rover Sport,LAND ROVER,Large SUV,16
 2022,2,MASERATI GHIBLI,MASERATI,Executive,3
 2022,2,MASERATI LEVANTE,MASERATI,Large SUV,15
 2022,2,MASERATI MC20,MASERATI,Other,3
@@ -26904,7 +26903,6 @@ year,month,model,brand,segment,count
 2022,3,AUDI A6,AUDI,Executive,55
 2022,3,AUDI A7,AUDI,Executive,6
 2022,3,AUDI AUDI,AUDI,Other,28
-2022,3,AUDI E-TRON,AUDI,Large SUV,76
 2022,3,AUDI Q2,AUDI,Compact SUV,151
 2022,3,AUDI Q4,AUDI,Compact SUV,116
 2022,3,AUDI Q5,AUDI,Mid-size SUV,128
@@ -26914,6 +26912,7 @@ year,month,model,brand,segment,count
 2022,3,AUDI TT,AUDI,Sports / GT,8
 2022,3,Audi A1,AUDI,City / Supermini,151
 2022,3,Audi Q3,AUDI,Compact SUV,346
+2022,3,Audi e-tron,AUDI,Large SUV,76
 2022,3,Audi e-tron GT,AUDI,Executive,42
 2022,3,BENTLEY BENTAYGA,BENTLEY,Other,2
 2022,3,BENTLEY FLYING,BENTLEY,Other,3
@@ -27263,7 +27262,6 @@ year,month,model,brand,segment,count
 2022,4,AUDI A7,AUDI,Executive,1
 2022,4,AUDI A8,AUDI,Luxury,4
 2022,4,AUDI AUDI,AUDI,Other,10
-2022,4,AUDI E-TRON,AUDI,Large SUV,95
 2022,4,AUDI Q2,AUDI,Compact SUV,114
 2022,4,AUDI Q4,AUDI,Compact SUV,48
 2022,4,AUDI Q5,AUDI,Mid-size SUV,244
@@ -27272,6 +27270,7 @@ year,month,model,brand,segment,count
 2022,4,AUDI TT,AUDI,Sports / GT,3
 2022,4,Audi A1,AUDI,City / Supermini,77
 2022,4,Audi Q3,AUDI,Compact SUV,306
+2022,4,Audi e-tron,AUDI,Large SUV,95
 2022,4,Audi e-tron GT,AUDI,Executive,24
 2022,4,BENTLEY BENTAYGA,BENTLEY,Other,4
 2022,4,BENTLEY FLYING,BENTLEY,Other,2
@@ -27611,7 +27610,6 @@ year,month,model,brand,segment,count
 2022,5,AUDI A7,AUDI,Executive,5
 2022,5,AUDI A8,AUDI,Luxury,4
 2022,5,AUDI AUDI,AUDI,Other,13
-2022,5,AUDI E-TRON,AUDI,Large SUV,116
 2022,5,AUDI Q2,AUDI,Compact SUV,140
 2022,5,AUDI Q4,AUDI,Compact SUV,131
 2022,5,AUDI Q5,AUDI,Mid-size SUV,183
@@ -27620,6 +27618,7 @@ year,month,model,brand,segment,count
 2022,5,AUDI TT,AUDI,Sports / GT,4
 2022,5,Audi A1,AUDI,City / Supermini,83
 2022,5,Audi Q3,AUDI,Compact SUV,477
+2022,5,Audi e-tron,AUDI,Large SUV,116
 2022,5,Audi e-tron GT,AUDI,Executive,25
 2022,5,BENTLEY BENTAYGA,BENTLEY,Other,5
 2022,5,BENTLEY FLYING,BENTLEY,Other,1
@@ -27972,7 +27971,6 @@ year,month,model,brand,segment,count
 2022,6,AUDI A7,AUDI,Executive,11
 2022,6,AUDI A8,AUDI,Luxury,3
 2022,6,AUDI AUDI,AUDI,Other,20
-2022,6,AUDI E-TRON,AUDI,Large SUV,128
 2022,6,AUDI Q2,AUDI,Compact SUV,116
 2022,6,AUDI Q4,AUDI,Compact SUV,103
 2022,6,AUDI Q5,AUDI,Mid-size SUV,183
@@ -27981,6 +27979,7 @@ year,month,model,brand,segment,count
 2022,6,AUDI TT,AUDI,Sports / GT,6
 2022,6,Audi A1,AUDI,City / Supermini,56
 2022,6,Audi Q3,AUDI,Compact SUV,357
+2022,6,Audi e-tron,AUDI,Large SUV,128
 2022,6,Audi e-tron GT,AUDI,Executive,37
 2022,6,BENTLEY BENTAYGA,BENTLEY,Other,2
 2022,6,BENTLEY FLYING,BENTLEY,Other,4
@@ -28336,7 +28335,6 @@ year,month,model,brand,segment,count
 2022,7,AUDI A7,AUDI,Executive,2
 2022,7,AUDI A8,AUDI,Luxury,1
 2022,7,AUDI AUDI,AUDI,Other,14
-2022,7,AUDI E-TRON,AUDI,Large SUV,75
 2022,7,AUDI Q2,AUDI,Compact SUV,66
 2022,7,AUDI Q4,AUDI,Compact SUV,85
 2022,7,AUDI Q5,AUDI,Mid-size SUV,147
@@ -28345,6 +28343,7 @@ year,month,model,brand,segment,count
 2022,7,AUDI TT,AUDI,Sports / GT,1
 2022,7,Audi A1,AUDI,City / Supermini,137
 2022,7,Audi Q3,AUDI,Compact SUV,239
+2022,7,Audi e-tron,AUDI,Large SUV,75
 2022,7,Audi e-tron GT,AUDI,Executive,23
 2022,7,BENTLEY BENTAYGA,BENTLEY,Other,5
 2022,7,BENTLEY FLYING,BENTLEY,Other,2
@@ -28480,8 +28479,8 @@ year,month,model,brand,segment,count
 2022,7,Land Rover Defender,LAND ROVER,Large SUV,50
 2022,7,Land Rover Discovery,LAND ROVER,Large SUV,1
 2022,7,Land Rover Discovery Sport,LAND ROVER,Compact SUV,24
-2022,7,Land Rover Range Rover,LAND ROVER,Large SUV,36
-2022,7,Land Rover Range Rover Sport,LAND ROVER,Large SUV,16
+2022,7,Land Rover Range Rover,LAND ROVER,Large SUV,35
+2022,7,Land Rover Range Rover Sport,LAND ROVER,Large SUV,17
 2022,7,MAN ETGE,MAN,Other,1
 2022,7,MAN TGE,MAN,Other,1
 2022,7,MASERATI BITURBO,MASERATI,Other,1
@@ -28699,7 +28698,6 @@ year,month,model,brand,segment,count
 2022,8,AUDI A7,AUDI,Executive,2
 2022,8,AUDI A8,AUDI,Luxury,1
 2022,8,AUDI AUDI,AUDI,Other,32
-2022,8,AUDI E-TRON,AUDI,Large SUV,39
 2022,8,AUDI Q2,AUDI,Compact SUV,85
 2022,8,AUDI Q4,AUDI,Compact SUV,137
 2022,8,AUDI Q5,AUDI,Mid-size SUV,148
@@ -28709,6 +28707,7 @@ year,month,model,brand,segment,count
 2022,8,AUDI TT,AUDI,Sports / GT,11
 2022,8,Audi A1,AUDI,City / Supermini,178
 2022,8,Audi Q3,AUDI,Compact SUV,330
+2022,8,Audi e-tron,AUDI,Large SUV,39
 2022,8,Audi e-tron GT,AUDI,Executive,4
 2022,8,BENTLEY BENTAYGA,BENTLEY,Other,7
 2022,8,BMW 1 Series,BMW,Compact,114
@@ -29059,7 +29058,6 @@ year,month,model,brand,segment,count
 2022,9,AUDI A7,AUDI,Executive,1
 2022,9,AUDI A8,AUDI,Luxury,6
 2022,9,AUDI AUDI,AUDI,Other,22
-2022,9,AUDI E-TRON,AUDI,Large SUV,74
 2022,9,AUDI Q2,AUDI,Compact SUV,103
 2022,9,AUDI Q4,AUDI,Compact SUV,155
 2022,9,AUDI Q5,AUDI,Mid-size SUV,140
@@ -29069,6 +29067,7 @@ year,month,model,brand,segment,count
 2022,9,AUDI TT,AUDI,Sports / GT,5
 2022,9,Audi A1,AUDI,City / Supermini,90
 2022,9,Audi Q3,AUDI,Compact SUV,368
+2022,9,Audi e-tron,AUDI,Large SUV,74
 2022,9,Audi e-tron GT,AUDI,Executive,7
 2022,9,BENTLEY BENTAYGA,BENTLEY,Other,3
 2022,9,BENTLEY FLYING,BENTLEY,Other,3
@@ -29424,7 +29423,6 @@ year,month,model,brand,segment,count
 2022,10,AUDI A6,AUDI,Executive,38
 2022,10,AUDI A8,AUDI,Luxury,5
 2022,10,AUDI AUDI,AUDI,Other,24
-2022,10,AUDI E-TRON,AUDI,Large SUV,92
 2022,10,AUDI Q2,AUDI,Compact SUV,99
 2022,10,AUDI Q4,AUDI,Compact SUV,187
 2022,10,AUDI Q5,AUDI,Mid-size SUV,148
@@ -29435,6 +29433,7 @@ year,month,model,brand,segment,count
 2022,10,AUDI-NSU 35,AUDI-NSU,Other,1
 2022,10,Audi A1,AUDI,City / Supermini,119
 2022,10,Audi Q3,AUDI,Compact SUV,327
+2022,10,Audi e-tron,AUDI,Large SUV,92
 2022,10,Audi e-tron GT,AUDI,Executive,17
 2022,10,BENTLEY BENTAYGA,BENTLEY,Other,4
 2022,10,BENTLEY FLYING,BENTLEY,Other,1
@@ -29567,8 +29566,8 @@ year,month,model,brand,segment,count
 2022,10,Land Rover Defender,LAND ROVER,Large SUV,40
 2022,10,Land Rover Discovery,LAND ROVER,Large SUV,1
 2022,10,Land Rover Discovery Sport,LAND ROVER,Compact SUV,22
-2022,10,Land Rover Range Rover,LAND ROVER,Large SUV,15
-2022,10,Land Rover Range Rover Sport,LAND ROVER,Large SUV,8
+2022,10,Land Rover Range Rover,LAND ROVER,Large SUV,14
+2022,10,Land Rover Range Rover Sport,LAND ROVER,Large SUV,9
 2022,10,MASERATI GHIBLI,MASERATI,Executive,1
 2022,10,MASERATI GRECALE,MASERATI,Mid-size SUV,43
 2022,10,MASERATI LEVANTE,MASERATI,Large SUV,1
@@ -29607,7 +29606,6 @@ year,month,model,brand,segment,count
 2022,10,MERCEDES-BENZ SPRINTER,MERCEDES-BENZ,Other,1
 2022,10,MERCEDES-BENZ T,MERCEDES-BENZ,Other,3
 2022,10,MERCEDES-BENZ VITO,MERCEDES-BENZ,Other,42
-2022,10,MERCEDES-BENZ Z,MERCEDES-BENZ,Other,2
 2022,10,MINI 3DOOR,MINI,Other,97
 2022,10,MINI 5DOOR,MINI,Other,36
 2022,10,MINI CABRIO,MINI,Other,30
@@ -29620,7 +29618,7 @@ year,month,model,brand,segment,count
 2022,10,Mercedes-Benz B-Class,MERCEDES-BENZ,Compact,46
 2022,10,Mercedes-Benz C-Class,MERCEDES-BENZ,Compact Executive,146
 2022,10,Mercedes-Benz E-Class,MERCEDES-BENZ,Executive,59
-2022,10,Mercedes-Benz G-Class,MERCEDES-BENZ,Large SUV,36
+2022,10,Mercedes-Benz G-Class,MERCEDES-BENZ,Large SUV,38
 2022,10,Mercedes-Benz S-Class,MERCEDES-BENZ,Luxury,26
 2022,10,Mercedes-Benz V-Class,MERCEDES-BENZ,MPV,71
 2022,10,Mitsubishi Outlander,MITSUBISHI,Other,1
@@ -29784,7 +29782,6 @@ year,month,model,brand,segment,count
 2022,11,AUDI A7,AUDI,Executive,3
 2022,11,AUDI A8,AUDI,Luxury,1
 2022,11,AUDI AUDI,AUDI,Other,25
-2022,11,AUDI E-TRON,AUDI,Large SUV,38
 2022,11,AUDI Q2,AUDI,Compact SUV,93
 2022,11,AUDI Q4,AUDI,Compact SUV,166
 2022,11,AUDI Q5,AUDI,Mid-size SUV,239
@@ -29794,6 +29791,7 @@ year,month,model,brand,segment,count
 2022,11,AUDI TT,AUDI,Sports / GT,3
 2022,11,Audi A1,AUDI,City / Supermini,160
 2022,11,Audi Q3,AUDI,Compact SUV,370
+2022,11,Audi e-tron,AUDI,Large SUV,38
 2022,11,Audi e-tron GT,AUDI,Executive,44
 2022,11,BENTLEY BENTAYGA,BENTLEY,Other,6
 2022,11,BENTLEY FLYING,BENTLEY,Other,1
@@ -29963,7 +29961,6 @@ year,month,model,brand,segment,count
 2022,11,MERCEDES-BENZ SPRINTER,MERCEDES-BENZ,Other,1
 2022,11,MERCEDES-BENZ T,MERCEDES-BENZ,Other,4
 2022,11,MERCEDES-BENZ VITO,MERCEDES-BENZ,Other,45
-2022,11,MERCEDES-BENZ Z,MERCEDES-BENZ,Other,16
 2022,11,MINI 3DOOR,MINI,Other,79
 2022,11,MINI 5DOOR,MINI,Other,38
 2022,11,MINI CABRIO,MINI,Other,39
@@ -29977,7 +29974,7 @@ year,month,model,brand,segment,count
 2022,11,Mercedes-Benz B-Class,MERCEDES-BENZ,Compact,36
 2022,11,Mercedes-Benz C-Class,MERCEDES-BENZ,Compact Executive,150
 2022,11,Mercedes-Benz E-Class,MERCEDES-BENZ,Executive,78
-2022,11,Mercedes-Benz G-Class,MERCEDES-BENZ,Large SUV,28
+2022,11,Mercedes-Benz G-Class,MERCEDES-BENZ,Large SUV,44
 2022,11,Mercedes-Benz S-Class,MERCEDES-BENZ,Luxury,23
 2022,11,Mercedes-Benz V-Class,MERCEDES-BENZ,MPV,88
 2022,11,Mitsubishi Space Star,MITSUBISHI,Other,109
@@ -30141,7 +30138,6 @@ year,month,model,brand,segment,count
 2022,12,AUDI A7,AUDI,Executive,4
 2022,12,AUDI A8,AUDI,Luxury,1
 2022,12,AUDI AUDI,AUDI,Other,17
-2022,12,AUDI E-TRON,AUDI,Large SUV,161
 2022,12,AUDI Q2,AUDI,Compact SUV,83
 2022,12,AUDI Q4,AUDI,Compact SUV,289
 2022,12,AUDI Q5,AUDI,Mid-size SUV,254
@@ -30151,6 +30147,7 @@ year,month,model,brand,segment,count
 2022,12,AUDI TT,AUDI,Sports / GT,6
 2022,12,Audi A1,AUDI,City / Supermini,137
 2022,12,Audi Q3,AUDI,Compact SUV,348
+2022,12,Audi e-tron,AUDI,Large SUV,161
 2022,12,Audi e-tron GT,AUDI,Executive,61
 2022,12,BENTLEY FLYINGSPUR,BENTLEY,Other,1
 2022,12,BMW 1 Series,BMW,Compact,179
@@ -30320,7 +30317,6 @@ year,month,model,brand,segment,count
 2022,12,MERCEDES-BENZ SL,MERCEDES-BENZ,Sports / GT,6
 2022,12,MERCEDES-BENZ T,MERCEDES-BENZ,Other,11
 2022,12,MERCEDES-BENZ VITO,MERCEDES-BENZ,Other,73
-2022,12,MERCEDES-BENZ Z,MERCEDES-BENZ,Other,46
 2022,12,MG EHS,MG,Other,1
 2022,12,MINI 3DOOR,MINI,Other,104
 2022,12,MINI 5DOOR,MINI,Other,56
@@ -30335,7 +30331,7 @@ year,month,model,brand,segment,count
 2022,12,Mercedes-Benz B-Class,MERCEDES-BENZ,Compact,78
 2022,12,Mercedes-Benz C-Class,MERCEDES-BENZ,Compact Executive,186
 2022,12,Mercedes-Benz E-Class,MERCEDES-BENZ,Executive,93
-2022,12,Mercedes-Benz G-Class,MERCEDES-BENZ,Large SUV,44
+2022,12,Mercedes-Benz G-Class,MERCEDES-BENZ,Large SUV,90
 2022,12,Mercedes-Benz S-Class,MERCEDES-BENZ,Luxury,25
 2022,12,Mercedes-Benz V-Class,MERCEDES-BENZ,MPV,120
 2022,12,Mitsubishi Outlander,MITSUBISHI,Other,2
@@ -30508,7 +30504,6 @@ year,month,model,brand,segment,count
 2023,1,AUDI A7,AUDI,Executive,2
 2023,1,AUDI A8,AUDI,Luxury,5
 2023,1,AUDI AUDI,AUDI,Other,10
-2023,1,AUDI E-TRON,AUDI,Large SUV,60
 2023,1,AUDI Q2,AUDI,Compact SUV,39
 2023,1,AUDI Q4,AUDI,Compact SUV,206
 2023,1,AUDI Q5,AUDI,Mid-size SUV,206
@@ -30517,6 +30512,7 @@ year,month,model,brand,segment,count
 2023,1,AUDI TT,AUDI,Sports / GT,8
 2023,1,Audi A1,AUDI,City / Supermini,121
 2023,1,Audi Q3,AUDI,Compact SUV,291
+2023,1,Audi e-tron,AUDI,Large SUV,60
 2023,1,Audi e-tron GT,AUDI,Executive,29
 2023,1,BENTLEY BENTAYGA,BENTLEY,Other,5
 2023,1,BENTLEY FLYING,BENTLEY,Other,3
@@ -30875,7 +30871,6 @@ year,month,model,brand,segment,count
 2023,2,AUDI A7,AUDI,Executive,2
 2023,2,AUDI A8,AUDI,Luxury,6
 2023,2,AUDI AUDI,AUDI,Other,4
-2023,2,AUDI E-TRON,AUDI,Large SUV,17
 2023,2,AUDI Q2,AUDI,Compact SUV,91
 2023,2,AUDI Q4,AUDI,Compact SUV,263
 2023,2,AUDI Q5,AUDI,Mid-size SUV,152
@@ -30884,6 +30879,7 @@ year,month,model,brand,segment,count
 2023,2,AUDI TT,AUDI,Sports / GT,3
 2023,2,Audi A1,AUDI,City / Supermini,129
 2023,2,Audi Q3,AUDI,Compact SUV,319
+2023,2,Audi e-tron,AUDI,Large SUV,17
 2023,2,Audi e-tron GT,AUDI,Executive,6
 2023,2,BENTLEY BENTAYGA,BENTLEY,Other,3
 2023,2,BENTLEY FLYING,BENTLEY,Other,2
@@ -31049,14 +31045,13 @@ year,month,model,brand,segment,count
 2023,2,MERCEDES-BENZ GLB,MERCEDES-BENZ,Compact SUV,54
 2023,2,MERCEDES-BENZ GLC,MERCEDES-BENZ,Mid-size SUV,360
 2023,2,MERCEDES-BENZ GLE,MERCEDES-BENZ,Large SUV,155
-2023,2,MERCEDES-BENZ GLS,MERCEDES-BENZ,Large SUV,19
+2023,2,MERCEDES-BENZ GLS,MERCEDES-BENZ,Large SUV,20
 2023,2,MERCEDES-BENZ MARCO,MERCEDES-BENZ,Other,2
 2023,2,MERCEDES-BENZ MERCEDES,MERCEDES-BENZ,Other,1
 2023,2,MERCEDES-BENZ MPH,MERCEDES-BENZ,Other,1
 2023,2,MERCEDES-BENZ SL,MERCEDES-BENZ,Sports / GT,11
 2023,2,MERCEDES-BENZ T,MERCEDES-BENZ,Other,4
 2023,2,MERCEDES-BENZ VITO,MERCEDES-BENZ,Other,29
-2023,2,MERCEDES-BENZ Z,MERCEDES-BENZ,Other,1
 2023,2,MG MARVEL,MG,Other,1
 2023,2,MINI 3DOOR,MINI,Other,79
 2023,2,MINI 5DOOR,MINI,Other,46
@@ -31241,16 +31236,16 @@ year,month,model,brand,segment,count
 2023,3,AUDI A7,AUDI,Executive,5
 2023,3,AUDI A8,AUDI,Luxury,3
 2023,3,AUDI AUDI,AUDI,Other,3
-2023,3,AUDI E-TRON,AUDI,Large SUV,6
 2023,3,AUDI Q2,AUDI,Compact SUV,138
 2023,3,AUDI Q4,AUDI,Compact SUV,223
 2023,3,AUDI Q5,AUDI,Mid-size SUV,226
 2023,3,AUDI Q7,AUDI,Large SUV,34
-2023,3,AUDI Q8,AUDI,Large SUV,140
+2023,3,AUDI Q8,AUDI,Large SUV,57
 2023,3,AUDI R8,AUDI,Sports / GT,5
 2023,3,AUDI TT,AUDI,Sports / GT,11
 2023,3,Audi A1,AUDI,City / Supermini,140
 2023,3,Audi Q3,AUDI,Compact SUV,409
+2023,3,Audi e-tron,AUDI,Large SUV,89
 2023,3,Audi e-tron GT,AUDI,Executive,18
 2023,3,BENTLEY BENTAYGA,BENTLEY,Other,4
 2023,3,BENTLEY FLYINGSPUR,BENTLEY,Other,1
@@ -31625,16 +31620,16 @@ year,month,model,brand,segment,count
 2023,4,AUDI A6,AUDI,Executive,60
 2023,4,AUDI A7,AUDI,Executive,4
 2023,4,AUDI A8,AUDI,Luxury,2
-2023,4,AUDI E-TRON,AUDI,Large SUV,3
 2023,4,AUDI Q2,AUDI,Compact SUV,103
 2023,4,AUDI Q4,AUDI,Compact SUV,305
 2023,4,AUDI Q5,AUDI,Mid-size SUV,161
 2023,4,AUDI Q7,AUDI,Large SUV,23
-2023,4,AUDI Q8,AUDI,Large SUV,100
+2023,4,AUDI Q8,AUDI,Large SUV,51
 2023,4,AUDI R8,AUDI,Sports / GT,3
 2023,4,AUDI TT,AUDI,Sports / GT,15
 2023,4,Audi A1,AUDI,City / Supermini,131
 2023,4,Audi Q3,AUDI,Compact SUV,399
+2023,4,Audi e-tron,AUDI,Large SUV,52
 2023,4,Audi e-tron GT,AUDI,Executive,12
 2023,4,BENTLEY BENTAYGA,BENTLEY,Other,4
 2023,4,BENTLEY FLYINGSPUR,BENTLEY,Other,1
@@ -32002,17 +31997,17 @@ year,month,model,brand,segment,count
 2023,5,AUDI A7,AUDI,Executive,4
 2023,5,AUDI A8,AUDI,Luxury,2
 2023,5,AUDI AUDI,AUDI,Other,2
-2023,5,AUDI E-TRON,AUDI,Large SUV,2
 2023,5,AUDI Q2,AUDI,Compact SUV,114
 2023,5,AUDI Q4,AUDI,Compact SUV,256
 2023,5,AUDI Q5,AUDI,Mid-size SUV,198
 2023,5,AUDI Q7,AUDI,Large SUV,25
-2023,5,AUDI Q8,AUDI,Large SUV,191
+2023,5,AUDI Q8,AUDI,Large SUV,44
 2023,5,AUDI R8,AUDI,Sports / GT,3
 2023,5,AUDI SPORT,AUDI,Other,1
 2023,5,AUDI TT,AUDI,Sports / GT,4
 2023,5,Audi A1,AUDI,City / Supermini,148
 2023,5,Audi Q3,AUDI,Compact SUV,336
+2023,5,Audi e-tron,AUDI,Large SUV,149
 2023,5,Audi e-tron GT,AUDI,Executive,11
 2023,5,BENTLEY BENTAYGA,BENTLEY,Other,5
 2023,5,BENTLEY FLYING,BENTLEY,Other,1
@@ -32385,16 +32380,16 @@ year,month,model,brand,segment,count
 2023,6,AUDI A6,AUDI,Executive,69
 2023,6,AUDI A7,AUDI,Executive,7
 2023,6,AUDI A8,AUDI,Luxury,2
-2023,6,AUDI E-TRON,AUDI,Large SUV,3
 2023,6,AUDI Q2,AUDI,Compact SUV,140
 2023,6,AUDI Q4,AUDI,Compact SUV,238
 2023,6,AUDI Q5,AUDI,Mid-size SUV,192
 2023,6,AUDI Q7,AUDI,Large SUV,39
-2023,6,AUDI Q8,AUDI,Large SUV,207
+2023,6,AUDI Q8,AUDI,Large SUV,61
 2023,6,AUDI R8,AUDI,Sports / GT,1
 2023,6,AUDI TT,AUDI,Sports / GT,4
 2023,6,Audi A1,AUDI,City / Supermini,187
 2023,6,Audi Q3,AUDI,Compact SUV,419
+2023,6,Audi e-tron,AUDI,Large SUV,149
 2023,6,Audi e-tron GT,AUDI,Executive,24
 2023,6,BENTLEY BENTAYGA,BENTLEY,Other,4
 2023,6,BENTLEY FLYING,BENTLEY,Other,2
@@ -32595,7 +32590,6 @@ year,month,model,brand,segment,count
 2023,6,MERCEDES-BENZ SPRINTER,MERCEDES-BENZ,Other,2
 2023,6,MERCEDES-BENZ T,MERCEDES-BENZ,Other,7
 2023,6,MERCEDES-BENZ VITO,MERCEDES-BENZ,Other,36
-2023,6,MERCEDES-BENZ Z,MERCEDES-BENZ,Other,1
 2023,6,MINI 3DOOR,MINI,Other,102
 2023,6,MINI 5DOOR,MINI,Other,46
 2023,6,MINI CABRIO,MINI,Other,103
@@ -32605,7 +32599,7 @@ year,month,model,brand,segment,count
 2023,6,MITSUBISHI ASX,MITSUBISHI,Other,27
 2023,6,MITSUBISHI ECLIPSE,MITSUBISHI,Other,42
 2023,6,MORGAN PLUS,MORGAN,Other,1
-2023,6,Mercedes-AMG GT,MERCEDES-BENZ,Sports / GT,15
+2023,6,Mercedes-AMG GT,MERCEDES-BENZ,Sports / GT,16
 2023,6,Mercedes-Benz A-Class,MERCEDES-BENZ,Compact,208
 2023,6,Mercedes-Benz B-Class,MERCEDES-BENZ,Compact,31
 2023,6,Mercedes-Benz C-Class,MERCEDES-BENZ,Compact Executive,211
@@ -32788,11 +32782,12 @@ year,month,model,brand,segment,count
 2023,7,AUDI Q4,AUDI,Compact SUV,160
 2023,7,AUDI Q5,AUDI,Mid-size SUV,124
 2023,7,AUDI Q7,AUDI,Large SUV,21
-2023,7,AUDI Q8,AUDI,Large SUV,181
+2023,7,AUDI Q8,AUDI,Large SUV,66
 2023,7,AUDI R8,AUDI,Sports / GT,1
 2023,7,AUDI TT,AUDI,Sports / GT,9
 2023,7,Audi A1,AUDI,City / Supermini,149
 2023,7,Audi Q3,AUDI,Compact SUV,393
+2023,7,Audi e-tron,AUDI,Large SUV,115
 2023,7,Audi e-tron GT,AUDI,Executive,22
 2023,7,BENTLEY BENTAYGA,BENTLEY,Other,6
 2023,7,BENTLEY FLYING,BENTLEY,Other,2
@@ -33166,11 +33161,12 @@ year,month,model,brand,segment,count
 2023,8,AUDI Q4,AUDI,Compact SUV,216
 2023,8,AUDI Q5,AUDI,Mid-size SUV,171
 2023,8,AUDI Q7,AUDI,Large SUV,18
-2023,8,AUDI Q8,AUDI,Large SUV,118
+2023,8,AUDI Q8,AUDI,Large SUV,34
 2023,8,AUDI SPORTBACK,AUDI,Other,1
 2023,8,AUDI TT,AUDI,Sports / GT,11
 2023,8,Audi A1,AUDI,City / Supermini,143
 2023,8,Audi Q3,AUDI,Compact SUV,366
+2023,8,Audi e-tron,AUDI,Large SUV,84
 2023,8,Audi e-tron GT,AUDI,Executive,7
 2023,8,BENTLEY BENTAYGA,BENTLEY,Other,6
 2023,8,BENTLEY FLYING,BENTLEY,Other,1
@@ -33549,11 +33545,12 @@ year,month,model,brand,segment,count
 2023,9,AUDI Q4,AUDI,Compact SUV,336
 2023,9,AUDI Q5,AUDI,Mid-size SUV,190
 2023,9,AUDI Q7,AUDI,Large SUV,24
-2023,9,AUDI Q8,AUDI,Large SUV,136
+2023,9,AUDI Q8,AUDI,Large SUV,42
 2023,9,AUDI R8,AUDI,Sports / GT,1
 2023,9,AUDI TT,AUDI,Sports / GT,11
 2023,9,Audi A1,AUDI,City / Supermini,149
 2023,9,Audi Q3,AUDI,Compact SUV,288
+2023,9,Audi e-tron,AUDI,Large SUV,94
 2023,9,Audi e-tron GT,AUDI,Executive,13
 2023,9,BENTLEY BENTAYGA,BENTLEY,Other,4
 2023,9,BENTLEY FLYING,BENTLEY,Other,1
@@ -33935,10 +33932,11 @@ year,month,model,brand,segment,count
 2023,10,AUDI Q4,AUDI,Compact SUV,523
 2023,10,AUDI Q5,AUDI,Mid-size SUV,139
 2023,10,AUDI Q7,AUDI,Large SUV,8
-2023,10,AUDI Q8,AUDI,Large SUV,130
+2023,10,AUDI Q8,AUDI,Large SUV,48
 2023,10,AUDI TT,AUDI,Sports / GT,10
 2023,10,Audi A1,AUDI,City / Supermini,143
 2023,10,Audi Q3,AUDI,Compact SUV,243
+2023,10,Audi e-tron,AUDI,Large SUV,82
 2023,10,Audi e-tron GT,AUDI,Executive,18
 2023,10,BENTLEY BENTAYGA,BENTLEY,Other,4
 2023,10,BENTLEY FLYING,BENTLEY,Other,1
@@ -34323,11 +34321,12 @@ year,month,model,brand,segment,count
 2023,11,AUDI Q4,AUDI,Compact SUV,433
 2023,11,AUDI Q5,AUDI,Mid-size SUV,120
 2023,11,AUDI Q7,AUDI,Large SUV,18
-2023,11,AUDI Q8,AUDI,Large SUV,129
+2023,11,AUDI Q8,AUDI,Large SUV,26
 2023,11,AUDI R8,AUDI,Sports / GT,1
 2023,11,AUDI TT,AUDI,Sports / GT,13
 2023,11,Audi A1,AUDI,City / Supermini,147
 2023,11,Audi Q3,AUDI,Compact SUV,274
+2023,11,Audi e-tron,AUDI,Large SUV,103
 2023,11,Audi e-tron GT,AUDI,Executive,13
 2023,11,BENTLEY BENTAYGA,BENTLEY,Other,5
 2023,11,BMW 1 Series,BMW,Compact,156
@@ -34715,15 +34714,15 @@ year,month,model,brand,segment,count
 2023,12,AUDI A5,AUDI,Compact Executive,30
 2023,12,AUDI A6,AUDI,Executive,96
 2023,12,AUDI A7,AUDI,Executive,1
-2023,12,AUDI E-TRON,AUDI,Large SUV,1
 2023,12,AUDI Q2,AUDI,Compact SUV,148
 2023,12,AUDI Q4,AUDI,Compact SUV,508
 2023,12,AUDI Q5,AUDI,Mid-size SUV,115
 2023,12,AUDI Q7,AUDI,Large SUV,25
-2023,12,AUDI Q8,AUDI,Large SUV,286
+2023,12,AUDI Q8,AUDI,Large SUV,59
 2023,12,AUDI TT,AUDI,Sports / GT,5
 2023,12,Audi A1,AUDI,City / Supermini,126
 2023,12,Audi Q3,AUDI,Compact SUV,348
+2023,12,Audi e-tron,AUDI,Large SUV,228
 2023,12,Audi e-tron GT,AUDI,Executive,19
 2023,12,BENTLEY FLYING,BENTLEY,Other,3
 2023,12,BENTLEY FLYINGSPUR,BENTLEY,Other,1
@@ -35130,10 +35129,11 @@ year,month,model,brand,segment,count
 2024,1,AUDI Q5,AUDI,Mid-size SUV,88
 2024,1,AUDI Q6,AUDI,Mid-size SUV,1
 2024,1,AUDI Q7,AUDI,Large SUV,33
-2024,1,AUDI Q8,AUDI,Large SUV,75
+2024,1,AUDI Q8,AUDI,Large SUV,43
 2024,1,AUDI TT,AUDI,Sports / GT,4
 2024,1,Audi A1,AUDI,City / Supermini,70
 2024,1,Audi Q3,AUDI,Compact SUV,172
+2024,1,Audi e-tron,AUDI,Large SUV,32
 2024,1,BENTLEY BENTAYGA,BENTLEY,Other,4
 2024,1,BENTLEY FLYING,BENTLEY,Other,2
 2024,1,BMW 1 Series,BMW,Compact,186
@@ -35511,11 +35511,12 @@ year,month,model,brand,segment,count
 2024,2,AUDI Q4,AUDI,Compact SUV,95
 2024,2,AUDI Q5,AUDI,Mid-size SUV,86
 2024,2,AUDI Q7,AUDI,Large SUV,40
-2024,2,AUDI Q8,AUDI,Large SUV,71
+2024,2,AUDI Q8,AUDI,Large SUV,27
 2024,2,AUDI R8,AUDI,Sports / GT,1
 2024,2,AUDI TT,AUDI,Sports / GT,2
 2024,2,Audi A1,AUDI,City / Supermini,116
 2024,2,Audi Q3,AUDI,Compact SUV,242
+2024,2,Audi e-tron,AUDI,Large SUV,44
 2024,2,Audi e-tron GT,AUDI,Executive,6
 2024,2,BENTLEY BENTAYGA,BENTLEY,Other,5
 2024,2,BENTLEY COTINENTAL,BENTLEY,Other,1
@@ -35908,11 +35909,12 @@ year,month,model,brand,segment,count
 2024,3,AUDI Q4,AUDI,Compact SUV,154
 2024,3,AUDI Q5,AUDI,Mid-size SUV,100
 2024,3,AUDI Q7,AUDI,Large SUV,18
-2024,3,AUDI Q8,AUDI,Large SUV,66
+2024,3,AUDI Q8,AUDI,Large SUV,24
 2024,3,AUDI R8,AUDI,Sports / GT,2
 2024,3,AUDI TT,AUDI,Sports / GT,5
 2024,3,Audi A1,AUDI,City / Supermini,139
 2024,3,Audi Q3,AUDI,Compact SUV,289
+2024,3,Audi e-tron,AUDI,Large SUV,42
 2024,3,Audi e-tron GT,AUDI,Executive,5
 2024,3,BENTLEY BENTAYGA,BENTLEY,Other,1
 2024,3,BENTLEY FLYING,BENTLEY,Other,2
@@ -36324,10 +36326,11 @@ year,month,model,brand,segment,count
 2024,4,AUDI Q4,AUDI,Compact SUV,204
 2024,4,AUDI Q5,AUDI,Mid-size SUV,69
 2024,4,AUDI Q7,AUDI,Large SUV,14
-2024,4,AUDI Q8,AUDI,Large SUV,61
+2024,4,AUDI Q8,AUDI,Large SUV,18
 2024,4,AUDI TT,AUDI,Sports / GT,2
 2024,4,Audi A1,AUDI,City / Supermini,123
 2024,4,Audi Q3,AUDI,Compact SUV,319
+2024,4,Audi e-tron,AUDI,Large SUV,43
 2024,4,Audi e-tron GT,AUDI,Executive,3
 2024,4,BENTLEY BENTAYGA,BENTLEY,Other,7
 2024,4,BENTLEY FLYING,BENTLEY,Other,2
@@ -36724,10 +36727,11 @@ year,month,model,brand,segment,count
 2024,5,AUDI Q4,AUDI,Compact SUV,231
 2024,5,AUDI Q5,AUDI,Mid-size SUV,149
 2024,5,AUDI Q7,AUDI,Large SUV,24
-2024,5,AUDI Q8,AUDI,Large SUV,81
+2024,5,AUDI Q8,AUDI,Large SUV,25
 2024,5,AUDI TT,AUDI,Sports / GT,1
 2024,5,Audi A1,AUDI,City / Supermini,113
 2024,5,Audi Q3,AUDI,Compact SUV,501
+2024,5,Audi e-tron,AUDI,Large SUV,56
 2024,5,Audi e-tron GT,AUDI,Executive,7
 2024,5,BENTLEY BENTAYGA,BENTLEY,Other,8
 2024,5,BMW 1 Series,BMW,Compact,295
@@ -37132,11 +37136,12 @@ year,month,model,brand,segment,count
 2024,6,AUDI Q4,AUDI,Compact SUV,250
 2024,6,AUDI Q5,AUDI,Mid-size SUV,186
 2024,6,AUDI Q7,AUDI,Large SUV,27
-2024,6,AUDI Q8,AUDI,Large SUV,148
+2024,6,AUDI Q8,AUDI,Large SUV,61
 2024,6,AUDI R8,AUDI,Sports / GT,1
 2024,6,AUDI TT,AUDI,Sports / GT,3
 2024,6,Audi A1,AUDI,City / Supermini,171
 2024,6,Audi Q3,AUDI,Compact SUV,502
+2024,6,Audi e-tron,AUDI,Large SUV,87
 2024,6,Audi e-tron GT,AUDI,Executive,9
 2024,6,BENTLEY BENTAYGA,BENTLEY,Other,5
 2024,6,BENTLEY FLYING,BENTLEY,Other,3
@@ -37625,9 +37630,10 @@ year,month,model,brand,segment,count
 2024,7,AUDI Q5,AUDI,Mid-size SUV,157
 2024,7,AUDI Q6,AUDI,Mid-size SUV,100
 2024,7,AUDI Q7,AUDI,Large SUV,25
-2024,7,AUDI Q8,AUDI,Large SUV,85
+2024,7,AUDI Q8,AUDI,Large SUV,44
 2024,7,Audi A1,AUDI,City / Supermini,127
 2024,7,Audi Q3,AUDI,Compact SUV,377
+2024,7,Audi e-tron,AUDI,Large SUV,41
 2024,7,BENTLEY BENTAYGA,BENTLEY,Other,5
 2024,7,BENTLEY FLYING,BENTLEY,Other,3
 2024,7,BMW 1 Series,BMW,Compact,71
@@ -38135,10 +38141,11 @@ year,month,model,brand,segment,count
 2024,8,AUDI Q5,AUDI,Mid-size SUV,169
 2024,8,AUDI Q6,AUDI,Mid-size SUV,78
 2024,8,AUDI Q7,AUDI,Large SUV,25
-2024,8,AUDI Q8,AUDI,Large SUV,53
+2024,8,AUDI Q8,AUDI,Large SUV,19
 2024,8,AUDI TT,AUDI,Sports / GT,1
 2024,8,Audi A1,AUDI,City / Supermini,103
 2024,8,Audi Q3,AUDI,Compact SUV,222
+2024,8,Audi e-tron,AUDI,Large SUV,34
 2024,8,Audi e-tron GT,AUDI,Executive,6
 2024,8,BENTLEY BENTAYGA,BENTLEY,Other,1
 2024,8,BMW 1 Series,BMW,Compact,41
@@ -38617,10 +38624,11 @@ year,month,model,brand,segment,count
 2024,9,AUDI Q5,AUDI,Mid-size SUV,224
 2024,9,AUDI Q6,AUDI,Mid-size SUV,122
 2024,9,AUDI Q7,AUDI,Large SUV,38
-2024,9,AUDI Q8,AUDI,Large SUV,64
+2024,9,AUDI Q8,AUDI,Large SUV,36
 2024,9,AUDI TT,AUDI,Sports / GT,2
 2024,9,Audi A1,AUDI,City / Supermini,122
 2024,9,Audi Q3,AUDI,Compact SUV,388
+2024,9,Audi e-tron,AUDI,Large SUV,28
 2024,9,Audi e-tron GT,AUDI,Executive,6
 2024,9,BENTLEY BENTAYGA,BENTLEY,Other,2
 2024,9,BMW 1 Series,BMW,Compact,98
@@ -39082,9 +39090,10 @@ year,month,model,brand,segment,count
 2024,10,AUDI Q5,AUDI,Mid-size SUV,164
 2024,10,AUDI Q6,AUDI,Mid-size SUV,189
 2024,10,AUDI Q7,AUDI,Large SUV,41
-2024,10,AUDI Q8,AUDI,Large SUV,72
+2024,10,AUDI Q8,AUDI,Large SUV,52
 2024,10,Audi A1,AUDI,City / Supermini,157
 2024,10,Audi Q3,AUDI,Compact SUV,238
+2024,10,Audi e-tron,AUDI,Large SUV,20
 2024,10,Audi e-tron GT,AUDI,Executive,8
 2024,10,BENTLEY BENTAYGA,BENTLEY,Other,3
 2024,10,BMW 1 Series,BMW,Compact,158
@@ -39520,9 +39529,10 @@ year,month,model,brand,segment,count
 2024,11,AUDI Q5,AUDI,Mid-size SUV,137
 2024,11,AUDI Q6,AUDI,Mid-size SUV,236
 2024,11,AUDI Q7,AUDI,Large SUV,43
-2024,11,AUDI Q8,AUDI,Large SUV,68
+2024,11,AUDI Q8,AUDI,Large SUV,57
 2024,11,Audi A1,AUDI,City / Supermini,193
 2024,11,Audi Q3,AUDI,Compact SUV,292
+2024,11,Audi e-tron,AUDI,Large SUV,11
 2024,11,Audi e-tron GT,AUDI,Executive,7
 2024,11,BENTLEY BENTAYGA,BENTLEY,Other,2
 2024,11,BENTLEY FLYING,BENTLEY,Other,3
@@ -39955,10 +39965,11 @@ year,month,model,brand,segment,count
 2024,12,AUDI Q5,AUDI,Mid-size SUV,114
 2024,12,AUDI Q6,AUDI,Mid-size SUV,226
 2024,12,AUDI Q7,AUDI,Large SUV,65
-2024,12,AUDI Q8,AUDI,Large SUV,97
+2024,12,AUDI Q8,AUDI,Large SUV,89
 2024,12,AUDI R8,AUDI,Sports / GT,1
 2024,12,Audi A1,AUDI,City / Supermini,343
 2024,12,Audi Q3,AUDI,Compact SUV,356
+2024,12,Audi e-tron,AUDI,Large SUV,8
 2024,12,Audi e-tron GT,AUDI,Executive,4
 2024,12,BENTLEY BENTAYGA,BENTLEY,Other,2
 2024,12,BMW 1 Series,BMW,Compact,253
@@ -40411,9 +40422,10 @@ year,month,model,brand,segment,count
 2025,1,AUDI Q5,AUDI,Mid-size SUV,49
 2025,1,AUDI Q6,AUDI,Mid-size SUV,142
 2025,1,AUDI Q7,AUDI,Large SUV,28
-2025,1,AUDI Q8,AUDI,Large SUV,34
+2025,1,AUDI Q8,AUDI,Large SUV,33
 2025,1,Audi A1,AUDI,City / Supermini,103
 2025,1,Audi Q3,AUDI,Compact SUV,186
+2025,1,Audi e-tron,AUDI,Large SUV,1
 2025,1,Audi e-tron GT,AUDI,Executive,2
 2025,1,BENTLEY BENTAYGA,BENTLEY,Other,3
 2025,1,BENTLEY FLYING,BENTLEY,Other,2
@@ -40818,9 +40830,10 @@ year,month,model,brand,segment,count
 2025,2,AUDI Q5,AUDI,Mid-size SUV,27
 2025,2,AUDI Q6,AUDI,Mid-size SUV,96
 2025,2,AUDI Q7,AUDI,Large SUV,18
-2025,2,AUDI Q8,AUDI,Large SUV,40
+2025,2,AUDI Q8,AUDI,Large SUV,39
 2025,2,Audi A1,AUDI,City / Supermini,149
 2025,2,Audi Q3,AUDI,Compact SUV,346
+2025,2,Audi e-tron,AUDI,Large SUV,1
 2025,2,Audi e-tron GT,AUDI,Executive,1
 2025,2,BENTLEY BENTAYGA,BENTLEY,Other,3
 2025,2,BENTLEY FLYING,BENTLEY,Other,1
@@ -41655,9 +41668,10 @@ year,month,model,brand,segment,count
 2025,4,AUDI Q5,AUDI,Mid-size SUV,48
 2025,4,AUDI Q6,AUDI,Mid-size SUV,113
 2025,4,AUDI Q7,AUDI,Large SUV,41
-2025,4,AUDI Q8,AUDI,Large SUV,50
+2025,4,AUDI Q8,AUDI,Large SUV,49
 2025,4,Audi A1,AUDI,City / Supermini,128
 2025,4,Audi Q3,AUDI,Compact SUV,321
+2025,4,Audi e-tron,AUDI,Large SUV,1
 2025,4,Audi e-tron GT,AUDI,Executive,7
 2025,4,BENTLEY BENTAYGA,BENTLEY,Other,4
 2025,4,BMW 1 Series,BMW,Compact,303
@@ -42062,9 +42076,10 @@ year,month,model,brand,segment,count
 2025,5,AUDI Q5,AUDI,Mid-size SUV,57
 2025,5,AUDI Q6,AUDI,Mid-size SUV,128
 2025,5,AUDI Q7,AUDI,Large SUV,36
-2025,5,AUDI Q8,AUDI,Large SUV,26
+2025,5,AUDI Q8,AUDI,Large SUV,25
 2025,5,Audi A1,AUDI,City / Supermini,144
 2025,5,Audi Q3,AUDI,Compact SUV,190
+2025,5,Audi e-tron,AUDI,Large SUV,1
 2025,5,Audi e-tron GT,AUDI,Executive,3
 2025,5,BAIC X55,BAIC,Other,1
 2025,5,BAIC X7,BAIC,Other,1
@@ -43756,10 +43771,11 @@ year,month,model,brand,segment,count
 2025,9,AUDI Q5,AUDI,Mid-size SUV,282
 2025,9,AUDI Q6,AUDI,Mid-size SUV,96
 2025,9,AUDI Q7,AUDI,Large SUV,21
-2025,9,AUDI Q8,AUDI,Large SUV,33
+2025,9,AUDI Q8,AUDI,Large SUV,32
 2025,9,AVANTIER COMMUTER,Avantier,Other,1
 2025,9,Audi A1,AUDI,City / Supermini,113
 2025,9,Audi Q3,AUDI,Compact SUV,274
+2025,9,Audi e-tron,AUDI,Large SUV,1
 2025,9,Audi e-tron GT,AUDI,Executive,5
 2025,9,BAIC BX30,BAIC,Other,1
 2025,9,BAIC X55,BAIC,Other,6
@@ -45014,9 +45030,10 @@ year,month,model,brand,segment,count
 2025,12,AUDI Q5,AUDI,Mid-size SUV,291
 2025,12,AUDI Q6,AUDI,Mid-size SUV,194
 2025,12,AUDI Q7,AUDI,Large SUV,32
-2025,12,AUDI Q8,AUDI,Large SUV,78
+2025,12,AUDI Q8,AUDI,Large SUV,77
 2025,12,Audi A1,AUDI,City / Supermini,108
 2025,12,Audi Q3,AUDI,Compact SUV,421
+2025,12,Audi e-tron,AUDI,Large SUV,1
 2025,12,Audi e-tron GT,AUDI,Executive,4
 2025,12,BAIC X55,BAIC,Other,3
 2025,12,BAIC X7,BAIC,Other,3
@@ -45843,9 +45860,10 @@ year,month,model,brand,segment,count
 2026,2,AUDI Q5,AUDI,Mid-size SUV,181
 2026,2,AUDI Q6,AUDI,Mid-size SUV,31
 2026,2,AUDI Q7,AUDI,Large SUV,15
-2026,2,AUDI Q8,AUDI,Large SUV,23
+2026,2,AUDI Q8,AUDI,Large SUV,22
 2026,2,Audi A1,AUDI,City / Supermini,212
 2026,2,Audi Q3,AUDI,Compact SUV,303
+2026,2,Audi e-tron,AUDI,Large SUV,1
 2026,2,Audi e-tron GT,AUDI,Executive,7
 2026,2,BAIC BJ30,BAIC,Other,1
 2026,2,BAIC X55,BAIC,Other,1
@@ -46686,9 +46704,10 @@ year,month,model,brand,segment,count
 2026,4,AUDI Q5,AUDI,Mid-size SUV,140
 2026,4,AUDI Q6,AUDI,Mid-size SUV,89
 2026,4,AUDI Q7,AUDI,Large SUV,19
-2026,4,AUDI Q8,AUDI,Large SUV,22
+2026,4,AUDI Q8,AUDI,Large SUV,21
 2026,4,Audi A1,AUDI,City / Supermini,96
 2026,4,Audi Q3,AUDI,Compact SUV,355
+2026,4,Audi e-tron,AUDI,Large SUV,1
 2026,4,Audi e-tron GT,AUDI,Executive,2
 2026,4,BAIC BJ,BAIC,Other,1
 2026,4,BAIC BJ30,BAIC,Other,1

@@ -575,6 +575,9 @@ model_merges:
   MERCEDES-BENZ GT: Mercedes-AMG GT
   # Audi e-tron GT (sport sedan) — pretty label; kept distinct from the SUV.
   AUDI E-TRON GT: Audi e-tron GT
+  # Audi e-tron / Q8 e-tron SUV — pretty label (the renamed original e-tron;
+  # combustion Q8 stays separate as "Audi Q8").
+  AUDI E-TRON: Audi e-tron
   # Land Rover Range Rover: normalize_model splits the "RR ..." family by
   # sub-model (Evoque/Velar peeled off to their own keys); relabel the full-size
   # Range Rover and Range Rover Sport (both Large SUV).
