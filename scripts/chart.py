@@ -7,6 +7,7 @@ PNG and GIF output, professional style, dynamic attribution.
 import io
 import json
 import os
+import re
 import subprocess
 import pandas as pd
 import numpy as np
@@ -53,17 +54,24 @@ def display_model(name: str) -> str:
     tokens = name.split()
     if not tokens:
         return name
-    out = [display_brand(tokens[0])]
-    for tok in tokens[1:]:
-        # Keep tokens with digits / punctuation as-is: Q3, X1, ID.3, T-ROC.
-        if any(c.isdigit() or c in ".-" for c in tok):
-            out.append(tok)
-        # Short all-caps stay as abbreviations: GLC, AMG, GT, A, M.
-        elif len(tok) <= 3:
-            out.append(tok)
-        else:
-            out.append(tok.title())
-    return " ".join(out)
+
+    def case_chunk(ch: str) -> str:
+        # Digits => model designator (Q3, 30, ID.3, X1) — keep as-is.
+        # <=3 chars => abbreviation (GLC, AMG, GT, ROC, HR) — keep as-is.
+        # Otherwise title-case (CROSS->Cross, GOLF->Golf, MOKKA->Mokka).
+        if not ch or any(c.isdigit() for c in ch):
+            return ch
+        return ch if len(ch) <= 3 else ch.title()
+
+    def case_token(tok: str) -> str:
+        # Recase each chunk of a hyphen/dot-joined token, keeping the separators
+        # ("T-CROSS"->"T-Cross", "MOKKA-X"->"Mokka-X", but "ID.3"/"CX-30"/"T-ROC"
+        # stay intact because their chunks are digits or <=3 chars).
+        if "-" in tok or "." in tok:
+            return re.sub(r"[^-.]+", lambda mm: case_chunk(mm.group()), tok)
+        return case_chunk(tok)
+
+    return " ".join([display_brand(tokens[0])] + [case_token(t) for t in tokens[1:]])
 
 # Dark theme (AGENTS.md styleguide)
 BG = "#0d1117"

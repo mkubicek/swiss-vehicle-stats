@@ -355,7 +355,14 @@ class TestDisplayModel:
         assert chart.display_model("AUDI Q3") == "Audi Q3"
         assert chart.display_model("BMW X1") == "BMW X1"
         assert chart.display_model("VW ID.3") == "VW ID.3"
-        assert chart.display_model("VW T-ROC") == "VW T-ROC"
+        assert chart.display_model("VW T-ROC") == "VW T-ROC"   # ROC <=3, stays
+        assert chart.display_model("MAZDA CX-30") == "Mazda CX-30"
+
+    def test_titlecases_long_hyphen_chunks(self):
+        # Long chunks after a hyphen/dot must be cased, not left SHOUTING.
+        assert chart.display_model("VW T-CROSS") == "VW T-Cross"
+        assert chart.display_model("OPEL MOKKA-X") == "Opel Mokka-X"
+        assert chart.display_model("VW E-GOLF") == "VW E-Golf"
 
     def test_empty_string_returns_empty(self):
         assert chart.display_model("") == ""
