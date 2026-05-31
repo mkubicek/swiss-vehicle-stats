@@ -464,11 +464,15 @@ class TestChartEvWave:
 
 class TestChartModelRace:
     def test_filters_artifacts(self, chart_dirs):
-        """Cross-segment buckets that can't be placed (TOYOTA GR mixes GR Yaris
-        / Supra / Corolla) stay filtered. AMG/RS are NO LONGER filtered — they
-        fold into their base model in normalize_model — so they must be absent.
+        """Only truly generic sub-brand buckets stay filtered.
+
+        Toyota GR Yaris / GR86 / GR Corolla split upstream via model_overrides;
+        only a bare future TOYOTA GR fallback remains unplaceable. AMG/RS are
+        NO LONGER filtered because normalize_model folds them to base models.
         """
         assert "TOYOTA GR" in chart.MODEL_ARTIFACTS
+        assert "Toyota GR Yaris" not in chart.MODEL_ARTIFACTS
+        assert "Toyota GR86" not in chart.MODEL_ARTIFACTS
         assert "MERCEDES-BENZ AMG" not in chart.MODEL_ARTIFACTS
         assert "AUDI RS" not in chart.MODEL_ARTIFACTS
 
@@ -660,4 +664,3 @@ class TestMain:
         assert (chart_dir / "ev_race.gif").exists()
         assert (chart_dir / "brand_race.gif").exists()
         assert (chart_dir / "ev_taste_lq.png").exists()
-

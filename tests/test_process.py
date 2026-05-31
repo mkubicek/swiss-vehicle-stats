@@ -202,10 +202,31 @@ class TestNormalizeModel:
         # Without override, first-token-only rule would mis-merge as "SPACE".
         assert process.normalize_model("MITSUBISHI", "SPACE STAR", []) == "MITSUBISHI SPACE"
 
+    def test_toyota_gr_overrides_split_sub_brand_models(self):
+        overrides = _sort_overrides({
+            "TOYOTA GR YARIS": "Toyota GR Yaris",
+            "TOYOTA GR86": "Toyota GR86",
+            "TOYOTA GR 86": "Toyota GR86",
+            "TOYOTA GR COROLLA": "Toyota GR Corolla",
+        })
+        assert process.normalize_model("TOYOTA", "GR YARIS CIRCUIT", overrides) == "Toyota GR Yaris"
+        assert process.normalize_model("TOYOTA", "GR86", overrides) == "Toyota GR86"
+        assert process.normalize_model("TOYOTA", "GR 86", overrides) == "Toyota GR86"
+        assert process.normalize_model("TOYOTA", "GR COROLLA", overrides) == "Toyota GR Corolla"
+
     def test_unknown_brand_uses_default_rule(self):
         # No specials for non-Tesla / non-VW brands.
         assert process.normalize_model("FAKE", "Model Y", []) == "FAKE MODEL"
         assert process.normalize_model("FAKE", "ID.3", []) == "FAKE ID.3"
+
+    def test_strips_duplicate_brand_prefix_before_normalizing(self):
+        # Some ASTRA Typ1 values repeat Marke before the actual model. The
+        # duplicate must not become keys like "AUDI AUDI" / "POLESTAR POLESTAR".
+        assert process.normalize_model("POLESTAR", "POLESTAR 2", []) == "POLESTAR 2"
+        assert process.normalize_model("AUDI", "AUDI RS6 AVANT", []) == "AUDI A6"
+        assert process.normalize_model("HONDA", "HONDA E", []) == "HONDA E"
+        assert process.normalize_model("CUPRA", "CUPRA ATECA", []) == "Cupra Ateca"
+        assert process.normalize_model("LAND ROVER", "LAND-ROVER DEFENDER", []) == "LAND ROVER DEFENDER"
 
     def test_strips_concatenated_engine_codes(self):
         # ASTRA pre-2022 records often concatenate the trim/engine code onto
@@ -240,6 +261,7 @@ class TestNormalizeModelBrandRules:
         for typ1, exp in [
             ("320D xDrive", "BMW 3 Series"), ("330E", "BMW 3 Series"),
             ("M340I", "BMW 3 Series"), ("M3 Competition", "BMW 3 Series"),
+            ("M3COMPETITIONMXDRIVE", "BMW 3 Series"),
             ("118i", "BMW 1 Series"), ("M135i", "BMW 1 Series"),
             ("520d", "BMW 5 Series"), ("M5", "BMW 5 Series"),
         ]:
@@ -247,6 +269,9 @@ class TestNormalizeModelBrandRules:
 
     def test_bmw_suv_electric_roadster_stay_distinct(self):
         assert process.normalize_model("BMW", "X3 M40i", []) == "BMW X3"
+        assert process.normalize_model("BMW", "X3M40I", []) == "BMW X3"
+        assert process.normalize_model("BMW", "X1XDRIVE20D", []) == "BMW X1"
+        assert process.normalize_model("BMW", "X5MCOMPETITION", []) == "BMW X5"
         assert process.normalize_model("BMW", "X1", []) == "BMW X1"
         assert process.normalize_model("BMW", "iX3", []) == "BMW IX3"
         assert process.normalize_model("BMW", "i4 eDrive40", []) == "BMW I4"
@@ -281,6 +306,14 @@ class TestNormalizeModelBrandRules:
         assert process.normalize_model("AUDI", "RS e-tron GT", []) == "AUDI E-TRON GT"
         assert process.normalize_model("AUDI", "e-tron 55", []) == "AUDI E-TRON"  # SUV, distinct
 
+    def test_mini_body_style_and_trim_names_fold_to_nameplates(self):
+        assert process.normalize_model("MINI", "3DOOR COOPER S", []) == "MINI COOPER"
+        assert process.normalize_model("MINI", "5DOOR ONE", []) == "MINI COOPER"
+        assert process.normalize_model("MINI", "COOPER S", []) == "MINI COOPER"
+        assert process.normalize_model("MINI", "COOPER S CLUBMAN", []) == "MINI CLUBMAN"
+        assert process.normalize_model("MINI", "COUNTRYMAN SE ALL4", []) == "MINI COUNTRYMAN"
+        assert process.normalize_model("MINI", "ACEMAN SE", []) == "MINI ACEMAN"
+
     def test_lexus_strips_hybrid_trim_to_alpha_base(self):
         assert process.normalize_model("LEXUS", "RX450H", []) == "LEXUS RX"
         assert process.normalize_model("LEXUS", "NX450H+", []) == "LEXUS NX"
@@ -288,6 +321,8 @@ class TestNormalizeModelBrandRules:
 
     def test_ds_number_is_the_model(self):
         assert process.normalize_model("DS", "DS7 Crossback", []) == "DS DS7"
+        assert process.normalize_model("DS", "DS 7 E-TENSE4X4", []) == "DS DS7"
+        assert process.normalize_model("DS", "7CRB.E-TENSE4X4", []) == "DS DS7"
         assert process.normalize_model("DS", "DS7CRB.E-TENSE4X4", []) == "DS DS7"
 
     def test_land_rover_range_rover_family_splits_by_submodel(self):
@@ -319,6 +354,24 @@ class TestNormalizeModelBrandRules:
         # Some AMG rows carry a stray "Z " prefix that would corrupt the class key.
         assert process.normalize_model("MERCEDES-BENZ", "Z AMG G 63", []) == "MERCEDES-BENZ G"
         assert process.normalize_model("MERCEDES-BENZ", "Z AMG GLS 63 4MA", []) == "MERCEDES-BENZ GLS"
+
+    def test_porsche_collapses_concatenated_trims(self):
+        assert process.normalize_model("PORSCHE", "911CARRERA 4S", []) == "PORSCHE 911"
+        assert process.normalize_model("PORSCHE", "718SPYDERRS", []) == "PORSCHE 718"
+        assert process.normalize_model("PORSCHE", "TAYCAN4S", []) == "PORSCHE TAYCAN"
+        assert process.normalize_model("PORSCHE", "CAYENNET", []) == "PORSCHE CAYENNE"
+        assert process.normalize_model("PORSCHE", "PANAMERATURBOE-HYBRID", []) == "PORSCHE PANAMERA"
+
+    def test_cupra_folds_to_nameplate_across_eras(self):
+        # CUPRA-era rows (Marke CUPRA) must land on the SAME proper-case label as
+        # the SEAT-era model_overrides, so a model isn't split across two keys
+        # ("CUPRA FORMENTOR" vs "Cupra Formentor"). Also folds concat trims.
+        assert process.normalize_model("CUPRA", "FORMENTOR", []) == "Cupra Formentor"
+        assert process.normalize_model("CUPRA", "CUPRA FORMENTOR", []) == "Cupra Formentor"
+        assert process.normalize_model("CUPRA", "FORMENTORE-HYBRID", []) == "Cupra Formentor"
+        assert process.normalize_model("CUPRA", "BORN170KW77/82KWH", []) == "Cupra Born"
+        assert process.normalize_model("CUPRA", "LEONSP", []) == "Cupra Leon"
+        assert process.normalize_model("CUPRA", "ATECA", []) == "Cupra Ateca"
 
 
 # ---------------------------------------------------------------------------
@@ -372,6 +425,81 @@ class TestModelMerges:
         models = set(agg["model_by_month"]["_model"])
         assert models == {"Skoda Octavia"}
         assert agg["model_by_month"]["count"].sum() == 2
+
+    def test_merges_prettied_override_values_case_insensitively(self, tmp_path):
+        """model_overrides emits proper-case labels; model_merges keys are
+        normalized to uppercase internally, so lookup must uppercase the value.
+        """
+        filepath = tmp_path / "NEUZU_override_merge.txt"
+        rows = [
+            {**_full_row(Marke="TOYOTA"), "Typ1": "GR YARIS"},
+            {**_full_row(Marke="TOYOTA"), "Typ1": "GR YARIS CIRCUIT"},
+        ]
+        _make_tsv(filepath, rows)
+        mappings = {**MINIMAL_MAPPINGS,
+            "model_overrides": {"TOYOTA GR YARIS": "Toyota GR Yaris"},
+            "model_merges": {"Toyota GR Yaris": "Toyota GR Yaris Canonical"},
+        }
+
+        agg = process.process_file(filepath, mappings, set())
+
+        assert set(agg["model_by_month"]["_model"]) == {"Toyota GR Yaris Canonical"}
+        assert agg["model_by_month"]["count"].sum() == 2
+
+    def test_seat_cupra_history_rebrands_to_cupra_model_brand(self, tmp_path):
+        filepath = tmp_path / "NEUZU_seat_cupra.txt"
+        rows = [
+            {**_full_row(Marke="SEAT"), "Typ1": "CUPRA ATECA R"},
+            {**_full_row(Marke="SEAT"), "Typ1": "CUPRA LEON EHYB"},
+        ]
+        _make_tsv(filepath, rows)
+        mappings = {**MINIMAL_MAPPINGS,
+            "model_overrides": {
+                "SEAT CUPRA ATECA": "Cupra Ateca",
+                "SEAT CUPRA LEON": "Cupra Leon",
+            },
+            "model_brand_overrides": {
+                "Cupra Ateca": "CUPRA",
+                "Cupra Leon": "CUPRA",
+            },
+            "model_segments": {
+                "Cupra Ateca": "Compact SUV",
+                "Cupra Leon": "Compact",
+            },
+        }
+
+        agg = process.process_file(filepath, mappings, set())
+
+        rows = agg["model_by_month"].sort_values("_model")
+        assert rows["_model"].tolist() == ["Cupra Ateca", "Cupra Leon"]
+        assert rows["_brand"].tolist() == ["CUPRA", "CUPRA"]
+        assert rows["_segment"].tolist() == ["Compact SUV", "Compact"]
+
+    def test_mercedes_mpv_aliases_merge_to_canonical_models(self, tmp_path):
+        filepath = tmp_path / "NEUZU_mpv.txt"
+        rows = [
+            {**_full_row(Marke="MERCEDES-BENZ"), "Typ1": "MPH 300D 4M"},
+            {**_full_row(Marke="MERCEDES-BENZ"), "Typ1": "MARCO POLO"},
+            {**_full_row(Marke="MERCEDES-BENZ"), "Typ1": "VITOTOURER"},
+        ]
+        _make_tsv(filepath, rows)
+        mappings = {**MINIMAL_MAPPINGS,
+            "model_merges": {
+                "MERCEDES-BENZ MPH": "Mercedes-Benz Marco Polo",
+                "MERCEDES-BENZ MARCO": "Mercedes-Benz Marco Polo",
+                "MERCEDES-BENZ VITOTOURER": "Mercedes-Benz Vito",
+            },
+            "model_segments": {
+                "Mercedes-Benz Marco Polo": "MPV",
+                "Mercedes-Benz Vito": "MPV",
+            },
+        }
+
+        agg = process.process_file(filepath, mappings, set())
+
+        totals = agg["model_by_month"].groupby(["_model", "_segment"])["count"].sum()
+        assert totals[("Mercedes-Benz Marco Polo", "MPV")] == 2
+        assert totals[("Mercedes-Benz Vito", "MPV")] == 1
 
     def test_no_merges_leaves_keys_untouched(self, tmp_path):
         filepath = tmp_path / "NEUZU_nomerge.txt"
@@ -851,6 +979,37 @@ class TestSaveWarnings:
         out = capsys.readouterr().out
         assert "Unmapped: 2 values" in out
         assert "validate.py" in out
+
+
+# ---------------------------------------------------------------------------
+# add_model_mapping_warnings
+# ---------------------------------------------------------------------------
+
+class TestModelMappingWarnings:
+    def test_warns_for_watched_high_volume_other_models(self):
+        agg = {"model_by_month": pd.DataFrame([
+            {"_brand": "MINI", "_model": "MINI 3DOOR", "_segment": "Other", "count": 400},
+            {"_brand": "MINI", "_model": "MINI 3DOOR", "_segment": "Other", "count": 200},
+            {"_brand": "MINI", "_model": "MINI COOPER", "_segment": "City / Supermini", "count": 999},
+            {"_brand": "SKODA", "_model": "SKODA OCTAVIA", "_segment": "Other", "count": 9999},
+            {"_brand": "BMW", "_model": "BMW LOW", "_segment": "Other", "count": 499},
+            {"_brand": "BMW", "_model": "BMW IGNORE", "_segment": "Other", "count": 999},
+        ])}
+        mappings = {"model_mapping_warnings": {
+            "min_count": 500,
+            "brands": ["MINI", "BMW"],
+            "ignore_models": ["BMW IGNORE"],
+        }}
+        warnings = set()
+
+        process.add_model_mapping_warnings(agg, mappings, warnings)
+
+        assert warnings == {"model_segment:MINI:MINI 3DOOR:600"}
+
+    def test_no_config_or_missing_model_data_is_noop(self):
+        warnings = set()
+        process.add_model_mapping_warnings({}, {}, warnings)
+        assert warnings == set()
 
 
 # ---------------------------------------------------------------------------

@@ -138,16 +138,19 @@ Any brand not in `mappings.yaml` → "Other" bucket + logged to `warnings.log`.
 For model-level analytics (`chart_model_race`), ASTRA's `Marke` + `Typ1` columns are normalized into a stable model key by `process.normalize_model()`:
 
 1. **Override match (longest-prefix wins)** — `mappings.yaml > model_overrides` provides operator-curated splits (e.g. `Toyota Yaris Cross` is distinct from `Toyota Yaris`) and merges (e.g. `MITSUBISHI SPACE STAR` reunites a two-token nameplate that the auto-rule would split as `MITSUBISHI SPACE`). Override values are the proper-cased display label.
-2. **Auto-rule (default)** — brand + first `Typ1` token, with regex specials for marques whose `Typ1` ASTRA writes inconsistently or at the wrong grain:
+2. **Duplicate brand cleanup** — some ASTRA `Typ1` values repeat the brand before the model (`AUDI RS6`, `POLESTAR 2`, `HONDA E`). The repeated brand prefix is stripped before parsing, except for DS where `DS` is part of the model name (`DS 7`, `DS7CRB`).
+3. **Auto-rule (default)** — brand + first `Typ1` token, with regex specials for marques whose `Typ1` ASTRA writes inconsistently or at the wrong grain:
    - **Tesla:** `MODEL Y` / `MODELY` / `MODEL3` all collapse to `TESLA MODEL <X>`
    - **VW ID family:** `ID.3 PRO 150 KW` / `ID.3PROS150KW` / `ID4` all collapse to `VW ID.<N>`; `ID. BUZZ GTX` → `VW ID.BUZZ`
-   - **BMW series:** the trim digits are engine codes, so `320D` / `M340I` / `118I` collapse to `BMW 3/3/1 Series`; full M cars fold too (`M3` → 3 Series). X SUVs, `i`/`iX` electrics and `Z4` stay distinct (`i3s` → `i3`).
+   - **BMW series:** the trim digits are engine codes, so `320D` / `M340I` / `118I` collapse to `BMW 3/3/1 Series`; full M cars fold too (`M3` / `M3COMPETITION` → 3 Series). X SUVs, `i`/`iX` electrics and `Z4` stay distinct (`X1XDRIVE20D` → X1, `i3s` → `i3`).
    - **Mercedes-Benz:** model names are class letters or letter groups and the digits are always engine displacement, so the model is the leading alphabetic run (`GLA200` → GLA, `C 220 d` → C, `V250d` → V). **AMG folds into the base** — the class after `AMG` decides it (`AMG C 63` → C-Class, `AMG GLC 43` → GLC); the standalone `AMG GT` keeps its own line. `MERCEDES-AMG` (a separate `Marke`) is treated as Mercedes-Benz.
    - **Audi RS/S:** performance trims fold into the base A/Q line (`RS 3`/`S3` → A3, `RS Q8`/`SQ7` → Q8/Q7, `TTS` → TT). `R8` and the `e-tron GT` sport sedan stay standalone (the GT is kept distinct from the `e-tron` SUV).
+   - **Mini:** body-style/trim-first names collapse to nameplates (`3DOOR COOPER S`, `5DOOR ONE`, `COOPER S` → Mini Cooper; `COOPER S CLUBMAN` → Clubman; `COUNTRYMAN SE` → Countryman).
+   - **Porsche:** concatenated trim/body suffixes fold back to the base nameplate (`911CARRERA` → 911, `TAYCAN4S` → Taycan, `CAYENNET` → Cayenne).
    - **Lexus:** 2–3 letter names, digits are hybrid trim — leading letters win (`RX450H` → RX, `NX450H+` → NX).
    - **Land Rover:** the `RR ...` / `RANGE ROVER ...` family spans three segments, so it's split by sub-model — Evoque (Compact SUV), Velar (Mid), Range Rover Sport + full-size Range Rover (Large). Discovery / Defender are separate keys.
-3. **Empty / NaN guard** — rows with missing brand or `Typ1` (including pandas-stringified `"nan"`) drop out of the model aggregation entirely.
-4. **Key merge (`mappings.yaml > model_merges`)** — a final pass collapses normalized keys that are the same nameplate split by ASTRA spelling (`SKODA OCTAVIAC` → Skoda Octavia, `VW PASSATV` → VW Passat, `HYUNDAI SANTA`/`SANTAFE` → Hyundai Santa Fe) and applies proper-case display labels (`MERCEDES-BENZ C` → Mercedes-Benz C-Class). This layer exists because `model_overrides` matches the raw `Marke Typ1` by space-prefix and can't reach the body/trim suffix ASTRA concatenates onto the model token with no space. Only merge genuinely identical nameplates — not distinct models (Fiat 500 vs 500X) or engine/trim variants.
+4. **Empty / NaN guard** — rows with missing brand or `Typ1` (including pandas-stringified `"nan"`) drop out of the model aggregation entirely.
+5. **Key merge (`mappings.yaml > model_merges`)** — a final pass collapses normalized keys that are the same nameplate split by ASTRA spelling (`SKODA OCTAVIAC` → Skoda Octavia, `VW PASSATV` → VW Passat, `HYUNDAI SANTA`/`SANTAFE` → Hyundai Santa Fe) and applies proper-case display labels (`MERCEDES-BENZ C` → Mercedes-Benz C-Class). This layer exists because `model_overrides` matches the raw `Marke Typ1` by space-prefix and can't reach the body/trim suffix ASTRA concatenates onto the model token with no space. Only merge genuinely identical nameplates — not distinct models (Fiat 500 vs 500X) or engine/trim variants.
 
 Refresh `model_overrides` and `model_merges` every couple of months as new spellings appear.
 
@@ -157,7 +160,11 @@ Each canonical model is tagged with a market segment (`mappings.yaml > model_seg
 
 For a segment-by-maker comparison, the `brand` column on `model_by_month.csv` rolls `MERCEDES-AMG` (a separate ASTRA `Marke`) into Mercedes-Benz so a maker isn't split in two. This rollup is scoped to the model data — the global `_brand` and the brand-level charts are unchanged, and `chart_model_race` groups by model and ignores brand.
 
-**Known aggregation artifacts:** `TOYOTA GR` (GR Yaris / Supra / Corolla) spans three segments and can't be placed from the `GR` first token alone, so it's filtered from `chart_model_race` via `MODEL_ARTIFACTS` in `scripts/chart.py`. Commercial vans (Vito, Citan) and a small tail of unparseable `Typ1` junk fall to segment `Other` and are excluded from segment charts.
+Historical `SEAT CUPRA ...` rows are normalized to Cupra model labels and rebranded to `CUPRA` in `model_by_month.csv`; this model-level rebrand is also scoped away from global ASTRA brand totals.
+
+`mappings.yaml > model_mapping_warnings` defines a watched-brand list and count threshold. During processing, any watched brand with a high-volume model key still assigned to segment `Other` is written to `warnings.log` as `model_segment:<brand>:<model>:<count>`. This is the maintenance signal for new models, changed ASTRA spelling, or a normalization artifact that should be added to `model_overrides`, `model_merges`, or `model_segments`.
+
+**Known aggregation artifacts:** a bare fallback `TOYOTA GR` key is filtered from `chart_model_race` via `MODEL_ARTIFACTS` in `scripts/chart.py`; current GR Yaris / GR86 / GR Corolla rows are split by `model_overrides`. A small tail of unparseable `Typ1` junk falls to segment `Other` and is excluded from segment charts.
 
 ---
 

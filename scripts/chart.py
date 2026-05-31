@@ -520,8 +520,9 @@ def chart_ev_wave():
 # Mercedes AMG and Audi RS are NO LONGER filtered — normalize_model now parses
 # them back to their base nameplate (AMG C 63 -> C-Class, RS 3 -> A3), so they
 # fold into the base model instead of forming a cross-segment bucket.
-#   TOYOTA GR — GR Yaris / GR Supra / GR Corolla all stored as "GR ..." across
-#   three different segments, so it can't be placed; kept filtered.
+#   TOYOTA GR — generic fallback only. Current GR Yaris / GR86 / GR Corolla
+#   rows are split by model_overrides; a bare future "GR" row still can't be
+#   placed, so keep the fallback filtered.
 # (LAND ROVER RR is no longer filtered — it's relabelled to "Land Rover Range
 #  Rover" via model_merges and classified Large SUV; all RR variants are large.)
 MODEL_ARTIFACTS = {"TOYOTA GR"}

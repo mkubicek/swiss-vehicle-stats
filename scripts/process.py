@@ -69,6 +69,24 @@ _BMW_SERIES_RE = re.compile(r"^M?([1-8])\d{2}[A-Z]*$")
 _ENGINE_CODE_RE = re.compile(r"^([A-Z][A-Z\-]*)\d+\.\d+.*$")
 
 
+def _strip_duplicate_brand_prefix(typ1: str, brand_prefixes: list[str]) -> str:
+    """Remove ASTRA rows that repeat the brand in Typ1 ("AUDI RS6")."""
+    prefixes = set()
+    for prefix in brand_prefixes:
+        if not prefix:
+            continue
+        prefixes.add(prefix)
+        prefixes.add(prefix.replace(" ", "-"))
+        prefixes.add(prefix.replace(" ", ""))
+
+    for prefix in sorted(prefixes, key=len, reverse=True):
+        if typ1 == prefix:
+            return ""
+        if typ1.startswith(prefix + " "):
+            return typ1[len(prefix):].lstrip()
+    return typ1
+
+
 def normalize_model(brand, typ1, overrides_sorted: list[tuple[str, str]]) -> str:
     """Combine brand + Typ1 into a stable model key for chart_model_race.
 
@@ -87,10 +105,17 @@ def normalize_model(brand, typ1, overrides_sorted: list[tuple[str, str]]) -> str
     # literal string "nan", which would otherwise survive into model keys.
     if not b or not t or b == "NAN" or t == "NAN":
         return ""
+    original_b = b
     # Mercedes-AMG is recorded both as its own Marke and as "AMG ..." Typ1 under
     # MERCEDES-BENZ; treat it as Mercedes-Benz so AMG cars fold into the base.
     if b == "MERCEDES-AMG":
         b = "MERCEDES-BENZ"
+    # DS model names legitimately start with "DS" ("DS 7", "DS7CRB"), so do
+    # not treat that prefix as a duplicated brand.
+    if b != "DS":
+        t = _strip_duplicate_brand_prefix(t, [original_b, b])
+        if not t:
+            return ""
     raw = f"{b} {t}"
     for prefix, canonical in overrides_sorted:
         if raw == prefix or raw.startswith(prefix + " "):
@@ -115,9 +140,12 @@ def normalize_model(brand, typ1, overrides_sorted: list[tuple[str, str]]) -> str
         match = _BMW_SERIES_RE.match(bmw_tok)
         if match:
             return f"BMW {match.group(1)} Series"
-        m_full = re.match(r"^M([1-8])$", bmw_tok)
+        m_full = re.match(r"^M([1-8])(?:$|[A-Z])", bmw_tok)
         if m_full:
             return f"BMW {m_full.group(1)} Series"
+        m_x = re.match(r"^(X[1-7])", bmw_tok)
+        if m_x:
+            return f"BMW {m_x.group(1)}"
         # i / iX electrics: fold trim suffixes ("I3S" -> I3, "I4EDRIVE40" -> I4).
         m_i = re.match(r"^(IX[1-9]?|I[1-9])", bmw_tok)
         if m_i:
@@ -169,9 +197,26 @@ def normalize_model(brand, typ1, overrides_sorted: list[tuple[str, str]]) -> str
         if m_aq:
             return f"AUDI {m_aq.group(1)}{m_aq.group(2)}"
 
+    # Mini: ASTRA mixes body-style and trim-first names ("3DOOR COOPER S",
+    # "COOPER S CLUBMAN", "COUNTRYMAN SE ALL4"). Keep the chart at nameplate
+    # grain so a naming-era shift from 3DOOR/5DOOR to Cooper doesn't look like
+    # a model collapsing while another one debuts.
+    if b == "MINI":
+        compact = t.replace(" ", "")
+        if "COUNTRYMAN" in compact or "CONUNTRYMAN" in compact:
+            return "MINI COUNTRYMAN"
+        if "CLUBMAN" in compact:
+            return "MINI CLUBMAN"
+        if "ACEMAN" in compact:
+            return "MINI ACEMAN"
+        if "CABRIO" in compact:
+            return "MINI CABRIO"
+        if compact.startswith(("3DOOR", "5DOOR", "COOPER", "ONE", "JCW", "JOHN")):
+            return "MINI COOPER"
+
     # DS: "DS7 Crossback ..." / "DS7CRB.E-TENSE4X4" -> DS DS7 (number = model).
     if b == "DS":
-        m_ds = re.match(r"^DS\s*([0-9])", t)
+        m_ds = re.match(r"^(?:DS\s*)?([0-9])", t)
         if m_ds:
             return f"DS DS{m_ds.group(1)}"
 
@@ -187,6 +232,29 @@ def normalize_model(brand, typ1, overrides_sorted: list[tuple[str, str]]) -> str
         if "SPORT" in t or re.search(r"\bSP\b", t):
             return "LAND ROVER RANGE ROVER SPORT"
         return "LAND ROVER RANGE ROVER"
+
+    # Porsche: ASTRA often concatenates trims/body styles to the model token
+    # ("911CARRERA", "TAYCAN4S", "CAYENNET", "718SPYDERRS"). Keep these at
+    # nameplate grain so sports/luxury segment volumes don't fragment.
+    if b == "PORSCHE":
+        ptok = t.split()[0]
+        if ptok.startswith("911"):
+            return "PORSCHE 911"
+        if ptok.startswith("718"):
+            return "PORSCHE 718"
+        for prefix in ["MACAN", "CAYENNE", "PANAMERA", "TAYCAN", "BOXSTER", "CAYMAN"]:
+            if ptok.startswith(prefix):
+                return f"PORSCHE {prefix}"
+
+    # Cupra: ASTRA concatenates trims/batteries ("FORMENTORE-HYBRID",
+    # "BORN170KW...", "LEONSP") and recorded Cupra as a SEAT trim before it
+    # became its own Marke. Fold to the nameplate; the proper-case label matches
+    # the SEAT-era model_overrides so both recording eras unify into one key.
+    if b == "CUPRA":
+        ctok = t.split()[0]
+        for name in ["FORMENTOR", "TERRAMAR", "TAVASCAN", "ATECA", "LEON", "BORN"]:
+            if ctok.startswith(name):
+                return f"Cupra {name.title()}"
 
     first = t.split()[0].rstrip(",.")
     # Punctuation-only Typ1 (".", ",") strips to nothing — no usable model
@@ -399,7 +467,7 @@ def process_file(filepath: Path, mappings: dict, warnings: set) -> dict:
         # ASTRA concatenates the suffix onto the model token with no space.
         merges = {k.upper(): v for k, v in (m.get("model_merges", {}) or {}).items()}
         if merges:
-            df["_model"] = df["_model"].map(lambda k: merges.get(k, k))
+            df["_model"] = df["_model"].map(lambda k: merges.get(str(k).upper(), k))
 
         # Segment (market class) — keyed on the canonical model, case-insensitive
         # so it composes with both UPPER auto-keys and proper-case merge labels.
@@ -416,6 +484,14 @@ def process_file(filepath: Path, mappings: dict, warnings: set) -> dict:
         # (Scoped to _model_brand — the global _brand / brand charts are
         # unchanged. chart_model_race groups by model and ignores brand.)
         df["_model_brand"] = df["_brand"].replace({"MERCEDES-AMG": "MERCEDES-BENZ"})
+        brand_overrides = {
+            k.upper(): v for k, v in (m.get("model_brand_overrides", {}) or {}).items()
+        }
+        if brand_overrides:
+            df["_model_brand"] = [
+                brand_overrides.get(str(model).upper(), brand)
+                for model, brand in zip(df["_model"], df["_model_brand"])
+            ]
 
     # Color
     if "Farbe" in df.columns:
@@ -632,6 +708,37 @@ def consolidate_and_save(agg: dict):
     print(f"\nSaved CSVs to {OUT_DIR}/")
 
 
+def add_model_mapping_warnings(agg: dict, mappings: dict, warnings: set):
+    """Warn when watched brands have high-volume model keys still in Other."""
+    cfg = mappings.get("model_mapping_warnings", {}) or {}
+    watched_brands = {str(b).upper() for b in cfg.get("brands", [])}
+    if not watched_brands or "model_by_month" not in agg:
+        return
+
+    min_count = int(cfg.get("min_count", 500))
+    ignored_models = {str(m).upper() for m in cfg.get("ignore_models", [])}
+    df = agg["model_by_month"]
+    required = {"_model", "_brand", "_segment", "count"}
+    if not required.issubset(df.columns):
+        return
+
+    totals = (
+        df[df["_segment"] == "Other"]
+        .groupby(["_brand", "_model"])["count"]
+        .sum()
+        .reset_index()
+    )
+    for brand, model, count in totals[["_brand", "_model", "count"]].itertuples(index=False, name=None):
+        brand = str(brand)
+        model = str(model)
+        count = int(count)
+        if brand.upper() not in watched_brands:
+            continue
+        if model.upper() in ignored_models or count < min_count:
+            continue
+        warnings.add(f"model_segment:{brand}:{model}:{count}")
+
+
 def save_warnings(warnings: set):
     """Save unmapped values to warnings.log (validate.py will merge and enrich)."""
     if not warnings:
@@ -657,6 +764,7 @@ def main():
         agg = process_file(f, mappings, warnings)
         total_agg = merge_aggs(total_agg, agg)
 
+    add_model_mapping_warnings(total_agg, mappings, warnings)
     consolidate_and_save(total_agg)
     save_warnings(warnings)
     print("\nDone.")

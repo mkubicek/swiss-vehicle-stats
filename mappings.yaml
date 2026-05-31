@@ -456,10 +456,31 @@ model_overrides:
   TOYOTA YARISCROSS: Toyota Yaris Cross
   TOYOTA COROLLA CROSS: Toyota Corolla Cross
   TOYOTA COROLLACROSS: Toyota Corolla Cross
+  # Toyota GR sub-brand rows carry the real model after "GR"; split them so
+  # real movers like GR Yaris / GR86 stay visible instead of being filtered as
+  # an unplaceable "TOYOTA GR" artifact.
+  TOYOTA GR YARIS: Toyota GR Yaris
+  TOYOTA GR86: Toyota GR86
+  TOYOTA GR 86: Toyota GR86
+  TOYOTA GR COROLLA: Toyota GR Corolla
+  # Historical SEAT rows contain Cupra models before Cupra became a separate
+  # ASTRA Marke. Split by the real model and rebrand via model_brand_overrides.
+  SEAT CUPRA ATECA: Cupra Ateca
+  SEAT CUPRA LEON: Cupra Leon
+  SEAT CUPRA FORMENTOR: Cupra Formentor
+  SEAT CUPRA FROMENTOR: Cupra Formentor
   # Merge: ASTRA stores Mitsubishi's compact as "SPACE STAR" (two tokens);
   # first-token-only auto-rule would bucket it as "MITSUBISHI SPACE".
   MITSUBISHI SPACE STAR: Mitsubishi Space Star
   MITSUBISHI SPACESTAR: Mitsubishi Space Star
+
+# Brand overrides scoped to model_by_month only, applied after model
+# normalization. This keeps historical model rows under the market brand that
+# should own the nameplate without changing global ASTRA brand totals.
+model_brand_overrides:
+  Cupra Ateca: CUPRA
+  Cupra Leon: CUPRA
+  Cupra Formentor: CUPRA
 
 # Model merges for chart_model_race (applied AFTER normalize_model).
 #
@@ -541,10 +562,23 @@ model_merges:
   SKODA CITIGO: Skoda Citigo
   SKODA CITI: Skoda Citigo
   # Mercedes V-Class: V250/V300D engine trims + the German "V-Klasse" name.
-  # Vito (the commercial van) stays separate.
+  # Vito/Citan/T-Class/Marco Polo are Personenwagen rows in ASTRA and stay as
+  # MPV-family nameplates for model-level analysis.
   MERCEDES-BENZ V-KLASSE: Mercedes-Benz V-Class
   MERCEDES-BENZ V250: Mercedes-Benz V-Class
   MERCEDES-BENZ V300D: Mercedes-Benz V-Class
+  MERCEDES-BENZ VITO: Mercedes-Benz Vito
+  MERCEDES-BENZ VITOTOURER: Mercedes-Benz Vito
+  MERCEDES-BENZ EVITO: Mercedes-Benz Vito
+  MERCEDES-BENZ EVITOTOURER: Mercedes-Benz Vito
+  MERCEDES-BENZ CITAN: Mercedes-Benz Citan
+  MERCEDES-BENZ CITANTOURER: Mercedes-Benz Citan
+  MERCEDES-BENZ ECITAN: Mercedes-Benz Citan
+  MERCEDES-BENZ T: Mercedes-Benz T-Class
+  MERCEDES-BENZ EQT: Mercedes-Benz T-Class
+  MERCEDES-BENZ MPH: Mercedes-Benz Marco Polo
+  MERCEDES-BENZ MPA: Mercedes-Benz Marco Polo
+  MERCEDES-BENZ MARCO: Mercedes-Benz Marco Polo
   # Hyundai: Grand Santa Fe folds into Santa Fe; i30 N keeps its own line
   # (distinct hot hatch) but absorbs the i30 N SE trim.
   HYUNDAI GRANDSANTA: Hyundai Santa Fe
@@ -593,13 +627,7 @@ model_merges:
 # base model's segment (BMW M3 -> Compact Executive, with the 3 Series). Only
 # standalone sports cars with no volume base get "Sports / GT" (Z4, TT).
 #
-# Known gap: ASTRA lumps every AMG into one "MERCEDES-BENZ AMG" bucket and
-# every Audi RS into "AUDI RS" — those span many segments (C 63 is compact-exec,
-# GLE 63 is large-SUV), so they can't be placed and stay "Other". BMW M cars
-# ARE placeable because the M<series> name encodes the class. This makes the
-# performance tail lopsided across makers; see issue #7 to split the buckets.
-#
-# Scoped to premium/luxury makers (the comparison set). Extend as needed.
+# Scoped to the watched model-comparison set. Extend as needed.
 model_segments:
   # --- BMW (post series-collapse: "BMW 3 Series", plus X/i/Z nameplates;
   #     M2-M8 fold into their series, M340i etc. likewise) ---
@@ -651,6 +679,10 @@ model_segments:
   Mercedes-Benz EQE: Executive
   Mercedes-Benz EQS: Luxury
   Mercedes-Benz V-Class: MPV
+  Mercedes-Benz Vito: MPV
+  Mercedes-Benz Citan: MPV
+  Mercedes-Benz T-Class: MPV
+  Mercedes-Benz Marco Polo: MPV
   Mercedes-Benz SL: Sports / GT
   Mercedes-Benz SLC: Sports / GT     # roadster (ex-SLK)
   Mercedes-AMG GT: Sports / GT       # standalone AMG sports car (no base model)
@@ -674,6 +706,17 @@ model_segments:
   Audi TT: Sports / GT
   Audi R8: Sports / GT
   # --- Other premium / luxury makers (headline models) ---
+  Mini Cooper: City / Supermini
+  Mini Cabrio: City / Supermini
+  Mini Clubman: Compact
+  Mini Countryman: Compact SUV
+  Mini Aceman: Compact SUV
+  Cupra Ateca: Compact SUV
+  Cupra Formentor: Compact SUV
+  Cupra Leon: Compact
+  CUPRA BORN: Compact
+  CUPRA TAVASCAN: Mid-size SUV
+  CUPRA TERRAMAR: Compact SUV
   Tesla Model 3: Compact Executive
   Tesla Model S: Executive
   Tesla Model Y: Mid-size SUV
@@ -743,3 +786,27 @@ model_segments:
   DS DS3: City / Supermini
   DS DS4: Compact
   DS DS7: Mid-size SUV
+
+# Warn when watched brands have high-volume model keys that still fall into
+# model_segments -> Other. This is a maintenance signal for newly introduced
+# models, ASTRA spelling changes, or normalization artifacts that should be
+# added to model_overrides/model_merges/model_segments.
+model_mapping_warnings:
+  min_count: 500
+  brands:
+    - AUDI
+    - BMW
+    - MERCEDES-BENZ
+    - MINI
+    - CUPRA
+    - POLESTAR
+    - PORSCHE
+    - TESLA
+    - VOLVO
+    - LEXUS
+    - JAGUAR
+    - LAND ROVER
+    - ALFA ROMEO
+    - MASERATI
+    - GENESIS
+    - DS
