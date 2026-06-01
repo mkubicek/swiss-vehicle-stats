@@ -35,6 +35,12 @@ Position changes of the top 10 brands. Watch for brands climbing or falling thro
 
 ![Brand Rankings](charts/brand_rankings.png)
 
+### Fastest-Growing & Declining Models
+
+Largest year-over-year model gains and losses, animated month by month. Surfaces debuts, refreshes, and decline as they happen.
+
+![Fastest-Growing & Declining Models](charts/model_race.gif)
+
 ---
 
 ## EV Analytics

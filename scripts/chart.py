@@ -7,6 +7,7 @@ PNG and GIF output, professional style, dynamic attribution.
 import io
 import json
 import os
+import re
 import subprocess
 import pandas as pd
 import numpy as np
@@ -15,6 +16,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mticker
 import matplotlib.colors as mcolors
+from matplotlib.offsetbox import TextArea, HPacker, AnnotationBbox
 from pathlib import Path
 from PIL import Image
 
@@ -39,6 +41,37 @@ def display_brand(name: str) -> str:
     if upper in BRAND_CASE:
         return BRAND_CASE[upper]
     return name.strip().title()
+
+
+def display_model(name: str) -> str:
+    """Convert ALL CAPS model key ("VW TIGUAN") to display ("VW Tiguan").
+
+    Already-prettied values from mappings.yaml > model_overrides (containing
+    any lowercase letter) pass through unchanged.
+    """
+    if any(c.islower() for c in name):
+        return name
+    tokens = name.split()
+    if not tokens:
+        return name
+
+    def case_chunk(ch: str) -> str:
+        # Digits => model designator (Q3, 30, ID.3, X1) — keep as-is.
+        # <=3 chars => abbreviation (GLC, AMG, GT, ROC, HR) — keep as-is.
+        # Otherwise title-case (CROSS->Cross, GOLF->Golf, MOKKA->Mokka).
+        if not ch or any(c.isdigit() for c in ch):
+            return ch
+        return ch if len(ch) <= 3 else ch.title()
+
+    def case_token(tok: str) -> str:
+        # Recase each chunk of a hyphen/dot-joined token, keeping the separators
+        # ("T-CROSS"->"T-Cross", "MOKKA-X"->"Mokka-X", but "ID.3"/"CX-30"/"T-ROC"
+        # stay intact because their chunks are digits or <=3 chars).
+        if "-" in tok or "." in tok:
+            return re.sub(r"[^-.]+", lambda mm: case_chunk(mm.group()), tok)
+        return case_chunk(tok)
+
+    return " ".join([display_brand(tokens[0])] + [case_token(t) for t in tokens[1:]])
 
 # Dark theme (AGENTS.md styleguide)
 BG = "#0d1117"
@@ -486,6 +519,202 @@ def chart_ev_wave():
     print(f"  Saved: ev_wave.gif ({size_mb:.1f} MB)")
 
 
+# Models that are aggregation artifacts of normalize_model()'s auto-rule, not
+# real nameplates. Keep this list tiny — it should only contain sub-brands or
+# trim families that ASTRA stores in Typ1 where the first token isn't a model
+# name (so the key mixes several distinct nameplates). Filtered out of
+# chart_model_race. To split one into real nameplates instead of filtering,
+# add per-variant model_overrides/model_merges in mappings.yaml.
+# Mercedes AMG and Audi RS are NO LONGER filtered — normalize_model now parses
+# them back to their base nameplate (AMG C 63 -> C-Class, RS 3 -> A3), so they
+# fold into the base model instead of forming a cross-segment bucket.
+#   TOYOTA GR — generic fallback only. Current GR Yaris / GR86 / GR Corolla
+#   rows are split by model_overrides; a bare future "GR" row still can't be
+#   placed, so keep the fallback filtered.
+# (LAND ROVER RR is no longer filtered — it's relabelled to "Land Rover Range
+#  Rover" via model_merges and classified Large SUV; all RR variants are large.)
+MODEL_ARTIFACTS = {"TOYOTA GR"}
+
+# First frame year for chart_model_race. Data goes back to 2016 but the
+# pre-2020 era has fewer model debuts and weaker climbers/fallers signal,
+# so the race starts here. Bump when the data window shifts.
+MODEL_RACE_START_YEAR = 2020
+
+
+def chart_model_race():
+    """Animated dual-panel race: largest year-over-year model gains and losses, by month.
+
+    Same layout as the static climbers chart (two stacked panels, names left,
+    bars growing right, shared scale, "+" / "−" signs encoding direction),
+    but plays as a GIF — one frame per month from Jan 2020 onward, with a big
+    monospace date label at the top per the ev_race convention.
+
+    This chart benefits from animation in a way the absolute-top-15 race
+    did not: climbers and fallers are by definition the most volatile rows,
+    so each frame tells a different story — debuts entering, post-peak models
+    falling out, the Chinese-brand wave landing in 2024-2025, etc.
+    """
+    path = DATA_DIR / "model_by_month.csv"
+    if not path.exists():
+        print("  Skip: model_race (no data)")
+        return
+
+    df = pd.read_csv(path)
+    if df.empty:
+        print("  Skip: model_race (empty data)")
+        return
+
+    # groupby (not set_index) so any future duplicate (model, year, month) —
+    # e.g. one model under two brand spellings in a month — collapses to a
+    # scalar instead of making lookup.get() return a Series and crashing the
+    # delta sort. Today the key is unique; this keeps it that way defensively.
+    lookup = df.groupby(["model", "year", "month"])["count"].sum()
+    all_models = [m for m in df["model"].unique() if m not in MODEL_ARTIFACTS]
+
+    months_present = sorted({(int(y), int(m)) for y, m in df[["year", "month"]].values})
+    # Each frame's YoY delta needs 24 months of preceding data (12 current +
+    # 12 prior). MODEL_RACE_START_YEAR focuses on the meaningful era; data
+    # goes back to 2016 so prior windows are populated.
+    target_months = [(y, m) for (y, m) in months_present if y >= MODEL_RACE_START_YEAR]
+
+    # First pass: per-frame climbers/fallers + global max for fixed x-axis
+    # across all frames (AGENTS.md GIF rule — locked axes prevent jumping).
+    TOP_N = 12
+    all_frame_data = []
+    global_max = 0
+    for (y, m) in target_months:
+        cur_months = trailing_months(y, m, 12)
+        py, pm = cur_months[-1]
+        pm -= 1
+        if pm == 0:
+            pm = 12
+            py -= 1
+        prior_months = trailing_months(py, pm, 12)
+
+        deltas = []
+        for model in all_models:
+            cur_sum = sum(lookup.get((model, ty, tm), 0) for ty, tm in cur_months)
+            prior_sum = sum(lookup.get((model, ty, tm), 0) for ty, tm in prior_months)
+            deltas.append((model, cur_sum, prior_sum, cur_sum - prior_sum))
+
+        # Filter by sign before taking top-N. Without this, frames where
+        # fewer than TOP_N models actually decline would render weak gains
+        # as "fallers" with a "−" label — fabricating losses from positive
+        # deltas. Same for climbers if all-decline scenario ever arises.
+        climber_pool = sorted([r for r in deltas if r[3] > 0], key=lambda r: -r[3])
+        faller_pool = sorted([r for r in deltas if r[3] < 0], key=lambda r: r[3])
+        climbers = climber_pool[:TOP_N]
+        fallers = faller_pool[:TOP_N]
+
+        if climbers and fallers:
+            frame_max = max(climbers[0][3], abs(fallers[0][3]))
+            global_max = max(global_max, frame_max)
+            all_frame_data.append(((y, m), climbers, fallers))
+
+    if not all_frame_data:
+        print("  Skip: model_race (no frames)")
+        return
+
+    CLIMB_COLOR = "#4ade80"
+    FALL_COLOR = "#fb7185"
+    PAD = 1.35
+    xmax = global_max * PAD
+
+    def render(ax, rows, color, sign):
+        rows = list(reversed(rows))
+        values = [abs(r[3]) for r in rows]
+        # Bar height 0.7 matches ev_race / brand_race convention.
+        ax.barh(range(len(rows)), values, color=color, height=0.7, edgecolor="none")
+        for j, (_model, cur, prior, delta) in enumerate(rows):
+            v = abs(delta)
+            # Pack the bold delta and the muted (prior → current) parenthetical
+            # side by side via HPacker so the gap between them is constant
+            # regardless of how wide the delta number is. Two free-floating
+            # ax.text calls at fixed offsets made the spacing jump (long
+            # deltas collided with the parenthetical, short ones left a gap).
+            delta_area = TextArea(f"{sign}{v:,}",
+                                  textprops=dict(color=TEXT, fontsize=10, fontweight="bold"))
+            paren_area = TextArea(f"({prior:,} → {cur:,})",
+                                  textprops=dict(color=SUBTLE, fontsize=8.5))
+            packed = HPacker(children=[delta_area, paren_area], align="baseline", pad=0, sep=6)
+            ab = AnnotationBbox(
+                packed, (v, j), xybox=(v + global_max * 0.012, j),
+                xycoords="data", boxcoords="data",
+                box_alignment=(0, 0.5), frameon=False, pad=0,
+            )
+            ax.add_artist(ab)
+        ax.set_yticks(range(len(rows)))
+        # Bold + fontsize 11 matches ev_race y-tick labels.
+        ax.set_yticklabels([display_model(r[0]) for r in rows],
+                           fontsize=11, color=TEXT, fontweight="bold")
+
+    attribution = get_dark_attribution()
+    images = []
+
+    for i, ((y, m), climbers, fallers) in enumerate(all_frame_data):
+        fig, (ax_climb, ax_fall) = plt.subplots(
+            2, 1, figsize=(14, 9.5), facecolor=BG,
+            gridspec_kw={"height_ratios": [1, 1]},
+        )
+
+        for ax in (ax_climb, ax_fall):
+            ax.set_facecolor(BG)
+            ax.spines["top"].set_visible(False)
+            ax.spines["right"].set_visible(False)
+            ax.spines["left"].set_visible(False)
+            ax.spines["bottom"].set_color(GRID_COLOR)
+            ax.tick_params(axis="x", colors=SUBTLE, labelsize=9)
+            ax.tick_params(axis="y", length=0)
+            ax.grid(axis="x", alpha=0.18, color=GRID_COLOR)
+            ax.xaxis.set_major_formatter(mticker.FuncFormatter(lambda x, _: f"{int(x):,}"))
+            ax.set_xlim(0, xmax)
+
+        render(ax_climb, climbers, CLIMB_COLOR, "+")
+        render(ax_fall, fallers, FALL_COLOR, "−")
+
+        ax_climb.set_title("▲  Largest Registration Gains", fontsize=12.5, fontweight="bold",
+                           color=CLIMB_COLOR, pad=8, loc="left")
+        ax_fall.set_title("▼  Largest Registration Losses", fontsize=12.5, fontweight="bold",
+                          color=FALL_COLOR, pad=8, loc="left")
+        ax_climb.tick_params(axis="x", labelbottom=False)
+
+        # Title block matches ev_race / brand_race convention:
+        # 1) big monospace date in #fbbf24 (fontsize 28)
+        # 2) main title in bold white (fontsize 14)
+        # 3) methodology subtitle in SUBTLE (fontsize 8)
+        fig.text(0.50, 0.975, f"{MONTH_NAMES[m].upper()} {y}", ha="center", va="top",
+                 fontsize=28, fontweight="bold", color="#fbbf24", fontfamily="monospace")
+        fig.text(0.50, 0.925, "Fastest-Growing & Declining Car Models in Switzerland",
+                 ha="center", va="top", fontsize=14, fontweight="bold", color=TEXT)
+        fig.text(0.50, 0.900,
+                 "Year-over-year change in trailing 12-month new Personenwagen (passenger car) registrations",
+                 ha="center", va="top", fontsize=8, color=SUBTLE)
+
+        fig.subplots_adjust(top=0.84, bottom=0.05, left=0.14, right=0.82, hspace=0.30)
+
+        # Footer fontsize 11 matches AGENTS.md > Chart Styleguide > Layout
+        # (GIF frames render at lower DPI; small text gets lost otherwise).
+        fig.text(0.99, 0.005, attribution, ha="right", va="bottom",
+                 fontsize=11, color="#64748b", style="italic")
+
+        buf = io.BytesIO()
+        fig.savefig(buf, format="png", dpi=100, facecolor=BG)
+        plt.close(fig)
+        buf.seek(0)
+        images.append(Image.open(buf).copy())
+        if (i + 1) % 24 == 0:
+            print(f"    model_race: frame {i + 1}/{len(all_frame_data)}")
+
+    CHART_DIR.mkdir(parents=True, exist_ok=True)
+    out = CHART_DIR / "model_race.gif"
+    durations = [300] * len(images)
+    durations[-1] = 3000
+    images[0].save(out, save_all=True, append_images=images[1:],
+                   duration=durations, loop=0, optimize=True)
+    size_mb = out.stat().st_size / (1024 * 1024)
+    print(f"  Saved: model_race.gif ({size_mb:.1f} MB)")
+
+
 def chart_ev_race():
     """Animated bar chart race: top 10 BEV brands by trailing 12-month registrations."""
     path = DATA_DIR / "brand_bev_by_month.csv"
@@ -810,6 +1039,7 @@ def main():
         chart_ev_wave()
         chart_ev_race()
         chart_brand_race()
+        chart_model_race()
 
     chart_ev_taste()
 

@@ -432,3 +432,381 @@ colors:
   "Fleckentarnung ( Nur für Militärfahrzeuge)": Camouflage
   Effektlack: Other
   unbekannt: Other
+
+# Model name overrides for chart_model_race (and any future model-level chart).
+#
+# Pattern: longest-prefix match against the uppercased "Marke Typ1" string.
+# Default auto-rule (in scripts/process.py:normalize_model): brand + first
+# Typ1 token, with Tesla / VW-ID regex specials that tolerate ASTRA's
+# inconsistent spacing ("MODEL Y" vs "MODELY", "ID.3 PRO 150 KW" vs "ID.3PROS150KW").
+#
+# Add an override here only when:
+#   (a) the auto-rule MERGES two distinct models — list each with its full
+#       distinguishing prefix and a canonical display name; the auto-rule
+#       still picks up the un-listed sibling.
+#   (b) the auto-rule SPLITS one model across spellings — list each spelling
+#       with the same canonical display name.
+# Values are the chart label, in proper case. Refresh every couple of months
+# as new models appear in the data.
+model_overrides:
+  # Split: Yaris Cross is a distinct compact SUV from the Yaris hatchback.
+  # Longest-prefix wins, so plain "YARIS HYBRID" still falls to the auto-rule.
+  # ASTRA sometimes writes it as one word ("YARISCROSS"); both alias to the same canonical.
+  TOYOTA YARIS CROSS: Toyota Yaris Cross
+  TOYOTA YARISCROSS: Toyota Yaris Cross
+  TOYOTA COROLLA CROSS: Toyota Corolla Cross
+  TOYOTA COROLLACROSS: Toyota Corolla Cross
+  # Toyota GR sub-brand rows carry the real model after "GR"; split them so
+  # real movers like GR Yaris / GR86 stay visible instead of being filtered as
+  # an unplaceable "TOYOTA GR" artifact.
+  TOYOTA GR YARIS: Toyota GR Yaris
+  TOYOTA GR86: Toyota GR86
+  TOYOTA GR 86: Toyota GR86
+  TOYOTA GR COROLLA: Toyota GR Corolla
+  # Historical SEAT rows contain Cupra models before Cupra became a separate
+  # ASTRA Marke. Split by the real model and rebrand via model_brand_overrides.
+  SEAT CUPRA ATECA: Cupra Ateca
+  SEAT CUPRA LEON: Cupra Leon
+  SEAT CUPRA FORMENTOR: Cupra Formentor
+  SEAT CUPRA FROMENTOR: Cupra Formentor
+  # Merge: ASTRA stores Mitsubishi's compact as "SPACE STAR" (two tokens);
+  # first-token-only auto-rule would bucket it as "MITSUBISHI SPACE".
+  MITSUBISHI SPACE STAR: Mitsubishi Space Star
+  MITSUBISHI SPACESTAR: Mitsubishi Space Star
+
+# Brand overrides scoped to model_by_month only, applied after model
+# normalization. This keeps historical model rows under the market brand that
+# should own the nameplate without changing global ASTRA brand totals.
+model_brand_overrides:
+  Cupra Ateca: CUPRA
+  Cupra Leon: CUPRA
+  Cupra Formentor: CUPRA
+
+# Model merges for chart_model_race (applied AFTER normalize_model).
+#
+# model_overrides matches the raw "Marke Typ1" by space-prefix, so it can't
+# reach concatenation fragments — ASTRA glues the body/trim suffix onto the
+# model token with no space ("OCTAVIAC1.6TDI", "PASSATV", "Q3SPORTBACK"),
+# which normalize_model turns into a distinct key. model_merges collapses
+# those normalized keys onto one canonical label.
+#
+# Key   = the normalized model key as emitted by normalize_model (UPPER CASE,
+#         except curated override labels). List EVERY spelling, including the
+#         canonical one, so they all map to the identical final string.
+# Value = the chart label, in proper case.
+# Add an entry only when keys are the SAME nameplate split by spelling. Do NOT
+# merge genuinely distinct models (Fiat 500 vs 500X, BMW iX vs iX1, Mazda
+# CX-3 vs CX-30) or engine/trim variants (left for a later curation pass).
+# Refresh every couple of months as new spellings appear.
+model_merges:
+  # Combi/Variant wagon spellings glued onto the nameplate.
+  SKODA OCTAVIA: Skoda Octavia
+  SKODA OCTAVIAC: Skoda Octavia
+  SKODA SUPERB: Skoda Superb
+  SKODA SUPERBC: Skoda Superb
+  VW PASSAT: VW Passat
+  VW PASSATV: VW Passat
+  # Sportback / body-style suffix glued on.
+  AUDI Q3: Audi Q3
+  AUDI Q3SPORTBACK: Audi Q3
+  AUDI A1: Audi A1
+  AUDI A1SPORTBACK: Audi A1
+  OPEL GRANDLAND: Opel Grandland
+  OPEL GRANDLANDX: Opel Grandland
+  # Two-token nameplates the first-token auto-rule truncates.
+  HYUNDAI SANTA: Hyundai Santa Fe
+  HYUNDAI SANTAFE: Hyundai Santa Fe
+  HYUNDAI SANTAFE16TGDIPHEV: Hyundai Santa Fe
+  MITSUBISHI OUTLAND: Mitsubishi Outlander
+  MITSUBISHI OUTLANDER: Mitsubishi Outlander
+  JEEP GRAND: Jeep Grand Cherokee
+  JEEP GRANDCHEROKEE: Jeep Grand Cherokee
+  JEEP GRANDCHEROKEEPHEV: Jeep Grand Cherokee
+  TOYOTA LAND: Toyota Land Cruiser
+  TOYOTA LANDCRUISER: Toyota Land Cruiser
+  BENTLEY CONTI: Bentley Continental
+  BENTLEY CONTINENTAL: Bentley Continental
+  SUZUKI SX4S-CROSS: Suzuki SX4 S-Cross
+  SUZUKI SX4S-CROSS1.6: Suzuki SX4 S-Cross
+  # Land Rover writes models many ways — two-word brand plus glued-on engine
+  # codes ("DISCOVERYSP.SD4", "DISCO.SP") the decimal engine-stripper misses.
+  # Discovery Sport, the full-size Discovery, and Defender are distinct models;
+  # collapse each one's spellings onto itself, keep the three apart.
+  LAND ROVER DISCOVERYSP.TD4: Land Rover Discovery Sport
+  LAND ROVER DISCOVERYSP.SI4: Land Rover Discovery Sport
+  LAND ROVER DISCOVERYSP.SD4: Land Rover Discovery Sport
+  LAND ROVER DISCOVERYSP.DI4: Land Rover Discovery Sport
+  LAND ROVER DISCOVERYSP.TDE: Land Rover Discovery Sport
+  LAND ROVER DISCOVERYSP.ED4: Land Rover Discovery Sport
+  LAND ROVER DISCOVERYSPPHEV: Land Rover Discovery Sport
+  LAND ROVER DISCOVERYSP: Land Rover Discovery Sport
+  LAND ROVER DISCO.SP: Land Rover Discovery Sport
+  LAND ROVER DISCO.SP.P200: Land Rover Discovery Sport
+  LAND ROVER DISCOVERY: Land Rover Discovery
+  LAND ROVER DISCOV: Land Rover Discovery
+  LAND ROVER DISCOV.2.0SI4: Land Rover Discovery
+  LAND ROVER DEFENDER: Land Rover Defender
+  LAND ROVER DEFENDER110PHEV: Land Rover Defender
+  LAND ROVER DEFENDERSI6MHEV: Land Rover Defender
+
+  # --- Pass 2: typos, trim/battery variants, and German names surfaced by a
+  #     full per-brand scan of the aggregated data. ---
+  # Skoda: "OKTAVIA"/"KODIAK" typos; Enyaq battery/AWD/RS trims; Citi(go).
+  SKODA OKTAVIA: Skoda Octavia
+  SKODA KODIAQ: Skoda Kodiaq
+  SKODA KODIAK: Skoda Kodiaq
+  SKODA ENYAQ: Skoda Enyaq
+  SKODA ENYAQ85: Skoda Enyaq
+  SKODA ENYAQ85X: Skoda Enyaq
+  SKODA ENYAQRS: Skoda Enyaq
+  SKODA CITIGO: Skoda Citigo
+  SKODA CITI: Skoda Citigo
+  # Mercedes V-Class: V250/V300D engine trims + the German "V-Klasse" name.
+  # Vito/Citan/T-Class/Marco Polo are Personenwagen rows in ASTRA and stay as
+  # MPV-family nameplates for model-level analysis.
+  MERCEDES-BENZ V-KLASSE: Mercedes-Benz V-Class
+  MERCEDES-BENZ V250: Mercedes-Benz V-Class
+  MERCEDES-BENZ V300D: Mercedes-Benz V-Class
+  MERCEDES-BENZ VITO: Mercedes-Benz Vito
+  MERCEDES-BENZ VITOTOURER: Mercedes-Benz Vito
+  MERCEDES-BENZ EVITO: Mercedes-Benz Vito
+  MERCEDES-BENZ EVITOTOURER: Mercedes-Benz Vito
+  MERCEDES-BENZ CITAN: Mercedes-Benz Citan
+  MERCEDES-BENZ CITANTOURER: Mercedes-Benz Citan
+  MERCEDES-BENZ ECITAN: Mercedes-Benz Citan
+  MERCEDES-BENZ T: Mercedes-Benz T-Class
+  MERCEDES-BENZ EQT: Mercedes-Benz T-Class
+  MERCEDES-BENZ MPH: Mercedes-Benz Marco Polo
+  MERCEDES-BENZ MPA: Mercedes-Benz Marco Polo
+  MERCEDES-BENZ MARCO: Mercedes-Benz Marco Polo
+  # Hyundai: Grand Santa Fe folds into Santa Fe; i30 N keeps its own line
+  # (distinct hot hatch) but absorbs the i30 N SE trim.
+  HYUNDAI GRANDSANTA: Hyundai Santa Fe
+  HYUNDAI GRAND: Hyundai Santa Fe
+  HYUNDAI I30N: Hyundai i30 N
+  HYUNDAI I30NSE: Hyundai i30 N
+  # Seat: Sportstourer/ST suffixes and typos ("TERRACO" -> Tarraco).
+  SEAT LEON: Seat Leon
+  SEAT LEONSP: Seat Leon
+  SEAT IBIZA: Seat Ibiza
+  SEAT IBIZAST: Seat Ibiza
+  SEAT ARONA: Seat Arona
+  SEAT ARON: Seat Arona
+  SEAT TARRACO: Seat Tarraco
+  SEAT TERRACO: Seat Tarraco
+  # Mercedes: ASTRA stores the sedans as bare class letters ("C 220 D" ->
+  # first token "C"). Relabel to the proper "<X>-Class" name so model and
+  # segment charts read cleanly. (CLA/CLS/GLA/GLC/etc. are separate keys.)
+  MERCEDES-BENZ A: Mercedes-Benz A-Class
+  MERCEDES-BENZ B: Mercedes-Benz B-Class
+  MERCEDES-BENZ C: Mercedes-Benz C-Class
+  MERCEDES-BENZ E: Mercedes-Benz E-Class
+  MERCEDES-BENZ S: Mercedes-Benz S-Class
+  MERCEDES-BENZ G: Mercedes-Benz G-Class
+  MERCEDES-BENZ V: Mercedes-Benz V-Class
+  # AMG GT folds (via normalize_model) to "MERCEDES-BENZ GT"; relabel it. The
+  # standalone AMG GT sports car is the only Mercedes whose base token is "GT".
+  MERCEDES-BENZ GT: Mercedes-AMG GT
+  # Audi e-tron GT (sport sedan) — pretty label; kept distinct from the SUV.
+  AUDI E-TRON GT: Audi e-tron GT
+  # Audi e-tron / Q8 e-tron SUV — pretty label (the renamed original e-tron;
+  # combustion Q8 stays separate as "Audi Q8").
+  AUDI E-TRON: Audi e-tron
+  # Land Rover Range Rover: normalize_model splits the "RR ..." family by
+  # sub-model (Evoque/Velar peeled off to their own keys); relabel the full-size
+  # Range Rover and Range Rover Sport (both Large SUV).
+  LAND ROVER RANGE ROVER: Land Rover Range Rover
+  LAND ROVER RANGE ROVER SPORT: Land Rover Range Rover Sport
+
+# Market segment per canonical model, for cross-maker comparison (e.g. BMW
+# 3 Series vs Mercedes C-Class vs Audi A4 = "Compact Executive"). Keyed on the
+# canonical model emitted by normalize_model (case-insensitive). Unmapped
+# models fall to "Other" and are excluded from segment charts.
+#
+# Principle: segment = body/market class. A performance variant inherits its
+# base model's segment (BMW M3 -> Compact Executive, with the 3 Series). Only
+# standalone sports cars with no volume base get "Sports / GT" (Z4, TT).
+#
+# Scoped to the watched model-comparison set. Extend as needed.
+model_segments:
+  # --- BMW (post series-collapse: "BMW 3 Series", plus X/i/Z nameplates;
+  #     M2-M8 fold into their series, M340i etc. likewise) ---
+  BMW 1 Series: Compact
+  BMW 2 Series: Compact
+  BMW 3 Series: Compact Executive
+  BMW 4 Series: Compact Executive
+  BMW 5 Series: Executive
+  BMW 6 Series: Executive
+  BMW 7 Series: Luxury
+  BMW 8 Series: Luxury
+  BMW X1: Compact SUV
+  BMW X2: Compact SUV
+  BMW X3: Mid-size SUV
+  BMW X4: Mid-size SUV
+  BMW X5: Large SUV
+  BMW X6: Large SUV
+  BMW X7: Large SUV
+  BMW XM: Large SUV
+  BMW Z4: Sports / GT
+  BMW i8: Sports / GT        # plug-in hybrid sports car
+  BMW i3: City / Supermini   # ~4.0 m B-segment city EV
+  BMW i4: Compact Executive
+  BMW i5: Executive
+  BMW i7: Luxury
+  BMW iX1: Compact SUV
+  BMW iX2: Compact SUV
+  BMW iX3: Mid-size SUV
+  BMW iX: Large SUV
+  # --- Mercedes-Benz ---
+  Mercedes-Benz A-Class: Compact
+  Mercedes-Benz B-Class: Compact
+  Mercedes-Benz CLA: Compact   # FWD A-Class platform; rivals A3 sedan, not C-Class
+  Mercedes-Benz C-Class: Compact Executive
+  Mercedes-Benz CLE: Compact Executive
+  Mercedes-Benz E-Class: Executive
+  Mercedes-Benz CLS: Executive
+  Mercedes-Benz S-Class: Luxury
+  Mercedes-Benz GLA: Compact SUV
+  Mercedes-Benz GLB: Compact SUV
+  Mercedes-Benz GLC: Mid-size SUV
+  Mercedes-Benz GLE: Large SUV
+  Mercedes-Benz GLS: Large SUV
+  Mercedes-Benz G-Class: Large SUV
+  Mercedes-Benz EQA: Compact SUV
+  Mercedes-Benz EQB: Compact SUV
+  Mercedes-Benz EQV: MPV             # electric V-Class
+  Mercedes-Benz EQC: Mid-size SUV
+  Mercedes-Benz EQE: Executive
+  Mercedes-Benz EQS: Luxury
+  Mercedes-Benz V-Class: MPV
+  Mercedes-Benz Vito: MPV
+  Mercedes-Benz Citan: MPV
+  Mercedes-Benz T-Class: MPV
+  Mercedes-Benz Marco Polo: MPV
+  Mercedes-Benz SL: Sports / GT
+  Mercedes-Benz SLC: Sports / GT     # roadster (ex-SLK)
+  Mercedes-AMG GT: Sports / GT       # standalone AMG sports car (no base model)
+  # --- Audi (S/RS fold into the base A/Q line via normalize_model) ---
+  Audi A1: City / Supermini
+  Audi A3: Compact
+  Audi A4: Compact Executive
+  Audi A5: Compact Executive
+  Audi A6: Executive
+  Audi A7: Executive
+  Audi A8: Luxury
+  Audi Q2: Compact SUV
+  Audi Q3: Compact SUV
+  Audi Q4: Compact SUV
+  Audi Q5: Mid-size SUV
+  Audi Q6: Mid-size SUV              # Q6 e-tron ~4.77 m, Q5/GLC class not Q7
+  Audi Q7: Large SUV
+  Audi Q8: Large SUV
+  Audi e-tron: Large SUV             # Q8 e-tron SUV
+  Audi e-tron GT: Executive          # sport sedan, Taycan peer (distinct from the SUV)
+  Audi TT: Sports / GT
+  Audi R8: Sports / GT
+  # --- Other premium / luxury makers (headline models) ---
+  Mini Cooper: City / Supermini
+  Mini Cabrio: City / Supermini
+  Mini Clubman: Compact
+  Mini Countryman: Compact SUV
+  Mini Aceman: Compact SUV
+  Cupra Ateca: Compact SUV
+  Cupra Formentor: Compact SUV
+  Cupra Leon: Compact
+  CUPRA BORN: Compact
+  CUPRA TAVASCAN: Mid-size SUV
+  CUPRA TERRAMAR: Compact SUV
+  Tesla Model 3: Compact Executive
+  Tesla Model S: Executive
+  Tesla Model Y: Mid-size SUV
+  Tesla Model X: Large SUV
+  Polestar 2: Compact Executive
+  Polestar 3: Large SUV
+  Polestar 4: Mid-size SUV
+  Volvo S60: Compact Executive
+  Volvo V40: Compact
+  Volvo V60: Compact Executive
+  Volvo S90: Executive
+  Volvo V90: Executive
+  Volvo XC40: Compact SUV
+  Volvo EX30: Compact SUV
+  Volvo EX40: Compact SUV
+  Volvo C40: Compact SUV
+  Volvo EC40: Compact SUV
+  Volvo XC60: Mid-size SUV
+  Volvo XC90: Large SUV
+  Volvo EX90: Large SUV
+  Porsche Macan: Mid-size SUV
+  Porsche Cayenne: Large SUV
+  Porsche Panamera: Executive
+  Porsche Taycan: Executive
+  Porsche 911: Sports / GT
+  Porsche 718: Sports / GT
+  Porsche Cayman: Sports / GT
+  Porsche Boxster: Sports / GT
+  Lexus CT: Compact
+  Lexus UX: Compact SUV
+  Lexus LBX: Compact SUV
+  Lexus NX: Mid-size SUV
+  Lexus RZ: Mid-size SUV
+  Lexus RX: Large SUV
+  Lexus ES: Executive
+  Lexus LC: Sports / GT
+  Jaguar XE: Compact Executive
+  Jaguar XF: Executive
+  Jaguar E-Pace: Compact SUV
+  Jaguar F-Pace: Mid-size SUV
+  Jaguar I-Pace: Mid-size SUV
+  Jaguar F-Type: Sports / GT
+  Land Rover Evoque: Compact SUV
+  Land Rover Discovery Sport: Compact SUV
+  Land Rover Velar: Mid-size SUV
+  Land Rover Discovery: Large SUV   # full-size ~4.97 m, X5/GLE/Q7 class
+  Land Rover Defender: Large SUV
+  Land Rover Range Rover: Large SUV       # full-size flagship
+  Land Rover Range Rover Sport: Large SUV
+  Alfa Romeo Giulia: Compact Executive
+  Alfa Romeo Giulietta: Compact
+  Alfa Romeo MiTo: City / Supermini
+  Alfa Romeo 4C: Sports / GT
+  Alfa Romeo Stelvio: Mid-size SUV
+  Alfa Romeo Tonale: Compact SUV
+  Alfa Romeo Junior: Compact SUV
+  Maserati Ghibli: Executive
+  Maserati Quattroporte: Luxury
+  Maserati Levante: Large SUV
+  Maserati Grecale: Mid-size SUV
+  Genesis G70: Compact Executive
+  Genesis G80: Executive
+  Genesis G90: Luxury
+  Genesis GV60: Compact SUV
+  Genesis GV70: Mid-size SUV
+  Genesis GV80: Large SUV
+  DS DS3: City / Supermini
+  DS DS4: Compact
+  DS DS7: Mid-size SUV
+
+# Warn when watched brands have high-volume model keys that still fall into
+# model_segments -> Other. This is a maintenance signal for newly introduced
+# models, ASTRA spelling changes, or normalization artifacts that should be
+# added to model_overrides/model_merges/model_segments.
+model_mapping_warnings:
+  min_count: 500
+  brands:
+    - AUDI
+    - BMW
+    - MERCEDES-BENZ
+    - MINI
+    - CUPRA
+    - POLESTAR
+    - PORSCHE
+    - TESLA
+    - VOLVO
+    - LEXUS
+    - JAGUAR
+    - LAND ROVER
+    - ALFA ROMEO
+    - MASERATI
+    - GENESIS
+    - DS

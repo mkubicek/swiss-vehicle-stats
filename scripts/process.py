@@ -6,6 +6,7 @@ for classification. Unknown values go to "Other" bucket.
 """
 
 import json
+import re
 import yaml
 import pandas as pd
 from pathlib import Path
@@ -21,6 +22,7 @@ WARNINGS_FILE = ROOT / "warnings.log"
 USE_COLS = [
     "Fahrzeugart",
     "Marke",
+    "Typ1",
     "Treibstoff",
     "Hybridcode",           # OVC-HEV / NOVC-HEV (2022+)
     "CO2",                  # CO2 g/km NEFZ (2016-2021)
@@ -48,6 +50,222 @@ _HYBRID_INTERMEDIATES = {"_petrol_hybrid", "_diesel_hybrid"}
 def load_mappings() -> dict:
     with open(MAPPINGS_FILE) as f:
         return yaml.safe_load(f)
+
+
+_TESLA_RE = re.compile(r"^MODEL\s*([YS3X])")
+_VW_ID_RE = re.compile(r"^ID\.?\s*([0-9]+|BUZZ)")
+# BMW: a series digit + two trim digits + optional fuel letters ("320D",
+# "330E", "M340I", "118I"). Collapse these onto the series so BMW sits at the
+# same grain as Mercedes class letters and Audi A/Q lines. Full M cars (M2-M8,
+# no two-digit tail), X SUVs, i/iX electrics and the Z roadster don't match and
+# stay distinct nameplates.
+_BMW_SERIES_RE = re.compile(r"^M?([1-8])\d{2}[A-Z]*$")
+# ASTRA pre-2022 records often concatenate engine codes onto the model name
+# without a space ("OCTAVIA2.0TDI", "TUCSON1.6TGDIPHEV", "VITARA1.6"). Strip
+# the trailing engine code so those rows aggregate into the real nameplate.
+# The regex requires a decimal (e.g. "2.0", "1.6") after the letters, which
+# is the distinguishing feature of engine displacement codes — model
+# designators like X1, Q3, A4, ID.3 (handled separately) have no decimal.
+_ENGINE_CODE_RE = re.compile(r"^([A-Z][A-Z\-]*)\d+\.\d+.*$")
+
+
+def _strip_duplicate_brand_prefix(typ1: str, brand_prefixes: list[str]) -> str:
+    """Remove ASTRA rows that repeat the brand in Typ1 ("AUDI RS6")."""
+    prefixes = set()
+    for prefix in brand_prefixes:
+        if not prefix:
+            continue
+        prefixes.add(prefix)
+        prefixes.add(prefix.replace(" ", "-"))
+        prefixes.add(prefix.replace(" ", ""))
+
+    for prefix in sorted(prefixes, key=len, reverse=True):
+        if typ1 == prefix:
+            return ""
+        if typ1.startswith(prefix + " "):
+            return typ1[len(prefix):].lstrip()
+    return typ1
+
+
+def normalize_model(brand, typ1, overrides_sorted: list[tuple[str, str]]) -> str:
+    """Combine brand + Typ1 into a stable model key for chart_model_race.
+
+    1. Try the longest-prefix override (operator-curated splits/merges from
+       mappings.yaml > model_overrides).
+    2. Fall back to: brand + first Typ1 token, with Tesla / VW-ID regex
+       specials that tolerate ASTRA's inconsistent spacing ("MODEL Y" vs
+       "MODELY", "ID.3 PRO 150 KW" vs "ID.3PROS150KW", "ID4" → "ID.4").
+    Returns "" when the row has no usable model info (filtered out upstream).
+    """
+    if not isinstance(brand, str) or not isinstance(typ1, str):
+        return ""
+    b = brand.strip().upper()
+    t = typ1.strip().upper()
+    # Empty / NaN guard. df["col"].astype(str) renders missing values as the
+    # literal string "nan", which would otherwise survive into model keys.
+    if not b or not t or b == "NAN" or t == "NAN":
+        return ""
+    original_b = b
+    # Mercedes-AMG is recorded both as its own Marke and as "AMG ..." Typ1 under
+    # MERCEDES-BENZ; treat it as Mercedes-Benz so AMG cars fold into the base.
+    if b == "MERCEDES-AMG":
+        b = "MERCEDES-BENZ"
+    # DS model names legitimately start with "DS" ("DS 7", "DS7CRB"), so do
+    # not treat that prefix as a duplicated brand.
+    if b != "DS":
+        t = _strip_duplicate_brand_prefix(t, [original_b, b])
+        if not t:
+            return ""
+    raw = f"{b} {t}"
+    for prefix, canonical in overrides_sorted:
+        if raw == prefix or raw.startswith(prefix + " "):
+            return canonical
+
+    # Tesla: "MODEL Y", "MODELY", "MODEL3" all collapse to "MODEL <X>".
+    if b == "TESLA":
+        match = _TESLA_RE.match(t)
+        if match:
+            return f"TESLA MODEL {match.group(1)}"
+
+    # VW ID family: "ID.3 PRO 150 KW", "ID.3PROS150KW", "ID4" → "ID.<N>".
+    if b == "VW":
+        match = _VW_ID_RE.match(t)
+        if match:
+            return f"VW ID.{match.group(1)}"
+
+    # BMW: "320D"/"M340I"/"118I" → "BMW 3/3/1 Series". Full M cars (M2-M8) fold
+    # into their series too (M3 -> 3 Series). X SUVs, i/iX electrics, Z stay.
+    if b == "BMW":
+        bmw_tok = t.split()[0]
+        match = _BMW_SERIES_RE.match(bmw_tok)
+        if match:
+            return f"BMW {match.group(1)} Series"
+        m_full = re.match(r"^M([1-8])(?:$|[A-Z])", bmw_tok)
+        if m_full:
+            return f"BMW {m_full.group(1)} Series"
+        m_x = re.match(r"^(X[1-7])", bmw_tok)
+        if m_x:
+            return f"BMW {m_x.group(1)}"
+        # i / iX electrics: fold trim suffixes ("I3S" -> I3, "I4EDRIVE40" -> I4).
+        m_i = re.match(r"^(IX[1-9]?|I[1-9])", bmw_tok)
+        if m_i:
+            return f"BMW {m_i.group(1)}"
+
+    # Mercedes-Benz: model names are class letters (A/B/C/E/S/G/V) or letter
+    # groups (GLA/GLC/CLA/EQE/SL/...); the digits are ALWAYS engine displacement.
+    # So the model is the leading alphabetic run. AMG folds into the same base
+    # ("AMG C 63" -> C, "AMG GLC 43" -> GLC, "AMG GT 63" -> GT; "GLA200" -> GLA,
+    # "V250D" -> V). The base then routes through model_merges / model_segments.
+    if b == "MERCEDES-BENZ":
+        tok = t
+        if tok.startswith("Z "):          # stray "Z " prefix on some AMG rows
+            tok = tok[2:].lstrip()
+        if tok.startswith("AMG"):
+            tok = tok[3:].lstrip(" -")
+        base = re.match(r"[A-Z]+", tok)
+        return f"MERCEDES-BENZ {base.group()}" if base else ""
+
+    # Lexus: 2-3 letter model names (RX/NX/UX/ES/LC/LBX/RZ...), digits are always
+    # engine/hybrid trim. "RX450H" -> RX, "NX450H+" -> NX, "UX250H" -> UX.
+    if b == "LEXUS":
+        base = re.match(r"[A-Z]+", t.split()[0])
+        if base:
+            return f"LEXUS {base.group()}"
+
+    # Audi RS/S performance fold into the base A/Q line ("RS 3"/"S3" -> A3,
+    # "RS Q8"/"SQ7" -> Q8/Q7). The e-tron GT sport sedan is distinct from the
+    # e-tron SUV; R8 is a standalone supercar (falls through). The final A/Q rule
+    # catches concatenated forms ("Q445E-TRON" -> Q4, "A4 Avant" -> A4).
+    if b == "AUDI":
+        atok = t.split()[0]
+        if "E-TRON GT" in t or "E-TRONGT" in t.replace(" ", ""):
+            return "AUDI E-TRON GT"
+        # Q8 e-tron is the electric SUV (the renamed original "e-tron"); it must
+        # NOT merge with the combustion Q8. Route it to the e-tron key. Q4/Q6
+        # e-tron are EV-only (no combustion twin) so they keep their Q key.
+        if re.match(r"^S?Q8", atok) and "E-TRON" in t.replace(" ", ""):
+            return "AUDI E-TRON"
+        if atok.startswith("TT"):           # TT / TTS / TTRS
+            return "AUDI TT"
+        m_rs = re.match(r"^RS\s*(Q)?\s*([1-8])", t)
+        if m_rs:
+            return f"AUDI {'Q' if m_rs.group(1) else 'A'}{m_rs.group(2)}"
+        m_s = re.match(r"^S(Q)?([1-8])", atok)
+        if m_s:
+            return f"AUDI {'Q' if m_s.group(1) else 'A'}{m_s.group(2)}"
+        m_aq = re.match(r"^(A|Q)([1-8])", atok)
+        if m_aq:
+            return f"AUDI {m_aq.group(1)}{m_aq.group(2)}"
+
+    # Mini: ASTRA mixes body-style and trim-first names ("3DOOR COOPER S",
+    # "COOPER S CLUBMAN", "COUNTRYMAN SE ALL4"). Keep the chart at nameplate
+    # grain so a naming-era shift from 3DOOR/5DOOR to Cooper doesn't look like
+    # a model collapsing while another one debuts.
+    if b == "MINI":
+        compact = t.replace(" ", "")
+        if "COUNTRYMAN" in compact or "CONUNTRYMAN" in compact:
+            return "MINI COUNTRYMAN"
+        if "CLUBMAN" in compact:
+            return "MINI CLUBMAN"
+        if "ACEMAN" in compact:
+            return "MINI ACEMAN"
+        if "CABRIO" in compact:
+            return "MINI CABRIO"
+        if compact.startswith(("3DOOR", "5DOOR", "COOPER", "ONE", "JCW", "JOHN")):
+            return "MINI COOPER"
+
+    # DS: "DS7 Crossback ..." / "DS7CRB.E-TENSE4X4" -> DS DS7 (number = model).
+    if b == "DS":
+        m_ds = re.match(r"^(?:DS\s*)?([0-9])", t)
+        if m_ds:
+            return f"DS DS{m_ds.group(1)}"
+
+    # Land Rover Range Rover family: ASTRA writes it as "RR ..." / "RANGE ROVER
+    # ..." and the sub-model is a keyword. These span THREE segments, so split
+    # them: Evoque (Compact SUV), Velar (Mid), Sport + full-size (Large).
+    if b == "LAND ROVER" and (t.startswith("RR") or t.split()[0].startswith("RANGE")):
+        if "EVOQUE" in t:
+            return "LAND ROVER EVOQUE"
+        if "VELAR" in t:
+            return "LAND ROVER VELAR"
+        # ASTRA abbreviates Range Rover Sport as "RR SP." / "RR SP" (no "SPORT").
+        if "SPORT" in t or re.search(r"\bSP\b", t):
+            return "LAND ROVER RANGE ROVER SPORT"
+        return "LAND ROVER RANGE ROVER"
+
+    # Porsche: ASTRA often concatenates trims/body styles to the model token
+    # ("911CARRERA", "TAYCAN4S", "CAYENNET", "718SPYDERRS"). Keep these at
+    # nameplate grain so sports/luxury segment volumes don't fragment.
+    if b == "PORSCHE":
+        ptok = t.split()[0]
+        if ptok.startswith("911"):
+            return "PORSCHE 911"
+        if ptok.startswith("718"):
+            return "PORSCHE 718"
+        for prefix in ["MACAN", "CAYENNE", "PANAMERA", "TAYCAN", "BOXSTER", "CAYMAN"]:
+            if ptok.startswith(prefix):
+                return f"PORSCHE {prefix}"
+
+    # Cupra: ASTRA concatenates trims/batteries ("FORMENTORE-HYBRID",
+    # "BORN170KW...", "LEONSP") and recorded Cupra as a SEAT trim before it
+    # became its own Marke. Fold to the nameplate; the proper-case label matches
+    # the SEAT-era model_overrides so both recording eras unify into one key.
+    if b == "CUPRA":
+        ctok = t.split()[0]
+        for name in ["FORMENTOR", "TERRAMAR", "TAVASCAN", "ATECA", "LEON", "BORN"]:
+            if ctok.startswith(name):
+                return f"Cupra {name.title()}"
+
+    first = t.split()[0].rstrip(",.")
+    # Punctuation-only Typ1 (".", ",") strips to nothing — no usable model
+    # info, so drop the row rather than emit a malformed "BRAND " key.
+    if not first:
+        return ""
+    # Strip concatenated engine codes ("OCTAVIA2.0TDI" -> "OCTAVIA").
+    engine_match = _ENGINE_CODE_RE.match(first)
+    if engine_match:
+        first = engine_match.group(1)
+    return f"{b} {first}"
 
 
 def safe_map(value, mapping: dict, default: str = "Other") -> str:
@@ -231,6 +449,50 @@ def process_file(filepath: Path, mappings: dict, warnings: set) -> dict:
             if safe_map(v, m.get("brand_origin", {})) == "Other" and str(v).strip():
                 warnings.add(f"brand:{v}")
 
+    # Model (brand + normalized Typ1) — feeds chart_model_race
+    if "Marke" in df.columns and "Typ1" in df.columns:
+        overrides = m.get("model_overrides", {}) or {}
+        overrides_sorted = sorted(
+            ((k.upper(), v) for k, v in overrides.items()),
+            key=lambda kv: len(kv[0]),
+            reverse=True,
+        )
+        df["_model"] = [
+            normalize_model(b, t, overrides_sorted)
+            for b, t in zip(df["Marke"].astype(str), df["Typ1"].astype(str))
+        ]
+        # Collapse spelling/concatenation variants that the auto-rule splits
+        # ("SKODA OCTAVIAC" -> Skoda Octavia). model_overrides can't reach
+        # these because it matches the raw "Marke Typ1" by space-prefix, and
+        # ASTRA concatenates the suffix onto the model token with no space.
+        merges = {k.upper(): v for k, v in (m.get("model_merges", {}) or {}).items()}
+        if merges:
+            df["_model"] = df["_model"].map(lambda k: merges.get(str(k).upper(), k))
+
+        # Segment (market class) — keyed on the canonical model, case-insensitive
+        # so it composes with both UPPER auto-keys and proper-case merge labels.
+        # Lets a future chart compare segments across makers (BMW 3 Series vs
+        # Mercedes C-Class vs Audi A4 = "Compact Executive"). Unmapped → "Other".
+        segments = {k.upper(): v for k, v in (m.get("model_segments", {}) or {}).items()}
+        df["_segment"] = df["_model"].map(
+            lambda k: segments.get(str(k).upper(), "Other") if k else "Other"
+        )
+        # Brand for model/segment purposes only: ASTRA records some AMG cars
+        # under the Marke "MERCEDES-AMG", which would split Mercedes-Benz across
+        # two "makers" in a segment-by-maker comparison. normalize_model already
+        # folds the AMG *model* into Mercedes-Benz; fold the brand to match.
+        # (Scoped to _model_brand — the global _brand / brand charts are
+        # unchanged. chart_model_race groups by model and ignores brand.)
+        df["_model_brand"] = df["_brand"].replace({"MERCEDES-AMG": "MERCEDES-BENZ"})
+        brand_overrides = {
+            k.upper(): v for k, v in (m.get("model_brand_overrides", {}) or {}).items()
+        }
+        if brand_overrides:
+            df["_model_brand"] = [
+                brand_overrides.get(str(model).upper(), brand)
+                for model, brand in zip(df["_model"], df["_model_brand"])
+            ]
+
     # Color
     if "Farbe" in df.columns:
         df["_color"] = df["Farbe"].apply(lambda x: safe_map(x, m.get("colors", {})))
@@ -278,6 +540,19 @@ def process_file(filepath: Path, mappings: dict, warnings: set) -> dict:
             agg["canton_ev_by_month"] = canton_total.merge(
                 canton_bev, on=["_canton", "_year", "_month"]
             )
+
+        # Model by month (for chart_model_race), annotated with segment
+        if "_model" in valid.columns:
+            model_valid = valid[valid["_model"] != ""]
+            if not model_valid.empty:
+                brand_col = "_model_brand" if "_model_brand" in model_valid.columns else "_brand"
+                group_cols = ["_year", "_month", "_model", brand_col]
+                if "_segment" in model_valid.columns:
+                    group_cols.append("_segment")
+                agg["model_by_month"] = (
+                    model_valid.groupby(group_cols).size().reset_index(name="count")
+                    .rename(columns={brand_col: "_brand"})
+                )
 
         # Brand BEV by month (for ev_race)
         if "_brand" in valid.columns and "_is_bev" in valid.columns:
@@ -400,6 +675,14 @@ def consolidate_and_save(agg: dict):
         df.to_csv(OUT_DIR / "canton_ev_by_month.csv", index=False)
 
     # Brand BEV by month
+    if "model_by_month" in agg:
+        has_seg = "_segment" in agg["model_by_month"].columns
+        keys = ["_year", "_month", "_model", "_brand"] + (["_segment"] if has_seg else [])
+        df = agg["model_by_month"].groupby(keys)["count"].sum().reset_index()
+        df.columns = ["year", "month", "model", "brand"] + (["segment"] if has_seg else []) + ["count"]
+        df = df.sort_values(["year", "month", "model"])
+        df.to_csv(OUT_DIR / "model_by_month.csv", index=False)
+
     if "brand_bev_by_month" in agg:
         df = agg["brand_bev_by_month"].groupby(["_year", "_month", "_brand"])["bev_count"].sum().reset_index()
         df.columns = ["year", "month", "brand", "bev_count"]
@@ -423,6 +706,37 @@ def consolidate_and_save(agg: dict):
         print(f"  Wrote metadata.json: {metadata}")
 
     print(f"\nSaved CSVs to {OUT_DIR}/")
+
+
+def add_model_mapping_warnings(agg: dict, mappings: dict, warnings: set):
+    """Warn when watched brands have high-volume model keys still in Other."""
+    cfg = mappings.get("model_mapping_warnings", {}) or {}
+    watched_brands = {str(b).upper() for b in cfg.get("brands", [])}
+    if not watched_brands or "model_by_month" not in agg:
+        return
+
+    min_count = int(cfg.get("min_count", 500))
+    ignored_models = {str(m).upper() for m in cfg.get("ignore_models", [])}
+    df = agg["model_by_month"]
+    required = {"_model", "_brand", "_segment", "count"}
+    if not required.issubset(df.columns):
+        return
+
+    totals = (
+        df[df["_segment"] == "Other"]
+        .groupby(["_brand", "_model"])["count"]
+        .sum()
+        .reset_index()
+    )
+    for brand, model, count in totals[["_brand", "_model", "count"]].itertuples(index=False, name=None):
+        brand = str(brand)
+        model = str(model)
+        count = int(count)
+        if brand.upper() not in watched_brands:
+            continue
+        if model.upper() in ignored_models or count < min_count:
+            continue
+        warnings.add(f"model_segment:{brand}:{model}:{count}")
 
 
 def save_warnings(warnings: set):
@@ -450,6 +764,7 @@ def main():
         agg = process_file(f, mappings, warnings)
         total_agg = merge_aggs(total_agg, agg)
 
+    add_model_mapping_warnings(total_agg, mappings, warnings)
     consolidate_and_save(total_agg)
     save_warnings(warnings)
     print("\nDone.")

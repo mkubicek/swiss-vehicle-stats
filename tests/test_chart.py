@@ -75,6 +75,36 @@ def _brand_bev_by_month_csv(data_dir: Path, months: list[tuple[int, int]]):
     _write_csv(data_dir / "brand_bev_by_month.csv", "\n".join(rows))
 
 
+def _model_by_month_csv(data_dir: Path, months: list[tuple[int, int]]):
+    """Write model_by_month.csv covering enough months and models that
+    chart_model_race can compute a 12-month trailing window and produce
+    >=12 climbers and >=12 fallers. Roughly half the models grow YoY and
+    half decline, so both panels have content under the negative-only
+    fallers filter.
+    """
+    models = [
+        ("VW TIGUAN", "VW"), ("SKODA OCTAVIA", "SKODA"), ("TESLA MODEL Y", "TESLA"),
+        ("VW GOLF", "VW"), ("AUDI Q3", "AUDI"), ("SKODA KAROQ", "SKODA"),
+        ("BMW X1", "BMW"), ("TOYOTA YARIS", "TOYOTA"), ("DACIA SANDERO", "DACIA"),
+        ("FIAT 500", "FIAT"), ("RENAULT 5", "RENAULT"), ("MG ZS", "MG"),
+        ("VW POLO", "VW"), ("BMW X3", "BMW"), ("CUPRA TERRAMAR", "CUPRA"),
+        ("SKODA ELROQ", "SKODA"), ("BYD SEAL", "BYD"), ("FORD KUGA", "FORD"),
+        ("MERCEDES-BENZ AMG", "MERCEDES-BENZ"),  # artifact row — must be filtered
+        ("PORSCHE MACAN", "PORSCHE"), ("MAZDA CX-5", "MAZDA"), ("OPEL ASTRA", "OPEL"),
+        ("HYUNDAI IONIQ", "HYUNDAI"), ("VOLVO EX30", "VOLVO"), ("AUDI A6", "AUDI"),
+    ]
+    rows = ["year,month,model,brand,count"]
+    for idx, (y, m) in enumerate(months, start=1):
+        for rank, (model, brand) in enumerate(models, start=1):
+            # Even-ranked models grow with time (climbers); odd-ranked decline
+            # (fallers). Gives the year-2 window a clear YoY signal in both
+            # directions vs the year-1 window.
+            direction = 1 if rank % 2 == 0 else -1
+            count = max(10, 500 - rank * 5 + direction * idx * 3)
+            rows.append(f"{y},{m},{model},{brand},{count}")
+    _write_csv(data_dir / "model_by_month.csv", "\n".join(rows))
+
+
 def _canton_ev_by_month_csv(data_dir: Path, months: list[tuple[int, int]]):
     rows = ["canton,year,month,ev_count,total_count"]
     for y, m in months:
@@ -302,6 +332,43 @@ class TestLoadProjection:
 
 
 # ===================================================================
+# display_model
+# ===================================================================
+
+class TestDisplayModel:
+    def test_passes_prettied_value_through(self):
+        # Values from mappings.yaml > model_overrides arrive pre-formatted.
+        assert chart.display_model("Toyota Yaris Cross") == "Toyota Yaris Cross"
+        assert chart.display_model("Mitsubishi Space Star") == "Mitsubishi Space Star"
+
+    def test_prettifies_uppercase_brand_and_model(self):
+        assert chart.display_model("VW TIGUAN") == "VW Tiguan"
+        assert chart.display_model("SKODA OCTAVIA") == "Skoda Octavia"
+        assert chart.display_model("DACIA SANDERO") == "Dacia Sandero"
+
+    def test_keeps_short_abbreviations_uppercase(self):
+        assert chart.display_model("MERCEDES-BENZ GLC") == "Mercedes-Benz GLC"
+        assert chart.display_model("TESLA MODEL Y") == "Tesla Model Y"
+        assert chart.display_model("MERCEDES-BENZ AMG") == "Mercedes-Benz AMG"
+
+    def test_keeps_alphanumeric_tokens_as_is(self):
+        assert chart.display_model("AUDI Q3") == "Audi Q3"
+        assert chart.display_model("BMW X1") == "BMW X1"
+        assert chart.display_model("VW ID.3") == "VW ID.3"
+        assert chart.display_model("VW T-ROC") == "VW T-ROC"   # ROC <=3, stays
+        assert chart.display_model("MAZDA CX-30") == "Mazda CX-30"
+
+    def test_titlecases_long_hyphen_chunks(self):
+        # Long chunks after a hyphen/dot must be cased, not left SHOUTING.
+        assert chart.display_model("VW T-CROSS") == "VW T-Cross"
+        assert chart.display_model("OPEL MOKKA-X") == "Opel Mokka-X"
+        assert chart.display_model("VW E-GOLF") == "VW E-Golf"
+
+    def test_empty_string_returns_empty(self):
+        assert chart.display_model("") == ""
+
+
+# ===================================================================
 # chart_yearly_registrations
 # ===================================================================
 
@@ -396,6 +463,69 @@ class TestChartEvWave:
             chart.chart_ev_wave()
         out = capsys.readouterr().out
         assert "ev_wave: frame 24/" in out
+
+
+# ===================================================================
+# chart_model_race
+# ===================================================================
+
+class TestChartModelRace:
+    def test_filters_artifacts(self, chart_dirs):
+        """Only truly generic sub-brand buckets stay filtered.
+
+        Toyota GR Yaris / GR86 / GR Corolla split upstream via model_overrides;
+        only a bare future TOYOTA GR fallback remains unplaceable. AMG/RS are
+        NO LONGER filtered because normalize_model folds them to base models.
+        """
+        assert "TOYOTA GR" in chart.MODEL_ARTIFACTS
+        assert "Toyota GR Yaris" not in chart.MODEL_ARTIFACTS
+        assert "Toyota GR86" not in chart.MODEL_ARTIFACTS
+        assert "MERCEDES-BENZ AMG" not in chart.MODEL_ARTIFACTS
+        assert "AUDI RS" not in chart.MODEL_ARTIFACTS
+
+    def test_file_missing(self, chart_dirs, capsys):
+        chart.chart_model_race()
+        assert "Skip: model_race (no data)" in capsys.readouterr().out
+
+    def test_empty_csv(self, chart_dirs, capsys):
+        data_dir, _, _ = chart_dirs
+        _write_csv(data_dir / "model_by_month.csv", "year,month,model,brand,count")
+        chart.chart_model_race()
+        assert "Skip: model_race (empty data)" in capsys.readouterr().out
+
+    def test_no_frames_when_no_2020_plus_data(self, chart_dirs, capsys):
+        """Frame range starts at 2020; data entirely before that yields no frames."""
+        data_dir, _, _ = chart_dirs
+        months = [(2018, m) for m in range(1, 13)] + [(2019, m) for m in range(1, 13)]
+        _model_by_month_csv(data_dir, months)
+        chart.chart_model_race()
+        assert "Skip: model_race (no frames)" in capsys.readouterr().out
+
+    def test_renders_gif(self, chart_dirs, capsys):
+        data_dir, chart_dir, _ = chart_dirs
+        # Two years of 2020+ data so the trailing-12 window has both a
+        # current period (year 2) and a prior period (year 1).
+        months = [(2023, m) for m in range(1, 13)] + [(2024, m) for m in range(1, 13)]
+        _model_by_month_csv(data_dir, months)
+        with patch("chart.get_repo_url", return_value=""):
+            chart.chart_model_race()
+        assert (chart_dir / "model_race.gif").exists()
+        assert "Saved: model_race.gif" in capsys.readouterr().out
+
+    def test_progress_print(self, chart_dirs, capsys):
+        """With 24+ valid frames the progress print fires.
+
+        chart_model_race skips frames where the prior YoY window has no
+        data (climbers or fallers empty). Need ≥4 years here so the last
+        2 years have a real YoY comparison and produce 24+ valid frames.
+        """
+        data_dir, _, _ = chart_dirs
+        months = [(y, m) for y in range(2021, 2025) for m in range(1, 13)]
+        _model_by_month_csv(data_dir, months)
+        with patch("chart.get_repo_url", return_value=""):
+            chart.chart_model_race()
+        out = capsys.readouterr().out
+        assert "model_race: frame 24/" in out
 
 
 # ===================================================================
@@ -505,10 +635,18 @@ class TestChartEvTaste:
 
 class TestMainGuard:
     def test_run_as_main(self, chart_dirs):
-        """Cover the ``if __name__ == '__main__'`` block."""
+        """Cover the ``if __name__ == '__main__'`` block — sandboxed.
+
+        The exec recomputes DATA_DIR/CHART_DIR from __file__ (ignoring the
+        monkeypatch), so point __file__ at the empty tmp tree. main() then finds
+        no monthly_totals.csv and returns early — no real GIFs re-rendered (which
+        was slow enough to time out CI) and no tracked charts overwritten.
+        """
+        data_dir, _, _ = chart_dirs
+        fake_file = data_dir.parent.parent / "scripts" / "chart.py"  # -> ROOT = tmp
         source = Path(chart.__file__).read_text()
         code = compile(source, chart.__file__, "exec")
-        exec(code, {"__name__": "__main__", "__file__": chart.__file__})
+        exec(code, {"__name__": "__main__", "__file__": str(fake_file)})
 
 
 class TestMain:
@@ -541,4 +679,3 @@ class TestMain:
         assert (chart_dir / "ev_race.gif").exists()
         assert (chart_dir / "brand_race.gif").exists()
         assert (chart_dir / "ev_taste_lq.png").exists()
-
