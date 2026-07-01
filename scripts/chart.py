@@ -20,6 +20,11 @@ from matplotlib.offsetbox import TextArea, HPacker, AnnotationBbox
 from pathlib import Path
 from PIL import Image
 
+from process import (
+    load_mappings, is_china_owned, is_china_branded, detect_entry_month,
+    ENTRY_MIN_MONTHLY,
+)
+
 ROOT = Path(__file__).parent.parent
 DATA_DIR = ROOT / "data" / "processed"
 CHART_DIR = ROOT / "charts"
@@ -31,7 +36,7 @@ FIGSIZE = (12, 7)
 BRAND_CASE = {
     "BMW": "BMW", "BYD": "BYD", "MG": "MG", "DS": "DS", "KGM": "KGM",
     "NIO": "NIO", "GWM": "GWM", "JAC": "JAC", "GAC": "GAC",
-    "VW": "VW", "VOLKSWAGEN": "VW",
+    "VW": "VW", "VOLKSWAGEN": "VW", "XPENG": "XPeng",
 }
 
 
@@ -97,6 +102,21 @@ FALLBACK_COLORS = [
     "#4cc9f0", "#f72585", "#4ade80", "#fbbf24", "#a78bfa",
     "#fb923c", "#22d3ee", "#f87171", "#34d399", "#e879f9",
 ]
+
+# Ownership-bloc colors for the Chinese-BEV charts. Kept in code alongside
+# BRAND_COLORS (the repo keeps chart colors in code; mappings.yaml's `colors:`
+# is the unrelated German→English paint-colour map).
+#   china_owned   red family, echoes BYD #ff6b6b, distinct from Tesla #f72585
+#   china_branded orange, clearly subordinate to china_owned
+#   tesla_ref     existing Tesla color
+#   rest_ref      neutral slate for "all other brands" / negative bars
+BLOC_COLORS = {
+    "china_owned": "#ef4444",
+    "china_branded": "#f97316",
+    "tesla_ref": "#f72585",
+    "rest_ref": "#64748b",
+    "mg_ref": "#fcd34d",
+}
 
 MONTH_NAMES = {
     1: "Jan", 2: "Feb", 3: "Mar", 4: "Apr", 5: "May", 6: "Jun",
@@ -1019,6 +1039,343 @@ def chart_ev_taste():
     print(f"  Saved: ev_taste_lq.png ({size_kb:.0f} KB)")
 
 
+def _months_between(a: tuple[int, int], b: tuple[int, int]) -> int:
+    """Signed count of calendar months from a to b ((2020,1)->(2020,3) == 2)."""
+    return (b[0] - a[0]) * 12 + (b[1] - a[1])
+
+
+def china_bev_share_series(df: pd.DataFrame, mappings: dict, start=(2019, 1)) -> pd.DataFrame:
+    """Trailing-12-month ownership-bloc shares of new BEV registrations.
+
+    Input: brand_bev_by_month (year, month, brand, bev_count). Returns a
+    DataFrame [year, month, owned, branded, tesla] where each column is the
+    T12M bloc registrations divided by T12M total BEV registrations (fractions
+    in [0, 1]). China-branded ⊆ China-owned by construction, so branded ≤ owned
+    at every point. Months before `start`, and any month whose trailing window
+    has zero BEV registrations, are omitted.
+    """
+    cols = ["year", "month", "owned", "branded", "tesla"]
+    if df.empty:
+        return pd.DataFrame(columns=cols)
+
+    brands = df["brand"].unique()
+    owned = {b for b in brands if is_china_owned(b, mappings)}
+    branded = {b for b in brands if is_china_branded(b, mappings)}
+
+    # Per-month bloc sums: (year, month) -> [total, owned, branded, tesla].
+    monthly: dict[tuple[int, int], list[int]] = {}
+    for row in df.itertuples(index=False):
+        y, m, b, c = int(row.year), int(row.month), row.brand, int(row.bev_count)
+        rec = monthly.setdefault((y, m), [0, 0, 0, 0])
+        rec[0] += c
+        if b in owned:
+            rec[1] += c
+        if b in branded:
+            rec[2] += c
+        if b == "TESLA":
+            rec[3] += c
+
+    latest = max(monthly)
+    rows = []
+    y, m = start
+    while (y, m) <= latest:
+        win = trailing_months(y, m, 12)
+        tot = sum(monthly.get(k, (0, 0, 0, 0))[0] for k in win)
+        if tot > 0:
+            ow = sum(monthly.get(k, (0, 0, 0, 0))[1] for k in win)
+            br = sum(monthly.get(k, (0, 0, 0, 0))[2] for k in win)
+            te = sum(monthly.get(k, (0, 0, 0, 0))[3] for k in win)
+            rows.append({"year": y, "month": m, "owned": ow / tot,
+                         "branded": br / tot, "tesla": te / tot})
+        m += 1
+        if m == 13:
+            m, y = 1, y + 1
+    return pd.DataFrame(rows, columns=cols)
+
+
+def chart_china_bev_share():
+    """Chinese share of Swiss BEV registrations — level (top) + momentum (bottom).
+
+    Top: T12M share of BEV registrations for the China-owned and China-branded
+    blocs, with Tesla as a scale reference; the gap between the two China lines
+    is the story (Chinese-owned volume wearing European badges). Bottom: YoY
+    change (percentage points) of the China-owned share — d/dt of market share
+    in the house YoY vocabulary.
+    """
+    from datetime import date, timedelta
+
+    path = DATA_DIR / "brand_bev_by_month.csv"
+    if not path.exists():
+        print("  Skip: china_bev_share (no data)")
+        return
+    df = pd.read_csv(path)
+    if df.empty:
+        print("  Skip: china_bev_share (empty data)")
+        return
+
+    series = china_bev_share_series(df, load_mappings(), start=(2019, 1))
+    if series.empty:
+        print("  Skip: china_bev_share (no share data)")
+        return
+
+    series = series.sort_values(["year", "month"]).reset_index(drop=True)
+    xs = [date(int(r.year), int(r.month), 1) for r in series.itertuples(index=False)]
+    owned = series["owned"].to_numpy() * 100
+    branded = series["branded"].to_numpy() * 100
+    tesla = series["tesla"].to_numpy() * 100
+
+    # YoY momentum (pp): owned share now minus owned share 12 months earlier.
+    yoy = np.full(len(owned), np.nan)
+    if len(owned) > 12:
+        yoy[12:] = owned[12:] - owned[:-12]
+
+    fig, (ax_top, ax_bot) = plt.subplots(
+        2, 1, figsize=(12, 8), facecolor=BG, sharex=True,
+        gridspec_kw={"height_ratios": [3, 1]},
+    )
+
+    # --- Top: level ---
+    ax_top.set_facecolor(BG)
+    ax_top.fill_between(xs, branded, owned, color=BLOC_COLORS["china_owned"],
+                        alpha=0.12, zorder=1)
+    ax_top.plot(xs, tesla, color=BLOC_COLORS["tesla_ref"], linewidth=1.3,
+                alpha=0.85, zorder=2)
+    ax_top.plot(xs, branded, color=BLOC_COLORS["china_branded"], linewidth=2.2, zorder=3)
+    ax_top.plot(xs, owned, color=BLOC_COLORS["china_owned"], linewidth=3.2, zorder=4)
+
+    label_x = xs[-1] + timedelta(days=25)
+    for value, text, color in [
+        (owned[-1], f"China-owned {owned[-1]:.1f}%", BLOC_COLORS["china_owned"]),
+        (tesla[-1], f"Tesla {tesla[-1]:.1f}%", BLOC_COLORS["tesla_ref"]),
+        (branded[-1], f"China-branded {branded[-1]:.1f}%", BLOC_COLORS["china_branded"]),
+    ]:
+        ax_top.annotate(text, (label_x, value), va="center", ha="left",
+                        fontsize=9, fontweight="bold", color=color)
+
+    top_max = float(np.nanmax([owned.max(), tesla.max()]))
+    ax_top.set_ylim(0, top_max * 1.18)
+    ax_top.yaxis.set_major_formatter(mticker.FuncFormatter(lambda v, _: f"{v:.0f}%"))
+    for spine in ("top", "right"):
+        ax_top.spines[spine].set_visible(False)
+    ax_top.spines["left"].set_color(GRID_COLOR)
+    ax_top.spines["bottom"].set_color(GRID_COLOR)
+    ax_top.tick_params(colors=TEXT, labelsize=10)
+    ax_top.grid(axis="y", alpha=0.2, color=GRID_COLOR, linestyle="--")
+
+    # --- Bottom: momentum (YoY pp change of owned share) ---
+    ax_bot.set_facecolor(BG)
+    bar_vals = np.nan_to_num(yoy)
+    bar_colors = [BLOC_COLORS["china_owned"] if v >= 0 else BLOC_COLORS["rest_ref"]
+                  for v in bar_vals]
+    ax_bot.bar(xs, bar_vals, width=22, color=bar_colors)
+    ax_bot.axhline(0, color=GRID_COLOR, linewidth=0.8)
+    ax_bot.yaxis.set_major_formatter(mticker.FuncFormatter(lambda v, _: f"{v:+.0f}"))
+    ax_bot.set_title("Year-over-Year Change of China-Owned Share (pp)",
+                     loc="left", fontsize=9.5, color=SUBTLE, pad=4)
+    for spine in ("top", "right"):
+        ax_bot.spines[spine].set_visible(False)
+    ax_bot.spines["left"].set_color(GRID_COLOR)
+    ax_bot.spines["bottom"].set_color(GRID_COLOR)
+    ax_bot.tick_params(colors=TEXT, labelsize=10)
+    ax_bot.grid(axis="y", alpha=0.2, color=GRID_COLOR, linestyle="--")
+
+    # Every year on the shared X-axis; pad the right for the inline labels.
+    years = sorted({d.year for d in xs})
+    ax_bot.set_xticks([date(y, 1, 1) for y in years])
+    ax_bot.set_xticklabels([str(y) for y in years])
+    ax_bot.set_xlim(xs[0], xs[-1] + timedelta(days=430))
+
+    # Title block (per styleguide: metric, not vibe).
+    fig.text(0.5, 0.975, "Chinese-Owned Brands — Share of New BEV Registrations in Switzerland",
+             ha="center", va="top", fontsize=15.5, fontweight="bold", color=TEXT)
+    fig.text(0.5, 0.938,
+             "Trailing 12-month share of fully electric (BEV) Personenwagen (passenger cars) registrations | Source: ASTRA/IVZ Open Data",
+             ha="center", va="top", fontsize=9, color=SUBTLE)
+    fig.text(0.5, 0.911,
+             "China-owned = ultimate controlling shareholder in China (incl. MG/SAIC, Volvo & Polestar & Lotus/Geely, Smart/Geely-Mercedes JV) · "
+             "China-branded = Chinese brand heritage (BYD, XPeng, Zeekr, NIO, …)",
+             ha="center", va="top", fontsize=7.5, color="#94a3b8")
+    fig.text(0.5, 0.892,
+             "Classified by ownership, not production location · Recent months subject to Nachmeldungen (late reports)",
+             ha="center", va="top", fontsize=7.5, color="#94a3b8")
+
+    fig.subplots_adjust(top=0.86, bottom=0.10, left=0.07, right=0.86, hspace=0.28)
+    ax_bot.text(1.0, -0.32, get_dark_attribution(), transform=ax_bot.transAxes,
+                ha="right", va="top", fontsize=8, color="#64748b", style="italic")
+    save_chart(fig, "china_bev_share")
+
+
+def _brand_monthly_counts(df: pd.DataFrame) -> dict:
+    """brand -> {(year, month): bev_count} from brand_bev_by_month rows."""
+    out: dict[str, dict[tuple[int, int], int]] = {}
+    for row in df.itertuples(index=False):
+        out.setdefault(row.brand, {})[(int(row.year), int(row.month))] = int(row.bev_count)
+    return out
+
+
+def _cumulative_since_entry(counts: dict, entry: tuple[int, int],
+                            latest: tuple[int, int]) -> list[int]:
+    """Cumulative BEV registrations by months-since-entry (index 0 == entry)."""
+    n = _months_between(entry, latest) + 1
+    cum, running = [], 0
+    y, m = entry
+    for _ in range(n):
+        running += counts.get((y, m), 0)
+        cum.append(running)
+        m += 1
+        if m == 13:
+            m, y = 1, y + 1
+    return cum
+
+
+def chart_china_entry_ramp():
+    """Entry-aligned cumulative ramp curves for Chinese BEV brands.
+
+    Each China-branded brand's cumulative BEV registrations are re-indexed to
+    months-since-market-entry (month 0 = first sustained registrations), on a
+    log axis, so ramp *speed* is comparable across cohorts. Tesla is the
+    benchmark; MG is shown as the Chinese-owned / European-badge reference.
+    """
+    path = DATA_DIR / "brand_bev_by_month.csv"
+    if not path.exists():
+        print("  Skip: china_entry_ramp (no data)")
+        return
+    df = pd.read_csv(path)
+    if df.empty:
+        print("  Skip: china_entry_ramp (empty data)")
+        return
+
+    mappings = load_mappings()
+    counts_by_brand = _brand_monthly_counts(df)
+    latest = (int(df["year"].max()),
+              int(df[df["year"] == df["year"].max()]["month"].max()))
+
+    # Per-brand entry + cumulative total.
+    meta = {}
+    for brand, counts in counts_by_brand.items():
+        chrono = sorted((y, m, c) for (y, m), c in counts.items())
+        entry = detect_entry_month(chrono)
+        meta[brand] = {"entry": entry, "total": sum(counts.values())}
+
+    INCLUDE_MIN_CUM = 100
+    included = sorted(
+        [b for b in counts_by_brand
+         if is_china_branded(b, mappings) and meta[b]["entry"]
+         and meta[b]["total"] >= INCLUDE_MIN_CUM],
+        key=lambda b: -meta[b]["total"],
+    )
+    if not included:
+        print("  Skip: china_entry_ramp (no qualifying brands)")
+        return
+
+    # Fixed, comparable X-limit. The window spans the longest included ramp
+    # (+3 months headroom), capped at 48. Younger brands simply end early — the
+    # spec's "youngest included brand" wording is read as this span, since only
+    # a limit that exceeds a brand's age lets it "end early" as the spec states.
+    max_age = max(_months_between(meta[b]["entry"], latest) for b in included)
+    x_limit = min(48, max_age + 3)
+
+    # Micro-entrant collective line: ≥3 China-branded brands below the inclusion
+    # threshold that nonetheless entered the market, aggregated into one series.
+    micro = [b for b in counts_by_brand
+             if is_china_branded(b, mappings) and meta[b]["entry"]
+             and meta[b]["total"] < INCLUDE_MIN_CUM]
+
+    fig, ax = plt.subplots(figsize=(12, 7.5), facecolor=BG)
+    ax.set_facecolor(BG)
+
+    # (brand-or-None, entry, counts, color, dashed, display_label)
+    lines = []
+    for i, brand in enumerate(included):
+        color = BRAND_COLORS.get(brand, FALLBACK_COLORS[i % len(FALLBACK_COLORS)])
+        lines.append((brand, meta[brand]["entry"], counts_by_brand[brand], color, False,
+                      display_brand(brand)))
+
+    # References: Tesla (benchmark) and MG (Chinese-owned, European badge).
+    if meta.get("TESLA", {}).get("entry"):
+        lines.append(("TESLA", meta["TESLA"]["entry"], counts_by_brand["TESLA"],
+                      BLOC_COLORS["tesla_ref"], True, "Tesla (reference)"))
+    if "MG" in counts_by_brand and meta["MG"]["entry"] and meta["MG"]["total"] >= INCLUDE_MIN_CUM:
+        lines.append(("MG", meta["MG"]["entry"], counts_by_brand["MG"],
+                      BLOC_COLORS["mg_ref"], True, "MG (SAIC — reference)"))
+
+    if len(micro) >= 3:
+        agg_counts: dict[tuple[int, int], int] = {}
+        for b in micro:
+            for k, c in counts_by_brand[b].items():
+                agg_counts[k] = agg_counts.get(k, 0) + c
+        agg_entry = detect_entry_month(sorted((y, m, c) for (y, m), c in agg_counts.items()))
+        if agg_entry:
+            lines.append((None, agg_entry, agg_counts, BLOC_COLORS["rest_ref"], True,
+                          f"Other Chinese entrants (×{len(micro)})"))
+
+    # Plot + collect end-of-line label anchors.
+    labels = []
+    y_top = 10
+    for brand, entry, counts, color, dashed, disp in lines:
+        cum = _cumulative_since_entry(counts, entry, latest)[:x_limit + 1]
+        if not cum:  # pragma: no cover — entry ≤ latest guarantees ≥1 point
+            continue
+        x = list(range(len(cum)))
+        ax.plot(x, cum, color=color, linewidth=2.4 if not dashed else 1.8,
+                linestyle="--" if dashed else "-", alpha=0.95 if not dashed else 0.85,
+                zorder=3 if not dashed else 2)
+        y_top = max(y_top, cum[-1])
+        labels.append({"x": x[-1], "y": max(cum[-1], 1), "color": color,
+                       "text": f"{disp} · {cum[-1]:,} ({MONTH_NAMES[entry[1]]} {entry[0]})"})
+
+    # De-clutter labels: greedily push a label up (in log space) only when it
+    # would collide with an already-placed label that ALSO overlaps it
+    # horizontally. Labels far apart in x keep their true height (staying next
+    # to their line end); only genuine same-region clusters get spread.
+    right_xlim = x_limit + max(6, x_limit * 0.55)
+    x_gap = 0.20 * right_xlim
+    min_log_gap = 0.16
+    labels.sort(key=lambda l: l["y"])
+    placed = []
+    for lab in labels:
+        ly = np.log10(max(lab["y"], 1))
+        for p in placed:
+            if abs(lab["x"] - p["x"]) < x_gap and ly < p["ly_log"] + min_log_gap:
+                ly = p["ly_log"] + min_log_gap
+        lab["ly_log"] = ly
+        lab["ly"] = 10 ** ly
+        placed.append(lab)
+    for lab in labels:
+        ax.annotate(lab["text"], (lab["x"], lab["ly"]),
+                    textcoords="offset points", xytext=(7, 0),
+                    va="center", ha="left", fontsize=8.5, fontweight="bold",
+                    color=lab["color"])
+
+    ax.set_yscale("log")
+    ax.set_ylim(ENTRY_MIN_MONTHLY, y_top * 3.2)
+    ax.set_yticks([10, 100, 1000, 10000])
+    ax.yaxis.set_major_formatter(mticker.FuncFormatter(lambda v, _: f"{int(v):,}"))
+    ax.set_xlim(-0.5, x_limit + max(6, x_limit * 0.55))
+    ax.set_xlabel("Months since market entry", fontsize=11, color=TEXT)
+    for spine in ("top", "right"):
+        ax.spines[spine].set_visible(False)
+    ax.spines["left"].set_color(GRID_COLOR)
+    ax.spines["bottom"].set_color(GRID_COLOR)
+    ax.tick_params(colors=TEXT, labelsize=10)
+    ax.grid(axis="y", which="major", alpha=0.2, color=GRID_COLOR, linestyle="--")
+
+    fig.text(0.5, 0.975, "Chinese BEV Brands — Cumulative Swiss Registrations Since Market Entry",
+             ha="center", va="top", fontsize=15.5, fontweight="bold", color=TEXT)
+    fig.text(0.5, 0.936,
+             "Fully electric (BEV) Personenwagen (passenger cars), aligned by months since first sustained registrations | Source: ASTRA/IVZ Open Data",
+             ha="center", va="top", fontsize=9, color=SUBTLE)
+    fig.text(0.5, 0.906,
+             f"Market entry = first month with ≥{ENTRY_MIN_MONTHLY} BEV registrations · "
+             "Tesla shown as reference · Log scale · Brands with ≥100 cumulative registrations",
+             ha="center", va="top", fontsize=7.5, color="#94a3b8")
+
+    fig.subplots_adjust(top=0.85, bottom=0.10, left=0.07, right=0.97)
+    ax.text(1.0, -0.13, get_dark_attribution(), transform=ax.transAxes,
+            ha="right", va="top", fontsize=8, color="#64748b", style="italic")
+    save_chart(fig, "china_entry_ramp")
+
+
 def main():
     import sys
     skip_gifs = "--skip-gifs" in sys.argv
@@ -1032,6 +1389,8 @@ def main():
     chart_yearly_registrations()
     chart_powertrain_absolute()
     chart_brand_rankings()
+    chart_china_bev_share()
+    chart_china_entry_ramp()
 
     if skip_gifs:
         print("  Skipping GIF generation (--skip-gifs)")

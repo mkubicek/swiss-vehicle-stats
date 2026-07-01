@@ -126,6 +126,12 @@ brand_origin:
   MCLAREN: UK
   MC LAREN: UK
   LOTUS: UK
+  # MG (Morris Garages) and Maxus (ex-LDV) are British marques now owned by
+  # SAIC (China). Origin follows brand heritage (British); the Chinese ownership
+  # is captured separately in brand_owner_country. See METHODOLOGY.md > Ownership
+  # Classification. (Both were previously mapped origin=China — corrected here.)
+  MG: UK
+  MAXUS: UK
   CATERHAM: UK
   MORGAN: UK
   RELIANT: UK
@@ -156,7 +162,6 @@ brand_origin:
   AIWAYS: China
   LYNK & CO: China
   LYNK: China
-  MAXUS: China
   DONGFENG: China
   DFSK: China
   GEELY: China
@@ -174,11 +179,13 @@ brand_origin:
   JAECOO: China
   VOYAH: China
   WULING: China
-  MG: China
   BAIC: China
   SKYWELL: China
   JIALING: China
   JIAYUAN: China
+  # LYNK&CO as ASTRA spells it (no spaces) — the "LYNK & CO"/"LYNK" keys above
+  # do not match the spaceless Marke string in the raw data.
+  "LYNK&CO": China
 
   # Indian
   TATA: India
@@ -349,6 +356,114 @@ brand_group:
   # SAIC
   MG: SAIC
   MAXUS: SAIC
+
+# Brand → country of the ultimate controlling shareholder of the parent group.
+#
+# This is a SECOND, orthogonal dimension to brand_origin (which is by heritage).
+# It exists for the Chinese-ownership story: brands like Volvo, Polestar, MG and
+# Smart carry European/British heritage (brand_origin unchanged) but are
+# China-owned. Classification is by brand ownership, NEVER by production location
+# (Dacia Spring, Tesla Shanghai, pre-2025 BMW iX3 are China-*made*, not China-
+# *owned*, and stay with their owner's country). See METHODOLOGY.md > Ownership
+# Classification for the bloc definitions and footnoted edge cases.
+#
+# The China-owned bloc = origin==China OR owner_country==China, so heritage-
+# Chinese brands are covered even without an explicit entry here; the entries
+# that MATTER are the non-China-heritage brands controlled from China.
+# validate.py warns (owner_country:<brand>:<count>) for any brand contributing
+# ≥20 BEV registrations in the trailing 12 months without an entry here, so new
+# entrants surface for classification.
+brand_owner_country:
+  # --- China-owned, non-Chinese heritage (the "European badges" set) ---
+  VOLVO: China            # Geely Holding
+  VOLVO-T: China
+  POLESTAR: China         # Geely Holding (Nasdaq listing ≠ controlling ownership)
+  LOTUS: China            # Geely Holding
+  SMART: China            # 50/50 Geely–Mercedes JV, production in Xi'an
+  MG: China               # SAIC
+  MAXUS: China            # SAIC
+  # --- China-owned, Chinese heritage ---
+  BYD: China
+  NIO: China
+  XPENG: China
+  ZEEKR: China            # Geely
+  LYNK & CO: China        # Geely (engineering in Gothenburg; heritage ambiguous)
+  LYNK: China
+  "LYNK&CO": China
+  LEAPMOTOR: China        # Leapmotor (Stellantis holds a minority stake / export JV)
+  LEAP MOTOR: China
+  AIWAYS: China
+  JAC: China
+  GAC: China
+  SERES: China
+  DFSK: China
+  DONGFENG: China
+  VOYAH: China            # Dongfeng
+  SKYWELL: China
+  HONGQI: China           # FAW
+  GWM: China
+  GREAT WALL: China
+  ORA: China
+  CHERY: China
+  OMODA: China            # Chery
+  JAECOO: China           # Chery
+  WULING: China
+  BAIC: China
+  GEELY: China
+  JIALING: China
+  JIAYUAN: China
+  # --- Germany ---
+  VW: Germany
+  VOLKSWAGEN: Germany
+  AUDI: Germany
+  PORSCHE: Germany
+  SKODA: Germany          # VW Group
+  ŠKODA: Germany
+  SEAT: Germany           # VW Group
+  CUPRA: Germany          # VW Group
+  BMW: Germany
+  MINI: Germany           # BMW Group
+  MERCEDES-BENZ: Germany
+  MERCEDES-AMG: Germany
+  OPEL: Germany           # Stellantis (German heritage retained for owner too)
+  # --- France ---
+  RENAULT: France
+  DACIA: France           # Renault Group
+  ALPINE: France          # Renault Group
+  PEUGEOT: France         # Stellantis
+  CITROEN: France         # Stellantis
+  CITROËN: France
+  DS: France              # Stellantis
+  # --- Italy ---
+  FIAT: Italy             # Stellantis
+  ALFA ROMEO: Italy       # Stellantis
+  ABARTH: Italy           # Stellantis
+  MASERATI: Italy         # Stellantis
+  LANCIA: Italy
+  # --- Japan ---
+  TOYOTA: Japan
+  LEXUS: Japan            # Toyota
+  MAZDA: Japan
+  SUBARU: Japan
+  SUZUKI: Japan
+  NISSAN: Japan
+  MITSUBISHI: Japan
+  HONDA: Japan
+  # --- South Korea ---
+  HYUNDAI: South Korea
+  KIA: South Korea        # Hyundai Group
+  GENESIS: South Korea    # Hyundai Group
+  KG MOBILITY: South Korea
+  SSANGYONG: South Korea
+  # --- USA ---
+  TESLA: USA
+  FORD: USA
+  JEEP: USA               # Stellantis, but US heritage/ownership retained
+  CADILLAC: USA
+  CHEVROLET: USA
+  LUCID: USA
+  RIVIAN: USA
+  FISKER: USA
 
 # Country → continent mapping
 country_continent:

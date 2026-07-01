@@ -371,6 +371,95 @@ class TestMainNoData:
 
 
 # ---------------------------------------------------------------------------
+# china_owned_share_line
+# ---------------------------------------------------------------------------
+
+class TestChinaOwnedShareLine:
+    def test_missing_file_returns_none(self, env):
+        assert report.china_owned_share_line(2024, 3, 2024, 2) is None
+
+    def test_line_with_mom_delta(self, env, monkeypatch):
+        import yaml as _yaml
+        import process
+        mapfile = env["data"].parent / "mappings.yaml"
+        with open(mapfile, "w") as f:
+            _yaml.dump({
+                "brand_origin": {"BYD": "China", "VOLVO": "Sweden",
+                                 "TESLA": "USA", "VW": "Germany"},
+                "brand_owner_country": {"BYD": "China", "VOLVO": "China",
+                                        "TESLA": "USA", "VW": "Germany"},
+            }, f)
+        monkeypatch.setattr(process, "MAPPINGS_FILE", mapfile)
+
+        rows = []
+        for k in range(15):  # 2023-01 .. 2024-03, enough for a T12M window
+            y, m = 2023 + k // 12, 1 + k % 12
+            rows += [(y, m, "BYD", 10), (y, m, "VOLVO", 15),
+                     (y, m, "TESLA", 30), (y, m, "VW", 45)]
+        pd.DataFrame(rows, columns=["year", "month", "brand", "bev_count"]).to_csv(
+            env["data"] / "brand_bev_by_month.csv", index=False)
+
+        line = report.china_owned_share_line(2024, 3, 2024, 2)
+        # China-owned = (BYD 10 + VOLVO 15) / 100 = 25.0%; flat MoM.
+        assert line is not None
+        assert "China-owned BEV share" in line
+        assert "25.0%" in line
+        assert "MoM" in line
+
+    def test_target_month_not_in_series_returns_none(self, env, monkeypatch):
+        import yaml as _yaml
+        import process
+        mapfile = env["data"].parent / "mappings.yaml"
+        with open(mapfile, "w") as f:
+            _yaml.dump({"brand_origin": {"BYD": "China"},
+                        "brand_owner_country": {"BYD": "China"}}, f)
+        monkeypatch.setattr(process, "MAPPINGS_FILE", mapfile)
+        pd.DataFrame([(2024, 1, "BYD", 10)],
+                     columns=["year", "month", "brand", "bev_count"]).to_csv(
+            env["data"] / "brand_bev_by_month.csv", index=False)
+        # 2099 is far outside the series -> None.
+        assert report.china_owned_share_line(2099, 1, 2098, 12) is None
+
+    def test_no_prior_month_omits_mom(self, env, monkeypatch):
+        import yaml as _yaml
+        import process
+        mapfile = env["data"].parent / "mappings.yaml"
+        with open(mapfile, "w") as f:
+            _yaml.dump({"brand_origin": {"BYD": "China"},
+                        "brand_owner_country": {"BYD": "China"}}, f)
+        monkeypatch.setattr(process, "MAPPINGS_FILE", mapfile)
+        # A single month: the target resolves but its prior month has no T12M row.
+        pd.DataFrame([(2024, 1, "BYD", 10)],
+                     columns=["year", "month", "brand", "bev_count"]).to_csv(
+            env["data"] / "brand_bev_by_month.csv", index=False)
+        line = report.china_owned_share_line(2024, 1, 2023, 12)
+        assert line is not None
+        assert "MoM" not in line
+
+    def test_appears_in_generated_report(self, env, monkeypatch):
+        """The line shows up in the Headlines when brand BEV data is present."""
+        import yaml as _yaml
+        import process
+        mapfile = env["data"].parent / "mappings.yaml"
+        with open(mapfile, "w") as f:
+            _yaml.dump({"brand_origin": {"BYD": "China"},
+                        "brand_owner_country": {"BYD": "China", "VW": "Germany"}}, f)
+        monkeypatch.setattr(process, "MAPPINGS_FILE", mapfile)
+
+        _setup_data_files(env["data"], MONTHLY_ROWS, FUEL_ROWS,
+                          [("VW", 500000), ("BYD", 1000)])
+        rows = []
+        for k in range(15):
+            y, m = 2023 + k // 12, 1 + k % 12
+            rows += [(y, m, "BYD", 20), (y, m, "VW", 80)]
+        pd.DataFrame(rows, columns=["year", "month", "brand", "bev_count"]).to_csv(
+            env["data"] / "brand_bev_by_month.csv", index=False)
+
+        path = report.generate_report(target_year=2024, target_month=3)
+        assert "China-owned BEV share" in path.read_text()
+
+
+# ---------------------------------------------------------------------------
 # __name__ == "__main__" guard
 # ---------------------------------------------------------------------------
 

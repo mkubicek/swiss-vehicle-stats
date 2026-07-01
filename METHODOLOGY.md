@@ -116,6 +116,33 @@ Assigned by **brand heritage**, not corporate registration country:
 - Fiat → Italy (even though Stellantis is Dutch-registered)
 - MINI → Germany (even though it's BMW Group / historically British)
 - Volvo → Sweden (even though Geely is Chinese-owned)
+- MG → United Kingdom, Maxus → United Kingdom (British marques — Morris Garages, ex-LDV — now SAIC-owned; heritage governs origin, ownership is captured separately below)
+
+### Ownership Classification (`owner_country`)
+
+**Brand Origin is by heritage and is not repurposed.** The Chinese-ownership story needs a *second, orthogonal* dimension: **`owner_country`** — the country of the ultimate controlling shareholder of the brand's parent group. It lives in `mappings.yaml > brand_owner_country` (a flat per-brand map, mirroring `brand_origin`/`brand_group`); no classification logic lives in code.
+
+Two blocs are derived from these two dimensions:
+
+| Bloc | Rule | Examples |
+|------|------|----------|
+| **China-branded** | `brand_origin == China` | BYD, XPeng, Zeekr, NIO, Leapmotor, GWM/Ora, Aiways, JAC, GAC, Maxus (heritage note below), DFSK/Seres, Omoda & Jaecoo (Chery), Voyah, Hongqi, Lynk & Co |
+| **China-owned** | `owner_country == China` **or** `brand_origin == China` | All China-branded brands **plus** MG (SAIC), Volvo, Polestar & Lotus (Geely), Smart (Geely–Mercedes JV) |
+
+The union rule (`owner_country == China OR origin == China`) makes **China-branded ⊆ China-owned** by construction, so on `china_bev_share.png` the China-branded line is never above the China-owned line, and a new Chinese-heritage brand is counted as China-owned even before an explicit `owner_country` entry is added.
+
+Decisions encoded (the recurring objections, pre-empted):
+
+- **Lynk & Co** — Geely-created brand (2016), engineering in Gothenburg. Heritage is genuinely ambiguous → `origin: China`, `owner_country: China`. (The Gothenburg design heritage is why it is borderline.)
+- **Smart** — 50/50 Geely–Mercedes JV, production in Xi'an → `origin: Germany` (unchanged), `owner_country: China`. This is the "but Smart is German" objection; the on-chart definition line names the JV.
+- **Volvo / Polestar / Lotus** — `origin` stays Sweden / Sweden / United Kingdom; `owner_country: China` (Geely Holding). Polestar's Nasdaq listing does not change controlling ownership.
+- **MG / Maxus** — `origin` corrected to United Kingdom (British heritage; both were previously mapped `origin: China`), `owner_country: China` (SAIC).
+- **Classification is by brand ownership, never by production location.** Dacia Spring, Tesla Model 3 (Shanghai) and the pre-2025 BMW iX3 are China-*made* but not China-*owned*, and stay with their owner's country.
+- **Unknown brands** — the existing "Other" mechanism applies. `validate.py` additionally emits `owner_country:<brand>:<count>` to `warnings.log` for any brand contributing ≥ 20 BEV registrations in the trailing 12 months without an `owner_country` mapping, so new entrants (expected: several Chinese brands per year) surface for classification.
+
+### Market Entry (entry-aligned ramp charts)
+
+For `china_entry_ramp.png`, a brand's **market entry** is the first month with **≥ `ENTRY_MIN_MONTHLY` (= 5)** BEV registrations whose following three months are not all zero. The threshold and follow-through guard filter single grey/direct imports (Known Limitation #3) that would otherwise date a brand's "entry" to a one-off registration years before commercial launch. `ENTRY_MIN_MONTHLY` is a module constant in `scripts/process.py`.
 
 ### Corporate Group
 
@@ -243,3 +270,4 @@ Animated charts use **12-month trailing** sums/averages for trend stability. Thi
 |------|---------|--------|
 | 2025-03 | 1.0 | Initial classification: all "Benzin/Elektrisch" mapped to PHEV |
 | 2025-03 | 2.0 | **PR #4:** Split "Benzin/Elektrisch" into PHEV vs HEV using Hybridcode + CO2 fallback. Added HEV(Petrol) and HEV(Diesel) categories. REX reclassified from BEV to PHEV. |
+| 2026-07 | 3.0 | **Chinese BEV brands:** Added the `owner_country` ownership dimension (China-owned vs China-branded blocs) and two charts (`china_bev_share`, `china_entry_ramp`). Defined `ENTRY_MIN_MONTHLY = 5` market-entry rule. MG and Maxus `origin` corrected China → United Kingdom (heritage); Chinese ownership now carried by `owner_country`. |

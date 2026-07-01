@@ -8,7 +8,8 @@ import json
 import pandas as pd
 from pathlib import Path
 from datetime import datetime
-from chart import display_brand
+from chart import display_brand, china_bev_share_series
+from process import load_mappings
 
 ROOT = Path(__file__).parent.parent
 DATA_DIR = ROOT / "data" / "processed"
@@ -28,6 +29,28 @@ MONTH_NAMES = {
     5: "May", 6: "June", 7: "July", 8: "August",
     9: "September", 10: "October", 11: "November", 12: "December",
 }
+
+
+def china_owned_share_line(year: int, month: int, prev_year: int, prev_month: int):
+    """One Headlines bullet: China-owned BEV share (T12M) + MoM delta in pp.
+
+    Returns the markdown line, or None if brand BEV data is unavailable or the
+    trailing window does not cover the target month (e.g. pre-2019 reports).
+    """
+    path = DATA_DIR / "brand_bev_by_month.csv"
+    if not path.exists():
+        return None
+    shares = china_bev_share_series(pd.read_csv(path), load_mappings())
+    cur = shares[(shares["year"] == year) & (shares["month"] == month)]
+    if cur.empty:
+        return None
+    cur_owned = float(cur["owned"].iloc[0]) * 100
+    prev = shares[(shares["year"] == prev_year) & (shares["month"] == prev_month)]
+    if prev.empty:
+        return f"- China-owned BEV share (trailing 12 months): **{cur_owned:.1f}%**"
+    delta = cur_owned - float(prev["owned"].iloc[0]) * 100
+    return (f"- China-owned BEV share (trailing 12 months): **{cur_owned:.1f}%** "
+            f"({delta:+.1f}pp MoM)")
 
 
 def pct_change(new: float, old: float) -> str:
@@ -118,6 +141,13 @@ def generate_report(target_year: int = None, target_month: int = None):
         f"- **{current:,.0f}** new passenger cars registered in {month_name} {year}",
         f"- The market {momentum} compared to {month_name} {year - 1}",
         f"- BEV share: **{bev_share:.1f}%** | Plug-in share (BEV + PHEV): **{plugin_share:.1f}%**",
+    ]
+
+    china_line = china_owned_share_line(year, month, prev_month_year, prev_month)
+    if china_line:
+        lines.append(china_line)
+
+    lines += [
         "",
         "## Key Metrics",
         "",
