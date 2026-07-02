@@ -144,6 +144,35 @@ Decisions encoded (the recurring objections, pre-empted):
 
 For `china_entry_ramp.png`, a brand's **market entry** is the first month with **≥ `ENTRY_MIN_MONTHLY` (= 5)** BEV registrations whose following three months are not all zero. The threshold and follow-through guard filter single grey/direct imports (Known Limitation #3) that would otherwise date a brand's "entry" to a one-off registration years before commercial launch. `ENTRY_MIN_MONTHLY` is a module constant in `scripts/process.py`.
 
+### Manufacturer Blocs (displacement chart)
+
+`bev_bloc_share.png` partitions **every** BEV brand into exactly one of seven mutually-exclusive, collectively-exhaustive **manufacturer blocs** via `process.bloc()`. Resolution is first-match-wins so the partition is deterministic:
+
+1. **China-owned** — `owner_country == China OR origin == China` (absorbs Volvo, Polestar, Smart, MG before the European fallthrough can claim them, consistent with the `owner_country` dimension)
+2. **Tesla** — its own bloc (the single largest non-group marque; kept separate so the legacy-vs-China story isn't muddied by Tesla's swings)
+3. **Volkswagen Group** — `brand_group == "Volkswagen Group"`
+4. **Korean** / **Japanese** — `brand_origin`
+5. **European legacy** — any remaining Europe-origin brand (`country_continent[origin] == Europe`)
+6. **Other** — everything else (incl. unmapped origins, already surfaced by the brand-origin unmapped warning)
+
+`BLOC_ORDER` places China-owned **last** so it stacks on top of the 100%-area chart. Only the China-owned wedge is drawn at full saturation; every legacy bloc is muted so the growing red wedge is the one thing the eye tracks. The partition contract (every brand → exactly one bloc ∈ `BLOC_ORDER`) is asserted in `tests/test_process.py::TestBloc`.
+
+### Location Quotient (geographic over/under-representation)
+
+`china_bev_lq.png` computes each canton's **Location Quotient** = (canton China-owned share of BEV) ÷ (national China-owned share). LQ > 1.0 means Chinese-owned brands are over-represented there. The window is **trailing 24 months** (wider than the house T12M default) because small cantons have thin annual BEV counts; the share estimate's standard error is driven by the canton's total-BEV sample, so cantons with **< 300 BEV in the window** are flagged (hatch + asterisk) as small-sample. Non-Swiss canton codes (A, BA, FL, M, P) are filtered as elsewhere. The diverging colormap is centered on LQ = 1.0 (`TwoSlopeNorm`).
+
+### Corporate-Group Decomposition (Chinese groups)
+
+`china_groups.png` decomposes the China-owned wedge into **ultimate parent groups** (T12M absolute), lead-brand colored (Geely ← Volvo cyan, SAIC ← MG amber, BYD red). Groups below **100 T12M** collapse into "Other Chinese groups". **Smart is counted fully under Geely** here (scoped to this chart via `CHINA_GROUP_OVERRIDES`, stated on-chart) even though the global `brand_group` keeps it under Mercedes-Benz — no fractional JV attribution.
+
+### China-branded Powertrain Mix
+
+`china_powertrain_mix.png` uses the **China-branded** set (tighter than China-owned — excludes Volvo, MG, Smart, Polestar) from the `brand_powertrain_by_month.csv` output. The full decision-table fuels collapse to **BEV / PHEV / HEV / ICE / Other** (`POWERTRAIN_COLLAPSE`): EREV/range-extender is already PHEV upstream, Diesel-PHEV folds into PHEV, both hybrid flavours into HEV, Petrol + Diesel into ICE. The lower panel tracks **PHEV share of China-branded registrations** — the "second wave" indicator as BYD/others push plug-in hybrids after their BEV entry.
+
+### Challenger Pairs
+
+`china_challengers.png` renders operator-curated **challenger → incumbent** model pairs (`mappings.yaml > challenger_pairs`) as small multiples of T12M model registrations with the current ratio annotated. Pairs whose challenger is below **50 T12M**, or whose incumbent nameplate is absent from the data, are skipped. Model keys are resolved through `model_merges` at read time so split ASTRA spellings (e.g. `MG 4` / `MG MG4`) collapse before the floor test.
+
 ### Corporate Group
 
 Maps brands to parent companies for group-level analysis:
@@ -271,3 +300,4 @@ Animated charts use **12-month trailing** sums/averages for trend stability. Thi
 | 2025-03 | 1.0 | Initial classification: all "Benzin/Elektrisch" mapped to PHEV |
 | 2025-03 | 2.0 | **PR #4:** Split "Benzin/Elektrisch" into PHEV vs HEV using Hybridcode + CO2 fallback. Added HEV(Petrol) and HEV(Diesel) categories. REX reclassified from BEV to PHEV. |
 | 2026-07 | 3.0 | **Chinese BEV brands:** Added the `owner_country` ownership dimension (China-owned vs China-branded blocs) and two charts (`china_bev_share`, `china_entry_ramp`). Defined `ENTRY_MIN_MONTHLY = 5` market-entry rule. MG and Maxus `origin` corrected China → United Kingdom (heritage); Chinese ownership now carried by `owner_country`. |
+| 2026-07 | 3.1 | **Chinese BEV — five follow-up charts:** Added `bev_bloc_share` (7-bloc manufacturer partition via `process.bloc()`), `china_bev_lq` (canton Location Quotient, trailing 24 months, <300-BEV small-sample flag), `china_groups` (corporate-group decomposition, Smart scoped fully to Geely), `china_powertrain_mix` (China-branded powertrain collapse + PHEV-share panel; new `brand_powertrain_by_month.csv` output), and `china_challengers` (operator-curated challenger→incumbent model pairs, 50 T12M floor). Report gains bloc-rank and China-branded-PHEV-share Headlines. |

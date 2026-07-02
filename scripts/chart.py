@@ -22,7 +22,8 @@ from PIL import Image
 
 from process import (
     load_mappings, is_china_owned, is_china_branded, detect_entry_month,
-    ENTRY_MIN_MONTHLY,
+    ENTRY_MIN_MONTHLY, bloc, safe_map, BLOC_ORDER, BLOC_CHINA_OWNED,
+    BLOC_TESLA, BLOC_VW, BLOC_EU_LEGACY, BLOC_KOREAN, BLOC_JAPANESE, BLOC_OTHER,
 )
 
 ROOT = Path(__file__).parent.parent
@@ -117,6 +118,51 @@ BLOC_COLORS = {
     "rest_ref": "#64748b",
     "mg_ref": "#fcd34d",
 }
+
+# Manufacturer-bloc fills for the displacement chart (chart_bev_bloc_share).
+# Design intent: only the China wedge is saturated; every legacy bloc is muted so
+# the growing red wedge is the one thing the eye tracks. Keyed by the bloc names
+# from process.BLOC_ORDER.
+DISPLACEMENT_COLORS = {
+    BLOC_CHINA_OWNED: BLOC_COLORS["china_owned"],
+    BLOC_TESLA: "#a63d5f",      # muted magenta (echoes Tesla #f72585 without competing)
+    BLOC_VW: "#3f9068",         # muted green (echoes VW #4ade80)
+    BLOC_EU_LEGACY: "#475569",  # slate
+    BLOC_KOREAN: "#a35563",     # muted red-orange
+    BLOC_JAPANESE: "#5a7d99",   # muted sky
+    BLOC_OTHER: "#334155",      # darkest slate
+}
+
+# Corporate-group fills for chart_china_groups — each group takes its lead
+# brand's BRAND_COLORS entry so the decomposition stays visually tied to the
+# brands readers already know from the ev_race / bloc charts.
+CHINA_GROUP_COLORS = {
+    "Geely": BRAND_COLORS["VOLVO"],    # #22d3ee — Volvo is Geely's volume leader
+    "SAIC": BRAND_COLORS["MG"],        # #fcd34d
+    "BYD": BRAND_COLORS["BYD"],        # #ff6b6b
+    "Leapmotor": "#5eead4",
+    "XPeng": "#c084fc",
+    "Chery": "#fb923c",
+    "GWM": "#facc15",
+    "JAC": "#a3e635",
+    "Seres": "#f9a8d4",
+    "NIO": BRAND_COLORS["NIO"],        # #67e8f9
+}
+CHINA_GROUP_OTHER_COLOR = "#64748b"
+# Smart is a 50/50 Geely–Mercedes JV kept under Mercedes-Benz in the global
+# brand_group map; for the China-only decomposition it is counted fully under
+# Geely (stated on-chart and in METHODOLOGY.md — no fractional attribution).
+CHINA_GROUP_OVERRIDES = {"SMART": "Geely"}
+
+# Powertrain-category colors for chart_china_powertrain_mix, reusing the house
+# vocabulary from chart_powertrain_absolute so categories read the same across
+# the dashboard. Collapsed categories map to their representative color.
+POWERTRAIN_MIX_COLORS = {
+    "BEV": "#2563eb", "PHEV": "#60a5fa", "HEV": "#a3e635",
+    "ICE": "#6b7280", "Other": "#9ca3af",
+}
+# Render-time floor for a challenger to earn a panel (chart_china_challengers).
+CHALLENGER_MIN_T12M = 50
 
 MONTH_NAMES = {
     1: "Jan", 2: "Feb", 3: "Mar", 4: "Apr", 5: "May", 6: "Jun",
@@ -1376,6 +1422,626 @@ def chart_china_entry_ramp():
     save_chart(fig, "china_entry_ramp")
 
 
+def _t12m_matrix(records, start=(2019, 1)):
+    """Trailing-12-month sums per key over time.
+
+    ``records`` is an iterable of ``(year, month, key, count)``. Returns
+    ``(months, keys, series)`` where ``months`` is the list of ``(year, month)``
+    from ``start`` to the latest month with data, ``keys`` is the sorted key
+    set, and ``series[key]`` is a list of T12M sums aligned to ``months``.
+    Reused by the bloc-share, group, and powertrain charts.
+    """
+    monthly: dict[tuple[int, int], dict] = {}
+    keys = set()
+    for y, m, k, c in records:
+        monthly.setdefault((int(y), int(m)), {})
+        monthly[(int(y), int(m))][k] = monthly[(int(y), int(m))].get(k, 0) + int(c)
+        keys.add(k)
+    if not monthly:
+        return [], [], {}
+    latest = max(monthly)
+    months = []
+    y, m = start
+    while (y, m) <= latest:
+        months.append((y, m))
+        m += 1
+        if m == 13:
+            m, y = 1, y + 1
+    keys = sorted(keys)
+    series = {k: [] for k in keys}
+    for (ty, tm) in months:
+        acc = {k: 0 for k in keys}
+        for wk in trailing_months(ty, tm, 12):
+            for k, c in monthly.get(wk, {}).items():
+                acc[k] += c
+        for k in keys:
+            series[k].append(acc[k])
+    return months, keys, series
+
+
+def _declutter(values, min_gap):
+    """Greedy 1-D spread: nudge sorted-ascending anchors up so consecutive ones
+    are >= min_gap apart. Returns new positions aligned to the input order."""
+    order = sorted(range(len(values)), key=lambda i: values[i])
+    out = list(values)
+    prev = None
+    for i in order:
+        v = values[i]
+        if prev is not None and v < prev + min_gap:
+            v = prev + min_gap
+        out[i] = v
+        prev = v
+    return out
+
+
+def chart_bev_bloc_share():
+    """100% stacked share of BEV registrations by manufacturer bloc — the
+    displacement view: whose share the growing China-owned wedge comes out of.
+    """
+    from datetime import date, timedelta
+
+    path = DATA_DIR / "brand_bev_by_month.csv"
+    if not path.exists():
+        print("  Skip: bev_bloc_share (no data)")
+        return
+    df = pd.read_csv(path)
+    if df.empty:
+        print("  Skip: bev_bloc_share (empty data)")
+        return
+
+    mappings = load_mappings()
+    records = [(r.year, r.month, bloc(r.brand, mappings), int(r.bev_count))
+               for r in df.itertuples(index=False)]
+    months, keys, series = _t12m_matrix(records, start=(2019, 1))
+    if not months:
+        print("  Skip: bev_bloc_share (no data)")
+        return
+
+    totals = [sum(series[k][i] for k in keys) for i in range(len(months))]
+    first = next((i for i, t in enumerate(totals) if t > 0), None)
+    if first is None:
+        print("  Skip: bev_bloc_share (no share data)")
+        return
+    months, totals = months[first:], totals[first:]
+    xs = [date(y, m, 1) for (y, m) in months]
+    order = [b for b in BLOC_ORDER if b in keys]
+    shares = {b: np.array([series[b][first + i] / totals[i] * 100
+                           for i in range(len(months))]) for b in order}
+
+    fig, ax = plt.subplots(figsize=(12, 7.5), facecolor=BG)
+    ax.set_facecolor(BG)
+
+    baseline = np.zeros(len(months))
+    label_anchors, label_meta = [], []
+    for b in order:
+        top = baseline + shares[b]
+        alpha = 1.0 if b == BLOC_CHINA_OWNED else 0.6
+        ax.fill_between(xs, baseline, top, color=DISPLACEMENT_COLORS[b],
+                        alpha=alpha, linewidth=0.4, edgecolor=BG)
+        label_anchors.append((baseline[-1] + top[-1]) / 2)
+        label_meta.append((b, shares[b][-1], DISPLACEMENT_COLORS[b]))
+        baseline = top
+
+    ys = _declutter(label_anchors, min_gap=4.2)
+    label_x = xs[-1] + timedelta(days=20)
+    for y_pos, (b, share, color) in sorted(zip(ys, label_meta), key=lambda t: t[0]):
+        weight = "bold" if b == BLOC_CHINA_OWNED else "normal"
+        ax.annotate(f"{b} {share:.1f}%", (label_x, y_pos), va="center", ha="left",
+                    fontsize=9, fontweight=weight, color=color)
+
+    ax.set_ylim(0, 100)
+    ax.yaxis.set_major_formatter(mticker.FuncFormatter(lambda v, _: f"{v:.0f}%"))
+    years = sorted({d.year for d in xs})
+    ax.set_xticks([date(y, 1, 1) for y in years])
+    ax.set_xticklabels([str(y) for y in years])
+    ax.set_xlim(xs[0], xs[-1] + timedelta(days=430))
+    for spine in ("top", "right"):
+        ax.spines[spine].set_visible(False)
+    ax.spines["left"].set_color(GRID_COLOR)
+    ax.spines["bottom"].set_color(GRID_COLOR)
+    ax.tick_params(colors=TEXT, labelsize=10)
+
+    fig.text(0.5, 0.975, "Swiss BEV Market — Share of New Registrations by Manufacturer Bloc",
+             ha="center", va="top", fontsize=15.5, fontweight="bold", color=TEXT)
+    fig.text(0.5, 0.936,
+             "Trailing 12-month share of fully electric (BEV) Personenwagen (passenger cars) registrations | Source: ASTRA/IVZ Open Data",
+             ha="center", va="top", fontsize=9, color=SUBTLE)
+    fig.text(0.5, 0.906,
+             "Blocs by ultimate ownership: China-owned incl. Volvo, Polestar, Smart, MG · "
+             "European legacy excl. Chinese-owned brands · Recent months subject to Nachmeldungen (late reports)",
+             ha="center", va="top", fontsize=7.5, color="#94a3b8")
+
+    fig.subplots_adjust(top=0.85, bottom=0.10, left=0.07, right=0.80)
+    ax.text(1.0, -0.10, get_dark_attribution(), transform=ax.transAxes,
+            ha="right", va="top", fontsize=8, color="#64748b", style="italic")
+    save_chart(fig, "bev_bloc_share")
+
+
+def china_owned_lq_by_canton(df: pd.DataFrame, mappings: dict, valid_cantons,
+                             months: int = 24):
+    """China-owned Location Quotient per canton over a trailing window.
+
+    Returns ``(lq, bev_total, national_share)`` where ``lq[canton]`` is the
+    canton's China-owned share of BEV registrations divided by the national
+    share (1.0 = on par), and ``bev_total[canton]`` is the canton's BEV count in
+    the window (for the small-sample flag). Uses a wider 24-month window than the
+    house T12M default because small cantons have thin annual BEV counts.
+    """
+    latest_year = int(df["year"].max())
+    latest_month = int(df[df["year"] == latest_year]["month"].max())
+    win = set()
+    y, m = latest_year, latest_month
+    for _ in range(months):
+        win.add((y, m))
+        m -= 1
+        if m == 0:
+            m, y = 12, y - 1
+
+    owned_brands = {b for b in df["brand"].unique() if is_china_owned(b, mappings)}
+    canton_total: dict[str, int] = {}
+    canton_owned: dict[str, int] = {}
+    for r in df.itertuples(index=False):
+        if (int(r.year), int(r.month)) not in win or r.canton not in valid_cantons:
+            continue
+        c = int(r.bev_count)
+        canton_total[r.canton] = canton_total.get(r.canton, 0) + c
+        if r.brand in owned_brands:
+            canton_owned[r.canton] = canton_owned.get(r.canton, 0) + c
+
+    nat_total = sum(canton_total.values())
+    nat_owned = sum(canton_owned.values())
+    national_share = nat_owned / nat_total if nat_total else 0
+    lq = {}
+    for c, tot in canton_total.items():
+        share = canton_owned.get(c, 0) / tot if tot else 0
+        lq[c] = share / national_share if national_share else 0
+    return lq, canton_total, national_share
+
+
+def chart_china_bev_lq():
+    """Where Chinese-owned BEVs over/under-index: canton Location Quotient as a
+    choropleth (left) and a sorted bar ranking (right)."""
+    bev_path = DATA_DIR / "brand_canton_bev.csv"
+    if not bev_path.exists() or not GEOJSON_PATH.exists():
+        print("  Skip: china_bev_lq (no data or geojson)")
+        return
+
+    import geopandas as gpd
+    cantons_geo = gpd.read_file(GEOJSON_PATH)
+    valid_cantons = set(cantons_geo["id"].tolist())
+    df = pd.read_csv(bev_path)
+    if df.empty:
+        print("  Skip: china_bev_lq (empty data)")
+        return
+
+    lq, bev_total, national_share = china_owned_lq_by_canton(
+        df, load_mappings(), valid_cantons, months=24)
+    if not lq or national_share == 0:
+        print("  Skip: china_bev_lq (insufficient data)")
+        return
+
+    SMALL_SAMPLE = 300
+    lq_cmap = mcolors.LinearSegmentedColormap.from_list(
+        "china_lq", ["#1e3a5f", "#3b6ea5", "#0d1117", "#8b2f2f", "#ef4444"], N=256)
+    vmax = max(2.0, max(lq.values()))
+    norm = mcolors.TwoSlopeNorm(vmin=0, vcenter=1.0, vmax=vmax)
+
+    fig, (ax_map, ax_bar) = plt.subplots(
+        1, 2, figsize=(16, 9), facecolor=BG,
+        gridspec_kw={"width_ratios": [1.1, 1]})
+
+    # --- Left: choropleth ---
+    ax_map.set_facecolor(BG)
+    cdf = pd.DataFrame([{"canton": c, "lq": v} for c, v in lq.items()])
+    merged = cantons_geo.merge(cdf, left_on="id", right_on="canton", how="left")
+    merged["lq"] = merged["lq"].fillna(0)
+    merged.plot(column="lq", ax=ax_map, cmap=lq_cmap, norm=norm,
+                edgecolor="#1e293b", linewidth=0.8, legend=False)
+    for _, row in merged.iterrows():
+        c = row["id"]
+        centroid = row.geometry.centroid
+        val = lq.get(c, 0)
+        flag = "*" if bev_total.get(c, 0) < SMALL_SAMPLE else ""
+        txt_color = "black" if val > 1.6 else "#e2e8f0"
+        ax_map.annotate(f"{c}{flag}\n{val:.2f}", (centroid.x, centroid.y),
+                        ha="center", va="center", fontsize=7, fontweight="bold",
+                        color=txt_color)
+    ax_map.set_axis_off()
+
+    sm = plt.cm.ScalarMappable(cmap=lq_cmap, norm=norm)
+    sm.set_array([])
+    cbar = fig.colorbar(sm, ax=ax_map, shrink=0.55, pad=0.02)
+    cbar.set_label("Location Quotient (1.0 = national average)", fontsize=8, color=TEXT)
+    cbar.ax.yaxis.set_tick_params(color=TEXT)
+    plt.setp(cbar.ax.yaxis.get_ticklabels(), color=TEXT, fontsize=7)
+
+    # --- Right: sorted bar ranking ---
+    ax_bar.set_facecolor(BG)
+    ranked = sorted(lq.items(), key=lambda kv: kv[1])
+    labels = [c for c, _ in ranked]
+    vals = [v for _, v in ranked]
+    colors = [lq_cmap(norm(v)) for v in vals]
+    small = [bev_total.get(c, 0) < SMALL_SAMPLE for c in labels]
+    bars = ax_bar.barh(range(len(labels)), vals, color=colors, height=0.72,
+                       edgecolor=GRID_COLOR, linewidth=0.4)
+    for bar, is_small in zip(bars, small):
+        if is_small:
+            bar.set_hatch("///")
+    ax_bar.axvline(1.0, color="#94a3b8", linewidth=1.0, linestyle="--")
+    for i, (c, v) in enumerate(ranked):
+        flag = "*" if bev_total.get(c, 0) < SMALL_SAMPLE else ""
+        ax_bar.text(v + vmax * 0.01, i, f"{v:.2f}{flag}", va="center", ha="left",
+                    fontsize=8, color=TEXT, fontweight="bold")
+    ax_bar.set_yticks(range(len(labels)))
+    ax_bar.set_yticklabels(labels, fontsize=9, color=TEXT)
+    ax_bar.set_xlim(0, vmax * 1.12)
+    ax_bar.set_ylim(-0.6, len(labels) - 0.4)
+    ax_bar.tick_params(colors=TEXT, labelsize=9)
+    for spine in ("top", "right", "left"):
+        ax_bar.spines[spine].set_visible(False)
+    ax_bar.spines["bottom"].set_color(GRID_COLOR)
+    ax_bar.text(1.0, 1.005, "* < 300 BEV in window (small sample)",
+                transform=ax_bar.transAxes, ha="right", va="bottom",
+                fontsize=7.5, color=SUBTLE)
+
+    fig.text(0.5, 0.975, "Chinese-Owned BEV Brands — Location Quotient by Canton",
+             ha="center", va="top", fontsize=15.5, fontweight="bold", color=TEXT)
+    fig.text(0.5, 0.94,
+             "Over/under-representation vs national average, trailing 24-month BEV Personenwagen (passenger cars) registrations | Source: ASTRA/IVZ Open Data",
+             ha="center", va="top", fontsize=9, color=SUBTLE)
+    fig.text(0.5, 0.912,
+             "LQ > 1.0 = China-owned brands overrepresented · 24-month window for small-canton stability · China-owned incl. Volvo, Polestar, Smart, MG",
+             ha="center", va="top", fontsize=7.5, color="#94a3b8")
+
+    fig.subplots_adjust(top=0.88, bottom=0.05, left=0.02, right=0.97, wspace=0.05)
+    ax_bar.text(1.0, -0.06, get_dark_attribution(), transform=ax_bar.transAxes,
+                ha="right", va="top", fontsize=8, color="#64748b", style="italic")
+
+    CHART_DIR.mkdir(parents=True, exist_ok=True)
+    out = CHART_DIR / "china_bev_lq.png"
+    fig.savefig(out, dpi=DPI, bbox_inches="tight", facecolor=BG)
+    plt.close(fig)
+    print(f"  Saved: china_bev_lq.png ({out.stat().st_size / 1024:.0f} KB)")
+
+
+def chart_china_groups():
+    """Corporate-group decomposition of the China-owned BEV wedge — the point
+    being that Geely (Volvo + Polestar + Smart + Zeekr + Lotus) outweighs BYD."""
+    from datetime import date, timedelta
+
+    path = DATA_DIR / "brand_bev_by_month.csv"
+    if not path.exists():
+        print("  Skip: china_groups (no data)")
+        return
+    df = pd.read_csv(path)
+    if df.empty:
+        print("  Skip: china_groups (empty data)")
+        return
+
+    mappings = load_mappings()
+    group_map = mappings.get("brand_group", {})
+
+    def group_of(brand):
+        b = str(brand).strip().upper()
+        if b in CHINA_GROUP_OVERRIDES:
+            return CHINA_GROUP_OVERRIDES[b]
+        return safe_map(brand, group_map, default="Other")
+
+    records = [(r.year, r.month, group_of(r.brand), int(r.bev_count))
+               for r in df.itertuples(index=False)
+               if is_china_owned(r.brand, mappings)]
+    if not records:
+        print("  Skip: china_groups (no china-owned data)")
+        return
+    months, keys, series = _t12m_matrix(records, start=(2019, 1))
+    if not months:
+        print("  Skip: china_groups (no data)")
+        return
+
+    FLOOR = 100
+    final = {k: series[k][-1] for k in keys}
+    big = [k for k in keys if final[k] >= FLOOR]
+    small = [k for k in keys if final[k] < FLOOR]
+    # Largest current volume at the bottom of the stack.
+    big.sort(key=lambda k: final[k], reverse=True)
+    stack = list(big)
+    other = None
+    if small:
+        other = np.sum([np.array(series[k]) for k in small], axis=0)
+        stack.append("Other Chinese groups")
+
+    totals = np.sum([np.array(series[k]) for k in keys], axis=0)
+    first = next((i for i, t in enumerate(totals) if t > 0), 0)
+    xs = [date(y, m, 1) for (y, m) in months[first:]]
+
+    fig, ax = plt.subplots(figsize=(12, 7.5), facecolor=BG)
+    ax.set_facecolor(BG)
+
+    baseline = np.zeros(len(xs))
+    anchors, meta = [], []
+    for k in stack:
+        vals = (other if k == "Other Chinese groups" else np.array(series[k]))[first:]
+        color = (CHINA_GROUP_OTHER_COLOR if k == "Other Chinese groups"
+                 else CHINA_GROUP_COLORS.get(k, FALLBACK_COLORS[len(meta) % len(FALLBACK_COLORS)]))
+        top = baseline + vals
+        ax.fill_between(xs, baseline, top, color=color, alpha=0.9,
+                        linewidth=0.4, edgecolor=BG)
+        anchors.append((baseline[-1] + top[-1]) / 2)
+        meta.append((k, vals[-1], color))
+        baseline = top
+
+    y_max = float(baseline[-1]) if len(baseline) else 1
+    ys = _declutter(anchors, min_gap=y_max * 0.045)
+    label_x = xs[-1] + timedelta(days=20)
+    for y_pos, (k, val, color) in sorted(zip(ys, meta), key=lambda t: t[0]):
+        ax.annotate(f"{k} · {int(val):,}", (label_x, y_pos), va="center",
+                    ha="left", fontsize=9, fontweight="bold", color=color)
+
+    ax.set_ylim(0, y_max * 1.12)
+    ax.yaxis.set_major_formatter(mticker.FuncFormatter(lambda v, _: f"{int(v):,}"))
+    years = sorted({d.year for d in xs})
+    ax.set_xticks([date(y, 1, 1) for y in years])
+    ax.set_xticklabels([str(y) for y in years])
+    ax.set_xlim(xs[0], xs[-1] + timedelta(days=520))
+    for spine in ("top", "right"):
+        ax.spines[spine].set_visible(False)
+    ax.spines["left"].set_color(GRID_COLOR)
+    ax.spines["bottom"].set_color(GRID_COLOR)
+    ax.tick_params(colors=TEXT, labelsize=10)
+    ax.grid(axis="y", alpha=0.2, color=GRID_COLOR, linestyle="--")
+    ax.set_ylabel("Trailing 12-month BEV registrations", fontsize=11, color=TEXT)
+
+    fig.text(0.5, 0.975, "Chinese-Owned Corporate Groups — Swiss BEV Registrations",
+             ha="center", va="top", fontsize=15.5, fontweight="bold", color=TEXT)
+    fig.text(0.5, 0.936,
+             "Trailing 12-month fully electric (BEV) Personenwagen (passenger cars) registrations by ultimate parent group | Source: ASTRA/IVZ Open Data",
+             ha="center", va="top", fontsize=9, color=SUBTLE)
+    fig.text(0.5, 0.906,
+             "Geely incl. Volvo, Polestar, Smart (JV), Zeekr, Lotus, Lynk & Co · SAIC incl. MG, Maxus · Smart JV counted fully under Geely",
+             ha="center", va="top", fontsize=7.5, color="#94a3b8")
+
+    fig.subplots_adjust(top=0.85, bottom=0.10, left=0.09, right=0.80)
+    ax.text(1.0, -0.10, get_dark_attribution(), transform=ax.transAxes,
+            ha="right", va="top", fontsize=8, color="#64748b", style="italic")
+    save_chart(fig, "china_groups")
+
+
+# Collapse of the full decision-table fuel categories into the 5 buckets used by
+# chart_china_powertrain_mix. EREV ("Elektrisch mit RE") is already PHEV upstream.
+POWERTRAIN_COLLAPSE = {
+    "BEV": "BEV",
+    "PHEV": "PHEV", "Diesel PHEV": "PHEV",
+    "Hybrid (Petrol)": "HEV", "Hybrid (Diesel)": "HEV",
+    "Petrol": "ICE", "Diesel": "ICE",
+}
+POWERTRAIN_MIX_ORDER = ["BEV", "PHEV", "HEV", "ICE", "Other"]
+
+
+def chart_china_powertrain_mix():
+    """China-branded registrations by powertrain over time (top) plus the PHEV
+    share as the 'second wave' indicator (bottom)."""
+    from datetime import date, timedelta
+
+    path = DATA_DIR / "brand_powertrain_by_month.csv"
+    if not path.exists():
+        print("  Skip: china_powertrain_mix (no data)")
+        return
+    df = pd.read_csv(path)
+    if df.empty:
+        print("  Skip: china_powertrain_mix (empty data)")
+        return
+
+    mappings = load_mappings()
+    records = [(r.year, r.month,
+                POWERTRAIN_COLLAPSE.get(r.powertrain, "Other"), int(r.count))
+               for r in df.itertuples(index=False)
+               if is_china_branded(r.brand, mappings)]
+    if not records:
+        print("  Skip: china_powertrain_mix (no china-branded data)")
+        return
+    months, keys, series = _t12m_matrix(records, start=(2019, 1))
+    if not months:
+        print("  Skip: china_powertrain_mix (no data)")
+        return
+
+    order = [c for c in POWERTRAIN_MIX_ORDER if c in keys]
+    totals = np.sum([np.array(series[k]) for k in keys], axis=0)
+    first = next((i for i, t in enumerate(totals) if t > 0), 0)
+    xs = [date(y, m, 1) for (y, m) in months[first:]]
+    totals = totals[first:]
+    phev = np.array(series.get("PHEV", [0] * len(months)))[first:]
+    phev_share = np.array([phev[i] / totals[i] * 100 if totals[i] else 0
+                           for i in range(len(xs))])
+
+    fig, (ax_top, ax_bot) = plt.subplots(
+        2, 1, figsize=(12, 8), facecolor=BG, sharex=True,
+        gridspec_kw={"height_ratios": [3, 1]})
+
+    ax_top.set_facecolor(BG)
+    baseline = np.zeros(len(xs))
+    anchors, meta = [], []
+    for c in order:
+        vals = np.array(series[c])[first:]
+        top = baseline + vals
+        ax_top.fill_between(xs, baseline, top, color=POWERTRAIN_MIX_COLORS[c],
+                            alpha=0.9, linewidth=0.4, edgecolor=BG)
+        anchors.append((baseline[-1] + top[-1]) / 2)
+        meta.append((c, vals[-1], POWERTRAIN_MIX_COLORS[c]))
+        baseline = top
+
+    y_max = float(baseline[-1]) if len(baseline) else 1
+    ys = _declutter(anchors, min_gap=y_max * 0.05)
+    label_x = xs[-1] + timedelta(days=18)
+    for y_pos, (c, val, color) in sorted(zip(ys, meta), key=lambda t: t[0]):
+        ax_top.annotate(f"{c} · {int(val):,}", (label_x, y_pos), va="center",
+                        ha="left", fontsize=9, fontweight="bold", color=color)
+
+    ax_top.set_ylim(0, y_max * 1.12)
+    ax_top.yaxis.set_major_formatter(mticker.FuncFormatter(lambda v, _: f"{int(v):,}"))
+    for spine in ("top", "right"):
+        ax_top.spines[spine].set_visible(False)
+    ax_top.spines["left"].set_color(GRID_COLOR)
+    ax_top.spines["bottom"].set_color(GRID_COLOR)
+    ax_top.tick_params(colors=TEXT, labelsize=10)
+    ax_top.grid(axis="y", alpha=0.2, color=GRID_COLOR, linestyle="--")
+    ax_top.set_ylabel("Trailing 12-month registrations", fontsize=10, color=TEXT)
+
+    ax_bot.set_facecolor(BG)
+    ax_bot.plot(xs, phev_share, color=POWERTRAIN_MIX_COLORS["PHEV"], linewidth=2.4)
+    ax_bot.fill_between(xs, 0, phev_share, color=POWERTRAIN_MIX_COLORS["PHEV"], alpha=0.15)
+    if len(xs):
+        ax_bot.annotate(f"{phev_share[-1]:.0f}%", (xs[-1] + timedelta(days=18), phev_share[-1]),
+                        va="center", ha="left", fontsize=9, fontweight="bold",
+                        color=POWERTRAIN_MIX_COLORS["PHEV"])
+    ax_bot.set_ylim(0, max(10, float(phev_share.max()) * 1.25) if len(phev_share) else 10)
+    ax_bot.yaxis.set_major_formatter(mticker.FuncFormatter(lambda v, _: f"{v:.0f}%"))
+    ax_bot.set_title("PHEV share of China-branded registrations", loc="left",
+                     fontsize=9.5, color=SUBTLE, pad=4)
+    for spine in ("top", "right"):
+        ax_bot.spines[spine].set_visible(False)
+    ax_bot.spines["left"].set_color(GRID_COLOR)
+    ax_bot.spines["bottom"].set_color(GRID_COLOR)
+    ax_bot.tick_params(colors=TEXT, labelsize=10)
+    ax_bot.grid(axis="y", alpha=0.2, color=GRID_COLOR, linestyle="--")
+
+    years = sorted({d.year for d in xs})
+    ax_bot.set_xticks([date(y, 1, 1) for y in years])
+    ax_bot.set_xticklabels([str(y) for y in years])
+    ax_bot.set_xlim(xs[0], xs[-1] + timedelta(days=400))
+
+    fig.text(0.5, 0.975, "Chinese Brands — Swiss Registrations by Powertrain",
+             ha="center", va="top", fontsize=15.5, fontweight="bold", color=TEXT)
+    fig.text(0.5, 0.938,
+             "Trailing 12-month Personenwagen (passenger cars) registrations of China-branded marques, all powertrains | Source: ASTRA/IVZ Open Data",
+             ha="center", va="top", fontsize=9, color=SUBTLE)
+    fig.text(0.5, 0.909,
+             "China-branded only (excl. Chinese-owned European marques like Volvo, MG) · Extended-range EVs (EREV) classified as PHEV · Pre-2022 PHEV/HEV split approximate (CO2 fallback)",
+             ha="center", va="top", fontsize=7.5, color="#94a3b8")
+
+    fig.subplots_adjust(top=0.86, bottom=0.09, left=0.08, right=0.83, hspace=0.22)
+    ax_bot.text(1.0, -0.32, get_dark_attribution(), transform=ax_bot.transAxes,
+                ha="right", va="top", fontsize=8, color="#64748b", style="italic")
+    save_chart(fig, "china_powertrain_mix")
+
+
+def chart_china_challengers():
+    """Small multiples: each Chinese challenger model's T12M registrations vs the
+    incumbent nameplate it targets, with the current ratio annotated."""
+    from datetime import date, timedelta
+
+    path = DATA_DIR / "model_by_month.csv"
+    if not path.exists():
+        print("  Skip: china_challengers (no data)")
+        return
+    df = pd.read_csv(path)
+    if df.empty:
+        print("  Skip: china_challengers (empty data)")
+        return
+
+    mappings = load_mappings()
+    pairs = mappings.get("challenger_pairs", {}) or {}
+    if not pairs:
+        print("  Skip: china_challengers (no pairs configured)")
+        return
+
+    # Apply model_merges at read time so split spellings (MG 4 / MG MG4) collapse
+    # even if the committed model_by_month.csv predates the merge entries.
+    merges = {str(k).upper(): v for k, v in (mappings.get("model_merges") or {}).items()}
+    df["model"] = df["model"].map(lambda k: merges.get(str(k).upper(), k))
+    model_brand = (df.groupby("model")["brand"]
+                   .agg(lambda s: s.mode().iloc[0]).to_dict())
+
+    records = [(r.year, r.month, r.model, int(r.count))
+               for r in df.itertuples(index=False)]
+    months, _keys, series = _t12m_matrix(records, start=(2019, 1))
+    if not months:
+        print("  Skip: china_challengers (no data)")
+        return
+    xs = [date(y, m, 1) for (y, m) in months]
+
+    # Keep only pairs whose challenger clears the floor and whose incumbent exists.
+    panels = []
+    for challenger, incumbent in pairs.items():
+        if challenger not in series or incumbent not in series:
+            continue
+        if series[challenger][-1] < CHALLENGER_MIN_T12M:
+            continue
+        panels.append((challenger, incumbent))
+    if not panels:
+        print("  Skip: china_challengers (no pair clears the floor)")
+        return
+
+    n = len(panels)
+    ncols = min(3, n)
+    nrows = (n + ncols - 1) // ncols
+    fig, axes = plt.subplots(nrows, ncols, figsize=(5 * ncols, 3.6 * nrows),
+                             facecolor=BG, squeeze=False)
+
+    for idx, (challenger, incumbent) in enumerate(panels):
+        ax = axes[idx // ncols][idx % ncols]
+        ax.set_facecolor(BG)
+        ch_vals = np.array(series[challenger])
+        in_vals = np.array(series[incumbent])
+        ch_brand = str(model_brand.get(challenger, "")).upper()
+        ch_color = BRAND_COLORS.get(ch_brand, FALLBACK_COLORS[idx % len(FALLBACK_COLORS)])
+
+        ax.plot(xs, in_vals, color=SUBTLE, linewidth=1.8, alpha=0.9)
+        ax.plot(xs, ch_vals, color=ch_color, linewidth=2.6)
+
+        ratio = ch_vals[-1] / in_vals[-1] if in_vals[-1] else 0
+        ax.set_title(f"{display_model(challenger)}  vs  {display_model(incumbent)}",
+                     loc="left", fontsize=10, fontweight="bold", color=TEXT, pad=6)
+        ax.annotate(f"{display_model(challenger)} = {ratio:.2f}× {display_model(incumbent)}",
+                    (0.03, 0.93), xycoords="axes fraction", ha="left", va="top",
+                    fontsize=8.5, fontweight="bold", color=ch_color)
+
+        # Value-only end labels (title + ratio identify the lines; colors match).
+        y_hi = max(ch_vals.max(), in_vals.max()) * 1.18 or 1
+        in_pos, ch_pos = _declutter([in_vals[-1], ch_vals[-1]], min_gap=y_hi * 0.09)
+        lx = xs[-1] + timedelta(days=12)
+        ax.annotate(f"{int(in_vals[-1]):,}", (lx, in_pos), va="center", ha="left",
+                    fontsize=8, fontweight="bold", color=SUBTLE)
+        ax.annotate(f"{int(ch_vals[-1]):,}", (lx, ch_pos), va="center", ha="left",
+                    fontsize=8, fontweight="bold", color=ch_color)
+
+        ax.set_ylim(0, y_hi)
+        ax.yaxis.set_major_formatter(mticker.FuncFormatter(lambda v, _: f"{int(v):,}"))
+        years = sorted({d.year for d in xs})
+        ax.set_xticks([date(y, 1, 1) for y in years])
+        ax.set_xticklabels([f"'{y % 100:02d}" for y in years], fontsize=8)
+        ax.set_xlim(xs[0], xs[-1] + timedelta(days=330))
+        for spine in ("top", "right"):
+            ax.spines[spine].set_visible(False)
+        ax.spines["left"].set_color(GRID_COLOR)
+        ax.spines["bottom"].set_color(GRID_COLOR)
+        ax.tick_params(colors=TEXT, labelsize=8)
+        ax.grid(axis="y", alpha=0.15, color=GRID_COLOR, linestyle="--")
+
+    # Blank any unused grid cells.
+    for idx in range(n, nrows * ncols):
+        axes[idx // ncols][idx % ncols].set_visible(False)
+
+    fig.text(0.5, 0.978, "Chinese Challenger Models vs Segment Incumbents — Swiss BEV Registrations",
+             ha="center", va="top", fontsize=15, fontweight="bold", color=TEXT)
+    fig.text(0.5, 0.947,
+             "Trailing 12-month fully electric (BEV) Personenwagen (passenger cars) registrations per model | Source: ASTRA/IVZ Open Data",
+             ha="center", va="top", fontsize=9, color=SUBTLE)
+    fig.text(0.5, 0.923,
+             "Pairings curated by market segment · Model keys per repo normalization · Challengers with <50 trailing-12-month registrations omitted",
+             ha="center", va="top", fontsize=7.5, color="#94a3b8")
+
+    fig.subplots_adjust(top=0.85, bottom=0.06, left=0.06, right=0.97,
+                        hspace=0.48, wspace=0.30)
+    fig.text(0.99, 0.01, get_dark_attribution(), ha="right", va="bottom",
+             fontsize=8, color="#64748b", style="italic")
+
+    CHART_DIR.mkdir(parents=True, exist_ok=True)
+    out = CHART_DIR / "china_challengers.png"
+    fig.savefig(out, dpi=DPI, facecolor=BG)
+    plt.close(fig)
+    print(f"  Saved: china_challengers.png ({out.stat().st_size / 1024:.0f} KB)")
+
+
 def main():
     import sys
     skip_gifs = "--skip-gifs" in sys.argv
@@ -1391,6 +2057,11 @@ def main():
     chart_brand_rankings()
     chart_china_bev_share()
     chart_china_entry_ramp()
+    chart_bev_bloc_share()
+    chart_china_bev_lq()
+    chart_china_groups()
+    chart_china_powertrain_mix()
+    chart_china_challengers()
 
     if skip_gifs:
         print("  Skipping GIF generation (--skip-gifs)")

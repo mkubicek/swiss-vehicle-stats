@@ -357,6 +357,36 @@ brand_group:
   MG: SAIC
   MAXUS: SAIC
 
+  # Other Chinese parent groups (owner_country == China). SMART stays under
+  # Mercedes-Benz above — it is a 50/50 Geely–Mercedes JV, and the global
+  # corporate view keeps it with Mercedes; chart_china_groups scopes it to Geely
+  # for the China-only decomposition (see METHODOLOGY.md).
+  LEAPMOTOR: Leapmotor
+  LEAP MOTOR: Leapmotor
+  XPENG: XPeng
+  GWM: GWM
+  GREAT WALL: GWM
+  ORA: GWM
+  CHERY: Chery
+  OMODA: Chery
+  JAECOO: Chery
+  JAC: JAC
+  SERES: Seres
+  DFSK: Seres
+  NIO: NIO
+  AIWAYS: Aiways
+  DONGFENG: Dongfeng
+  VOYAH: Dongfeng
+  SKYWELL: Skywell
+  HONGQI: FAW
+  GAC: GAC
+  BAIC: BAIC
+  GEELY: Geely
+  JIALING: Jialing
+  JIAYUAN: Jiayuan
+  ZEEHO: Zeeho
+  "LYNK&CO": Geely
+
 # Brand → country of the ultimate controlling shareholder of the parent group.
 #
 # This is a SECOND, orthogonal dimension to brand_origin (which is by heritage).
@@ -643,6 +673,17 @@ model_merges:
   BENTLEY CONTINENTAL: Bentley Continental
   SUZUKI SX4S-CROSS: Suzuki SX4 S-Cross
   SUZUKI SX4S-CROSS1.6: Suzuki SX4 S-Cross
+  # Chinese nameplates ASTRA writes two ways — bare digit ("4") vs brand-repeated
+  # ("MG4"), or with/without a trailing digit ("ATTO" vs "ATTO3"). Same car;
+  # collapse so chart_china_challengers sees one key per nameplate.
+  MG 4: MG 4
+  MG MG4: MG 4
+  MG 3: MG 3
+  MG MG3: MG 3
+  MG 5: MG 5
+  MG MG5: MG 5
+  BYD ATTO: BYD Atto 3
+  BYD ATTO3: BYD Atto 3
   # Land Rover writes models many ways — two-word brand plus glued-on engine
   # codes ("DISCOVERYSP.SD4", "DISCO.SP") the decimal engine-stripper misses.
   # Discovery Sport, the full-size Discovery, and Defender are distinct models;
@@ -901,6 +942,46 @@ model_segments:
   DS DS3: City / Supermini
   DS DS4: Compact
   DS DS7: Mid-size SUV
+  # --- Chinese BEV nameplates (for chart_china_challengers; keeps them out of
+  #     "Other" and lets model_mapping_warnings watch new Chinese entrants). ---
+  BYD SEAL: Compact Executive
+  BYD Atto 3: Compact SUV
+  BYD SEALION: Mid-size SUV
+  BYD DOLPHIN: Compact
+  BYD TANG: Large SUV
+  MG 4: Compact
+  MG 3: City / Supermini
+  MG 5: Compact
+  MG ZS: Compact SUV
+  MG HS: Compact SUV
+  MG MARVEL: Mid-size SUV
+  MG CYBERSTER: Sports / GT
+  SMART 1: Compact SUV
+  SMART 3: Compact SUV
+  SMART 5: Mid-size SUV
+  LEAPMOTOR C10: Mid-size SUV
+  LEAPMOTOR T03: City / Supermini
+  LEAPMOTOR B10: Compact SUV
+  XPENG G6: Mid-size SUV
+  XPENG G9: Large SUV
+  ZEEKR X: Compact SUV
+  ZEEKR 001: Executive
+
+# Operator-curated challenger→incumbent model pairings for
+# chart_china_challengers. Key = Chinese challenger model key (post-merge),
+# value = the incumbent nameplate it targets. Both are model keys as they appear
+# in model_by_month.csv (i.e. after normalize_model + model_merges). Curated by
+# market positioning, NOT auto-derived from segment (segment auto-pairing would
+# yield nonsense pairs). Pairs whose challenger is below the render-time floor
+# (< CHALLENGER_MIN_T12M) are skipped, so listing an early nameplate is safe.
+# Both members are BEV-only nameplates, so model_by_month volume == BEV volume.
+challenger_pairs:
+  BYD SEAL: TESLA MODEL 3
+  MG 4: VW ID.3
+  BYD SEALION: TESLA MODEL Y
+  SMART 3: VOLVO EX30
+  LEAPMOTOR T03: RENAULT 5
+  SMART 5: VOLVO EX40
 
 # Warn when watched brands have high-volume model keys that still fall into
 # model_segments -> Other. This is a maintenance signal for newly introduced
@@ -925,3 +1006,12 @@ model_mapping_warnings:
     - MASERATI
     - GENESIS
     - DS
+    # China-owned brands — surface new Chinese nameplates (BYD Seal U, MG S5,
+    # Zeekr 7X, …) as they cross the volume floor so their segment tags get
+    # added for chart_china_challengers.
+    - BYD
+    - MG
+    - SMART
+    - LEAPMOTOR
+    - XPENG
+    - ZEEKR

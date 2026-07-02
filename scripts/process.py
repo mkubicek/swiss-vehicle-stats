@@ -323,6 +323,50 @@ def is_china_owned(brand, mappings: dict) -> bool:
     return owner_country_or_none(brand, mappings) == "China" or is_china_branded(brand, mappings)
 
 
+# Manufacturer blocs for the displacement chart (chart_bev_bloc_share). The
+# partition is mutually exclusive and exhaustive: every brand resolves to
+# exactly one bloc, and any brand without a mapped origin falls through to
+# "Other" (already surfaced by the existing brand-origin unmapped warning).
+BLOC_CHINA_OWNED = "China-owned"
+BLOC_TESLA = "Tesla"
+BLOC_VW = "Volkswagen Group"
+BLOC_EU_LEGACY = "European legacy"
+BLOC_KOREAN = "Korean"
+BLOC_JAPANESE = "Japanese"
+BLOC_OTHER = "Other"
+BLOC_ORDER = [BLOC_TESLA, BLOC_VW, BLOC_EU_LEGACY, BLOC_KOREAN, BLOC_JAPANESE,
+              BLOC_OTHER, BLOC_CHINA_OWNED]
+
+
+def bloc(brand, mappings: dict) -> str:
+    """Resolve a brand to exactly one manufacturer bloc (see BLOC_ORDER).
+
+    Resolution order (first match wins), so the partition is deterministic and
+    the China-owned bloc absorbs Volvo/Polestar/Smart/MG before the European
+    fallthrough can claim them (consistent with the owner_country dimension):
+      1. China-owned  (owner_country == China OR origin == China)
+      2. Tesla
+      3. Volkswagen Group  (brand_group)
+      4. Korean / Japanese  (brand_origin)
+      5. European legacy  (any remaining Europe-origin brand)
+      6. Other
+    """
+    if is_china_owned(brand, mappings):
+        return BLOC_CHINA_OWNED
+    if str(brand).strip().upper() == "TESLA":
+        return BLOC_TESLA
+    if safe_map(brand, mappings.get("brand_group", {})) == "Volkswagen Group":
+        return BLOC_VW
+    origin = resolve_origin(brand, mappings)
+    if origin == "South Korea":
+        return BLOC_KOREAN
+    if origin == "Japan":
+        return BLOC_JAPANESE
+    if safe_map(origin, mappings.get("country_continent", {})) == "Europe":
+        return BLOC_EU_LEGACY
+    return BLOC_OTHER
+
+
 def detect_entry_month(series):
     """First sustained market-entry month for a brand's monthly BEV series.
 
@@ -612,6 +656,15 @@ def process_file(filepath: Path, mappings: dict, warnings: set) -> dict:
                     .rename(columns={brand_col: "_brand"})
                 )
 
+        # Brand powertrain by month (brand x month x fuel category) — generic
+        # aggregate powering chart_china_powertrain_mix and any future
+        # per-brand powertrain view. Not China-filtered on purpose.
+        if "_brand" in valid.columns and "_fuel" in valid.columns:
+            agg["brand_powertrain_by_month"] = (
+                valid.groupby(["_year", "_month", "_brand", "_fuel"])
+                .size().reset_index(name="count")
+            )
+
         # Brand BEV by month (for ev_race)
         if "_brand" in valid.columns and "_is_bev" in valid.columns:
             bev_only = valid[valid["_is_bev"]]
@@ -746,6 +799,14 @@ def consolidate_and_save(agg: dict):
         df.columns = ["year", "month", "brand", "bev_count"]
         df = df.sort_values(["year", "month", "brand"])
         df.to_csv(OUT_DIR / "brand_bev_by_month.csv", index=False)
+
+    # Brand powertrain by month (brand x month x fuel category)
+    if "brand_powertrain_by_month" in agg:
+        df = agg["brand_powertrain_by_month"].groupby(
+            ["_year", "_month", "_brand", "_fuel"])["count"].sum().reset_index()
+        df.columns = ["year", "month", "brand", "powertrain", "count"]
+        df = df.sort_values(["year", "month", "brand", "powertrain"])
+        df.to_csv(OUT_DIR / "brand_powertrain_by_month.csv", index=False)
 
     # Brand canton BEV (for LQ chart)
     if "brand_canton_bev" in agg:

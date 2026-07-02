@@ -187,6 +187,59 @@ def _geojson(path: Path):
     path.write_text(json.dumps(geo))
 
 
+def _brand_powertrain_china_csv(data_dir: Path):
+    """brand_powertrain_by_month over 2023-2024 for one China-branded marque
+    (BYD) across four powertrains that exercise every collapse bucket
+    (BEV/PHEV/HEV/ICE), plus a non-China brand that must be excluded."""
+    rows = ["year,month,brand,powertrain,count"]
+    for y in (2023, 2024):
+        for mo in range(1, 13):
+            rows.append(f"{y},{mo},BYD,BEV,30")
+            rows.append(f"{y},{mo},BYD,PHEV,10")
+            rows.append(f"{y},{mo},BYD,Hybrid (Petrol),4")
+            rows.append(f"{y},{mo},BYD,Petrol,2")
+            rows.append(f"{y},{mo},VW,BEV,100")  # excluded: not China-branded
+    _write_csv(data_dir / "brand_powertrain_by_month.csv", "\n".join(rows))
+
+
+def _brand_canton_bev_china_csv(data_dir: Path):
+    """brand_canton_bev with a China-owned brand (Volvo/MG) over-indexed in a
+    large canton (ZH) and under-indexed in a small one (BE, <300 BEV -> flagged),
+    so chart_china_bev_lq exercises both the diverging LQ and the small-sample
+    hatch/asterisk path."""
+    rows = ["canton,brand,year,month,bev_count"]
+    zh = {"TESLA": 400, "VW": 300, "VOLVO": 200, "MG": 100}   # 1000 total, 300 China
+    be = {"TESLA": 120, "VW": 80, "VOLVO": 10, "MG": 5}       # 215 total (<300)
+    for b, c in zh.items():
+        rows.append(f"ZH,{b},2023,1,{c}")
+    for b, c in be.items():
+        rows.append(f"BE,{b},2023,1,{c}")
+    _write_csv(data_dir / "brand_canton_bev.csv", "\n".join(rows))
+
+
+def _challenger_models_csv(data_dir: Path):
+    """model_by_month over 2023-01..2024-12 covering the challenger_pairs branches:
+    clean pairs above the floor, a split-key challenger (MG 4 / MG MG4) that must
+    be merged before it clears the floor, a below-floor challenger (skipped), and
+    a pair whose incumbent is absent (skipped)."""
+    plan = [
+        # (model, brand, monthly_count)
+        ("BYD SEAL", "BYD", 10), ("TESLA MODEL 3", "TESLA", 100),   # panel
+        ("MG 4", "MG", 3), ("MG MG4", "MG", 3), ("VW ID.3", "VW", 80),  # merge -> panel
+        ("BYD SEALION", "BYD", 8), ("TESLA MODEL Y", "TESLA", 90),  # panel
+        ("LEAPMOTOR T03", "LEAPMOTOR", 7), ("RENAULT 5", "RENAULT", 40),  # panel (fallback color)
+        ("SMART 3", "SMART", 2), ("VOLVO EX30", "VOLVO", 50),       # challenger <50 T12M -> skip
+        # SMART 5 present but its incumbent VOLVO EX40 absent -> pair skipped
+        ("SMART 5", "SMART", 9),
+    ]
+    rows = ["year,month,model,brand,count"]
+    for y in (2023, 2024):
+        for mo in range(1, 13):
+            for model, brand, c in plan:
+                rows.append(f"{y},{mo},{model},{brand},{c}")
+    _write_csv(data_dir / "model_by_month.csv", "\n".join(rows))
+
+
 # ---------------------------------------------------------------------------
 # Fixture that redirects chart module paths to tmp_path
 # ---------------------------------------------------------------------------
@@ -726,6 +779,212 @@ class TestChartChinaEntryRamp:
 
 
 # ===================================================================
+# _t12m_matrix (shared helper)
+# ===================================================================
+
+class TestT12mMatrix:
+    def test_empty_records(self):
+        months, keys, series = chart._t12m_matrix([])
+        assert months == [] and keys == [] and series == {}
+
+    def test_trailing_window_and_alignment(self):
+        # Two keys, 13 months of 1/each: the 12th month's T12M is 12, the 13th
+        # still 12 (window slides). Confirms per-key alignment to `months`.
+        recs = [(2023, m, "A", 1) for m in range(1, 13)]
+        recs += [(2024, 1, "A", 1), (2024, 1, "B", 5)]
+        months, keys, series = chart._t12m_matrix(recs, start=(2023, 1))
+        assert keys == ["A", "B"]
+        assert months[0] == (2023, 1) and months[-1] == (2024, 1)
+        assert series["A"][11] == 12       # Dec-2023 window = Jan..Dec 2023
+        assert series["A"][12] == 12       # Jan-2024 window = Feb-2023..Jan-2024
+        assert series["B"][12] == 5
+
+
+# ===================================================================
+# chart_bev_bloc_share
+# ===================================================================
+
+class TestChartBevBlocShare:
+    def test_file_missing(self, chart_dirs, capsys):
+        chart.chart_bev_bloc_share()
+        assert "Skip" in capsys.readouterr().out
+
+    def test_empty_csv(self, chart_dirs, capsys):
+        data_dir, _, _ = chart_dirs
+        _write_csv(data_dir / "brand_bev_by_month.csv", "year,month,brand,bev_count")
+        chart.chart_bev_bloc_share()
+        assert "Skip" in capsys.readouterr().out
+
+    def test_all_zero_counts(self, chart_dirs, capsys):
+        data_dir, _, _ = chart_dirs
+        _write_csv(data_dir / "brand_bev_by_month.csv",
+                   "year,month,brand,bev_count\n2023,1,TESLA,0\n2023,2,BYD,0")
+        chart.chart_bev_bloc_share()
+        assert "no share data" in capsys.readouterr().out
+
+    def test_normal(self, chart_dirs, capsys):
+        data_dir, chart_dir, _ = chart_dirs
+        _brand_bev_china_csv(data_dir)
+        with patch("chart.get_repo_url", return_value=""):
+            chart.chart_bev_bloc_share()
+        assert (chart_dir / "bev_bloc_share.png").exists()
+        assert "Saved: bev_bloc_share.png" in capsys.readouterr().out
+
+
+# ===================================================================
+# chart_china_bev_lq
+# ===================================================================
+
+class TestChartChinaBevLq:
+    def test_data_missing(self, chart_dirs, capsys):
+        data_dir, _, geojson = chart_dirs
+        _geojson(geojson)
+        chart.chart_china_bev_lq()
+        assert "Skip" in capsys.readouterr().out
+
+    def test_geojson_missing(self, chart_dirs, capsys):
+        data_dir, _, _ = chart_dirs
+        _brand_canton_bev_china_csv(data_dir)
+        chart.chart_china_bev_lq()
+        assert "Skip" in capsys.readouterr().out
+
+    def test_empty_csv(self, chart_dirs, capsys):
+        data_dir, _, geojson = chart_dirs
+        _geojson(geojson)
+        _write_csv(data_dir / "brand_canton_bev.csv",
+                   "canton,brand,year,month,bev_count")
+        chart.chart_china_bev_lq()
+        assert "Skip" in capsys.readouterr().out
+
+    def test_no_china_share(self, chart_dirs, capsys):
+        """Cantons present but no China-owned brand -> national share 0 -> skip."""
+        data_dir, _, geojson = chart_dirs
+        _geojson(geojson)
+        _write_csv(data_dir / "brand_canton_bev.csv",
+                   "canton,brand,year,month,bev_count\n"
+                   "ZH,TESLA,2023,1,100\nBE,VW,2023,1,80")
+        chart.chart_china_bev_lq()
+        assert "insufficient data" in capsys.readouterr().out
+
+    def test_normal(self, chart_dirs, capsys):
+        data_dir, chart_dir, geojson = chart_dirs
+        _geojson(geojson)
+        _brand_canton_bev_china_csv(data_dir)
+        with patch("chart.get_repo_url", return_value=""):
+            chart.chart_china_bev_lq()
+        assert (chart_dir / "china_bev_lq.png").exists()
+        assert "Saved: china_bev_lq.png" in capsys.readouterr().out
+
+    def test_lq_math_and_small_sample(self, chart_dirs):
+        """china_owned_lq_by_canton: over/under-index and the <300 sample flag."""
+        data_dir, _, geojson = chart_dirs
+        _geojson(geojson)
+        _brand_canton_bev_china_csv(data_dir)
+        df = pd.read_csv(data_dir / "brand_canton_bev.csv")
+        lq, totals, national = chart.china_owned_lq_by_canton(
+            df, chart.load_mappings(), {"ZH", "BE"}, months=24)
+        assert lq["ZH"] > 1.0 > lq["BE"]      # ZH over-indexes, BE under-indexes
+        assert totals["BE"] < 300 <= totals["ZH"]
+        assert 0 < national < 1
+
+
+# ===================================================================
+# chart_china_groups
+# ===================================================================
+
+class TestChartChinaGroups:
+    def test_file_missing(self, chart_dirs, capsys):
+        chart.chart_china_groups()
+        assert "Skip" in capsys.readouterr().out
+
+    def test_empty_csv(self, chart_dirs, capsys):
+        data_dir, _, _ = chart_dirs
+        _write_csv(data_dir / "brand_bev_by_month.csv", "year,month,brand,bev_count")
+        chart.chart_china_groups()
+        assert "Skip" in capsys.readouterr().out
+
+    def test_no_china_owned(self, chart_dirs, capsys):
+        data_dir, _, _ = chart_dirs
+        _write_csv(data_dir / "brand_bev_by_month.csv",
+                   "year,month,brand,bev_count\n2023,1,TESLA,50\n2023,2,VW,40")
+        chart.chart_china_groups()
+        assert "no china-owned data" in capsys.readouterr().out
+
+    def test_normal_smart_under_geely(self, chart_dirs, capsys):
+        data_dir, chart_dir, _ = chart_dirs
+        _brand_bev_china_csv(data_dir)
+        with patch("chart.get_repo_url", return_value=""):
+            chart.chart_china_groups()
+        assert (chart_dir / "china_groups.png").exists()
+        assert "Saved: china_groups.png" in capsys.readouterr().out
+
+
+# ===================================================================
+# chart_china_powertrain_mix
+# ===================================================================
+
+class TestChartChinaPowertrainMix:
+    def test_file_missing(self, chart_dirs, capsys):
+        chart.chart_china_powertrain_mix()
+        assert "Skip" in capsys.readouterr().out
+
+    def test_empty_csv(self, chart_dirs, capsys):
+        data_dir, _, _ = chart_dirs
+        _write_csv(data_dir / "brand_powertrain_by_month.csv",
+                   "year,month,brand,powertrain,count")
+        chart.chart_china_powertrain_mix()
+        assert "Skip" in capsys.readouterr().out
+
+    def test_no_china_branded(self, chart_dirs, capsys):
+        data_dir, _, _ = chart_dirs
+        _write_csv(data_dir / "brand_powertrain_by_month.csv",
+                   "year,month,brand,powertrain,count\n2023,1,VW,BEV,100")
+        chart.chart_china_powertrain_mix()
+        assert "no china-branded data" in capsys.readouterr().out
+
+    def test_normal(self, chart_dirs, capsys):
+        data_dir, chart_dir, _ = chart_dirs
+        _brand_powertrain_china_csv(data_dir)
+        with patch("chart.get_repo_url", return_value=""):
+            chart.chart_china_powertrain_mix()
+        assert (chart_dir / "china_powertrain_mix.png").exists()
+        assert "Saved: china_powertrain_mix.png" in capsys.readouterr().out
+
+
+# ===================================================================
+# chart_china_challengers
+# ===================================================================
+
+class TestChartChinaChallengers:
+    def test_file_missing(self, chart_dirs, capsys):
+        chart.chart_china_challengers()
+        assert "Skip" in capsys.readouterr().out
+
+    def test_empty_csv(self, chart_dirs, capsys):
+        data_dir, _, _ = chart_dirs
+        _write_csv(data_dir / "model_by_month.csv", "year,month,model,brand,count")
+        chart.chart_china_challengers()
+        assert "Skip" in capsys.readouterr().out
+
+    def test_no_pair_clears_floor(self, chart_dirs, capsys):
+        """Challenger present but below the 50 T12M floor -> no panels."""
+        data_dir, _, _ = chart_dirs
+        _write_csv(data_dir / "model_by_month.csv",
+                   "year,month,model,brand,count\n"
+                   "2024,1,BYD SEAL,BYD,3\n2024,1,TESLA MODEL 3,TESLA,100")
+        chart.chart_china_challengers()
+        assert "no pair clears the floor" in capsys.readouterr().out
+
+    def test_normal_merges_and_skips(self, chart_dirs, capsys):
+        data_dir, chart_dir, _ = chart_dirs
+        _challenger_models_csv(data_dir)
+        with patch("chart.get_repo_url", return_value=""):
+            chart.chart_china_challengers()
+        assert (chart_dir / "china_challengers.png").exists()
+        assert "Saved: china_challengers.png" in capsys.readouterr().out
+
+
+# ===================================================================
 # main
 # ===================================================================
 
@@ -757,9 +1016,11 @@ class TestMain:
         _monthly_totals_csv(data_dir)
         _fuel_by_month_csv(data_dir)
         _brand_by_year_csv(data_dir)
-        _brand_bev_by_month_csv(data_dir, [(2023, 1), (2023, 2)])
+        _brand_bev_china_csv(data_dir)  # richer ownership mix for the bloc/group charts
         _canton_ev_by_month_csv(data_dir, [(2023, 1), (2023, 2)])
-        _brand_canton_bev_csv(data_dir)
+        _brand_canton_bev_china_csv(data_dir)
+        _brand_powertrain_china_csv(data_dir)
+        _challenger_models_csv(data_dir)
         _geojson(geojson)
 
         with patch("chart.get_repo_url", return_value=""):
@@ -773,9 +1034,15 @@ class TestMain:
         assert (chart_dir / "brand_rankings.png").exists()
         # China-owned share renders from the same brand_bev_by_month data
         # (Volvo/Polestar are China-owned); the entry-ramp needs China-branded
-        # brands with ≥100 cumulative, which this fixture has none of, so it skips.
+        # brands with ≥100 cumulative, which this fixture has.
         assert (chart_dir / "china_bev_share.png").exists()
         assert (chart_dir / "ev_wave.gif").exists()
         assert (chart_dir / "ev_race.gif").exists()
         assert (chart_dir / "brand_race.gif").exists()
         assert (chart_dir / "ev_taste_lq.png").exists()
+        # The five follow-up China charts all render from this fixture set.
+        assert (chart_dir / "bev_bloc_share.png").exists()
+        assert (chart_dir / "china_bev_lq.png").exists()
+        assert (chart_dir / "china_groups.png").exists()
+        assert (chart_dir / "china_powertrain_mix.png").exists()
+        assert (chart_dir / "china_challengers.png").exists()
