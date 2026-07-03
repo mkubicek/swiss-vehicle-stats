@@ -57,9 +57,9 @@ def china_owned_share_line(year: int, month: int, prev_year: int, prev_month: in
 
 def china_bloc_rank_line(year: int, month: int):
     """One Headlines bullet: where China-owned ranks among the seven manufacturer
-    blocs (T12M share), naming the current leader. Mirrors
-    charts/bev_bloc_share.png. Returns None if brand BEV data is unavailable or
-    the trailing window does not cover the target month.
+    blocs (T12M share), naming the current leader. Mirrors the manufacturer-bloc
+    strip inside charts/china_bev_share.png. Returns None if brand BEV data is
+    unavailable or the trailing window does not cover the target month.
     """
     path = DATA_DIR / "brand_bev_by_month.csv"
     if not path.exists():

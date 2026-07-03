@@ -973,7 +973,7 @@ class TestBloc:
 
     def test_partition_is_total(self, mappings):
         # Every brand resolves to exactly one bloc, and every bloc is a member of
-        # BLOC_ORDER — the stackplot contract for chart_bev_bloc_share.
+        # BLOC_ORDER — the stackplot contract for the china_bev_share bloc strip.
         brands = ["TESLA", "VW", "VOLVO", "MG", "SMART", "BYD", "HYUNDAI",
                   "TOYOTA", "BMW", "FORD", "ZZZ-UNMAPPED"]
         for brand in brands:

@@ -43,7 +43,7 @@ BEV_FUELS = {"BEV"}
 # CO2 threshold for PHEV classification when Hybridcode is unavailable
 CO2_PHEV_THRESHOLD = 50  # g/km — EU regulation: PHEV < 50 g/km
 
-# Market-entry threshold for entry-aligned ramp analysis (chart_china_entry_ramp).
+# Market-entry threshold for the brand entry markers on chart_china_powertrain_mix.
 # A single grey/direct import (Known Limitation #3) can put one BEV on the road
 # years before a brand's commercial launch; requiring ≥5 in a month (and non-zero
 # follow-through) filters those one-offs. Documented in METHODOLOGY.md.
@@ -323,7 +323,7 @@ def is_china_owned(brand, mappings: dict) -> bool:
     return owner_country_or_none(brand, mappings) == "China" or is_china_branded(brand, mappings)
 
 
-# Manufacturer blocs for the displacement chart (chart_bev_bloc_share). The
+# Manufacturer blocs for the bloc strip inside chart_china_bev_share. The
 # partition is mutually exclusive and exhaustive: every brand resolves to
 # exactly one bloc, and any brand without a mapped origin falls through to
 # "Other" (already surfaced by the existing brand-origin unmapped warning).
