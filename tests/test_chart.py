@@ -222,8 +222,10 @@ def _brand_powertrain_entry_csv(data_dir: Path):
     of chart_china_powertrain_mix (all brands China-branded):
       BYD/ZEEKR/NIO enter within four months of each other and clear the 300
         cumulative floor -> marked, exercising the two-level stagger + fallback;
-      JAC enters years before the powertrain x-range starts -> out of range, skipped;
-      SERES clears the entry threshold but stays below 300 cumulative -> skipped."""
+      JAC enters years before the powertrain x-range starts -> named in the
+        "earlier entrants" corner note instead of a tick;
+      SERES clears the entry threshold but stays below 300 cumulative -> skipped;
+      GWM enters after the powertrain data ends (bev file runs longer) -> skipped."""
     prows = ["year,month,brand,powertrain,count"]
     for y in (2022, 2023, 2024):
         for mo in range(1, 13):
@@ -239,13 +241,14 @@ def _brand_powertrain_entry_csv(data_dir: Path):
         "BYD": ((2022, 1), 30),     # entry 2022-01 (== x-range start) -> level 0
         "ZEEKR": ((2022, 2), 30),   # entry 2022-02 -> level 1
         "NIO": ((2022, 3), 30),     # entry 2022-03 -> both levels busy -> fallback level
-        "JAC": ((2020, 1), 30),     # entry 2020-01, before x-range -> skipped
+        "JAC": ((2020, 1), 30),     # entry 2020-01, before x-range -> corner note
         "SERES": ((2022, 1), 6),    # 216 cumulative (<300) -> below floor, skipped
         "XPENG": ((2018, 1), 4),    # always <5/month -> entry None, but 336 cumulative
+        "GWM": ((2025, 1), 50),     # entry 2025-01, after powertrain data -> skipped
     }
     for brand, ((sy, sm), c) in plan.items():
         y, m = sy, sm
-        while (y, m) <= (2024, 12):
+        while (y, m) <= (2025, 12):
             brows.append(f"{y},{m},{brand},{c}")
             m += 1
             if m == 13:
@@ -827,14 +830,40 @@ class TestChartChinaPowertrainMix:
 
     def test_entry_markers(self, chart_dirs, capsys):
         """Entry markers exercise every branch: marked brands (≥5 BEV/month and
-        ≥300 cumulative) with two-level stagger + fallback, an out-of-range entry,
-        and a below-floor brand. Renders without error."""
+        ≥300 cumulative) with two-level stagger + fallback, a pre-window entry
+        (corner note), and a below-floor brand. Renders without error."""
         data_dir, chart_dir, _ = chart_dirs
         _brand_powertrain_entry_csv(data_dir)
         with patch("chart.get_repo_url", return_value=""):
             chart.chart_china_powertrain_mix()
         assert (chart_dir / "china_powertrain_mix.png").exists()
         assert "Saved: china_powertrain_mix.png" in capsys.readouterr().out
+
+    def test_zero_volume(self, chart_dirs, capsys):
+        """China-branded rows exist but every count is zero -> the volume floor
+        finds no start month -> skip."""
+        data_dir, _, _ = chart_dirs
+        _write_csv(data_dir / "brand_powertrain_by_month.csv",
+                   "year,month,brand,powertrain,count\n2023,1,BYD,BEV,0")
+        chart.chart_china_powertrain_mix()
+        assert "no volume" in capsys.readouterr().out
+
+    def test_window_trims_flat_head(self, chart_dirs, capsys):
+        """Years of near-zero volume before the surge are trimmed: the x-axis
+        starts where T12M total first reaches 5% of peak, not at the first
+        non-zero month."""
+        data_dir, chart_dir, _ = chart_dirs
+        rows = ["year,month,brand,powertrain,count"]
+        for y in (2020, 2021, 2022):
+            for mo in range(1, 13):
+                rows.append(f"{y},{mo},BYD,BEV,1")     # near-zero head
+        for y in (2023, 2024):
+            for mo in range(1, 13):
+                rows.append(f"{y},{mo},BYD,BEV,100")   # the surge
+        _write_csv(data_dir / "brand_powertrain_by_month.csv", "\n".join(rows))
+        with patch("chart.get_repo_url", return_value=""):
+            chart.chart_china_powertrain_mix()
+        assert (chart_dir / "china_powertrain_mix.png").exists()
 
     def test_entry_markers_empty_bev_file(self, chart_dirs, capsys):
         """An empty brand_bev_by_month.csv makes entry markers degrade to none;

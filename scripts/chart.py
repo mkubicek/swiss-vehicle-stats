@@ -117,15 +117,16 @@ BLOC_COLORS = {
 }
 
 # Manufacturer-bloc fills for the 100%-stacked bloc strip inside
-# chart_china_bev_share. Design intent: only the China-owned wedge is saturated;
-# every legacy bloc is muted so the growing red wedge is the one thing the eye
-# tracks. Keyed by the bloc names from process.BLOC_ORDER.
+# chart_china_bev_share. Design intent: the China-owned wedge is the ONLY red
+# on the strip; every legacy bloc is muted AND pulled away from red hues so the
+# growing red wedge is the one thing the eye tracks. Keyed by the bloc names
+# from process.BLOC_ORDER.
 BEV_BLOC_FILL_COLORS = {
     BLOC_CHINA_OWNED: BLOC_COLORS["china_owned"],
-    BLOC_TESLA: "#a63d5f",      # muted magenta (echoes Tesla #f72585 without competing)
+    BLOC_TESLA: "#7d566f",      # muted plum (nods to Tesla magenta, reads purple)
     BLOC_VW: "#3f9068",         # muted green (echoes VW #4ade80)
     BLOC_EU_LEGACY: "#475569",  # slate
-    BLOC_KOREAN: "#a35563",     # muted red-orange
+    BLOC_KOREAN: "#8a6a3f",     # muted amber
     BLOC_JAPANESE: "#5a7d99",   # muted sky
     BLOC_OTHER: "#334155",      # darkest slate
 }
@@ -1196,8 +1197,10 @@ def chart_china_bev_share():
 
     # --- Top: level lines ---
     ax_top.set_facecolor(BG)
+    # Badge-gap fill kept faint (0.07): at higher alpha the red tint dominates
+    # the whole panel and competes with the China-owned line itself.
     ax_top.fill_between(xs, branded, owned, color=BLOC_COLORS["china_owned"],
-                        alpha=0.12, zorder=1)
+                        alpha=0.07, zorder=1)
     ax_top.plot(xs, tesla, color=BLOC_COLORS["tesla_ref"], linewidth=1.3,
                 alpha=0.85, zorder=2)
     ax_top.plot(xs, branded, color=BLOC_COLORS["china_branded"], linewidth=2.2, zorder=3)
@@ -1228,11 +1231,12 @@ def chart_china_bev_share():
         ax_top.annotate(text, (label_x, value), va="center", ha="left",
                         fontsize=9, fontweight="bold", color=color)
 
-    # Geely callout, anchored beneath the China-owned end label.
+    # Geely callout, anchored beneath the China-owned end label. Short first
+    # line — it is the widest right-edge element and sets the label margin.
     if geely_latest > 0:
         ax_top.annotate(
-            f"Geely alone (Volvo, Polestar, Smart, Zeekr):\n"
-            f"{geely_share:.1f}% of the {owned[-1]:.1f}%",
+            f"Geely alone: {geely_share:.1f}% of the {owned[-1]:.1f}%\n"
+            f"(Volvo, Polestar, Smart, Zeekr)",
             (label_x, owned[-1]), textcoords="offset points", xytext=(0, -13),
             va="top", ha="left", fontsize=7, color=SUBTLE, linespacing=1.25)
 
@@ -1281,11 +1285,12 @@ def chart_china_bev_share():
     ax_bot.spines["bottom"].set_color(GRID_COLOR)
     ax_bot.tick_params(colors=TEXT, labelsize=10)
 
-    # Every year on the shared X-axis; pad the right for the inline labels.
+    # Every year on the shared X-axis; modest right pad — the end labels start
+    # just past the data and overflow the axes (bbox_inches="tight" keeps them).
     years = sorted({d.year for d in xs})
     ax_bot.set_xticks([date(y, 1, 1) for y in years])
     ax_bot.set_xticklabels([str(y) for y in years])
-    ax_bot.set_xlim(xs[0], xs[-1] + timedelta(days=430))
+    ax_bot.set_xlim(xs[0], xs[-1] + timedelta(days=300))
 
     # Title block (per styleguide: metric, not vibe).
     fig.text(0.5, 0.975, "Chinese-Owned Brands — Share of New BEV Registrations in Switzerland",
@@ -1301,7 +1306,7 @@ def chart_china_bev_share():
              "Classified by ownership, not production location · Recent months subject to Nachmeldungen (late reports)",
              ha="center", va="top", fontsize=7.5, color="#94a3b8")
 
-    fig.subplots_adjust(top=0.86, bottom=0.08, left=0.07, right=0.79, hspace=0.18)
+    fig.subplots_adjust(top=0.86, bottom=0.08, left=0.07, right=0.88, hspace=0.18)
     fig.text(0.99, 0.01, get_dark_attribution(), ha="right", va="bottom",
              fontsize=8, color="#64748b", style="italic")
     save_chart(fig, "china_bev_share")
@@ -1369,6 +1374,14 @@ POWERTRAIN_COLLAPSE = {
 }
 POWERTRAIN_MIX_ORDER = ["BEV", "PHEV", "HEV", "ICE", "Other"]
 
+# chart_china_powertrain_mix's x-axis starts at the first month whose T12M total
+# reaches this fraction of the series peak. China-branded volume sat near zero
+# for years before the 2025 surge; without the floor that flatline compresses
+# the entire growth story into the last tenth of the axis. Relative (not a
+# hardcoded year) so the window tracks the data — house precedent:
+# MODEL_RACE_START_YEAR trims the model race to its meaningful era.
+POWERTRAIN_WINDOW_FLOOR = 0.05
+
 # A China-branded brand must reach this many cumulative BEV registrations before
 # its market-entry tick is drawn on chart_china_powertrain_mix — keeps the x-axis
 # from cluttering with micro-entrants (a handful of grey imports).
@@ -1378,28 +1391,31 @@ ENTRY_MARKER_MIN_CUMULATIVE = 300
 def _china_brand_entry_markers(mappings, x_start, x_end):
     """Market-entry ticks for China-branded brands, for chart_china_powertrain_mix.
 
-    Reads brand_bev_by_month.csv and returns a list of
-    ``{"date", "label", "level"}`` for each China-branded brand whose first
-    sustained entry (``detect_entry_month`` / ``ENTRY_MIN_MONTHLY``) falls within
-    ``[x_start, x_end]`` and whose cumulative BEV registrations reach
-    ``ENTRY_MARKER_MIN_CUMULATIVE``. Entries within 4 months of each other are
-    staggered onto two levels. Returns ``[]`` when the per-brand BEV file is
+    Reads brand_bev_by_month.csv and returns ``(markers, earlier)``. ``markers``
+    is a list of ``{"date", "label", "level"}`` for each China-branded brand
+    whose first sustained entry (``detect_entry_month`` / ``ENTRY_MIN_MONTHLY``)
+    falls within ``[x_start, x_end]`` and whose cumulative BEV registrations
+    reach ``ENTRY_MARKER_MIN_CUMULATIVE``; entries within 4 months of each other
+    are staggered onto two levels. ``earlier`` lists ``(date, label)`` for
+    qualifying brands that entered before ``x_start`` — the volume-floored
+    x-axis can start after an early entrant, and a corner note keeps that
+    timing on the chart. Returns ``([], [])`` when the per-brand BEV file is
     missing/empty, so the chart degrades to no markers.
     """
     from datetime import date
 
     path = DATA_DIR / "brand_bev_by_month.csv"
     if not path.exists():
-        return []
+        return [], []
     bdf = pd.read_csv(path)
     if bdf.empty:
-        return []
+        return [], []
 
     counts: dict[str, dict[tuple[int, int], int]] = {}
     for r in bdf.itertuples(index=False):
         counts.setdefault(r.brand, {})[(int(r.year), int(r.month))] = int(r.bev_count)
 
-    entries = []
+    entries, earlier = [], []
     for brand, cmap in counts.items():
         if not is_china_branded(brand, mappings):
             continue
@@ -1409,11 +1425,15 @@ def _china_brand_entry_markers(mappings, x_start, x_end):
         if entry is None:
             continue
         edate = date(entry[0], entry[1], 1)
-        if edate < x_start or edate > x_end:
+        if edate < x_start:
+            earlier.append((edate, display_brand(brand)))
+            continue
+        if edate > x_end:
             continue
         entries.append({"date": edate, "label": display_brand(brand)})
 
     entries.sort(key=lambda e: e["date"])
+    earlier.sort()
     # Two-level stagger: a level is reusable once its last tick is >4 months back.
     level_last: dict[int, "date"] = {}
     for e in entries:
@@ -1426,18 +1446,22 @@ def _china_brand_entry_markers(mappings, x_start, x_end):
         else:
             e["level"] = 0
             level_last[0] = e["date"]
-    return entries
+    return entries, earlier
 
 
 def chart_china_powertrain_mix():
     """China-branded registrations by powertrain over time (top) plus the PHEV
     share as the 'second wave' indicator (bottom).
 
-    Brand market-entry markers (absorbing the former entry-ramp chart) sit on the
-    top panel's x-axis: one ▲ tick per China-branded brand at its first sustained
-    entry month (``detect_entry_month`` / ``ENTRY_MIN_MONTHLY``), limited to
-    brands with ≥300 cumulative BEV registrations and staggered on two levels
-    when two entries fall close together.
+    The x-axis starts at the first month whose T12M total reaches
+    ``POWERTRAIN_WINDOW_FLOOR`` of the series peak, so the growth phase isn't
+    compressed by years of near-zero volume. Brand market-entry markers
+    (absorbing the former entry-ramp chart) sit on the top panel's x-axis: one
+    ▲ tick per China-branded brand at its first sustained entry month
+    (``detect_entry_month`` / ``ENTRY_MIN_MONTHLY``), limited to brands with
+    ≥300 cumulative BEV registrations and staggered on two levels when two
+    entries fall close together; qualifying brands that entered before the
+    trimmed axis are named in a corner note instead.
     """
     from datetime import date, timedelta
 
@@ -1465,7 +1489,13 @@ def chart_china_powertrain_mix():
 
     order = [c for c in POWERTRAIN_MIX_ORDER if c in keys]
     totals = np.sum([np.array(series[k]) for k in keys], axis=0)
-    first = next((i for i, t in enumerate(totals) if t > 0), 0)
+    # Trim the head: start where the T12M total first reaches the volume floor
+    # (see POWERTRAIN_WINDOW_FLOOR) instead of at the first non-zero month.
+    floor = max(1.0, float(totals.max()) * POWERTRAIN_WINDOW_FLOOR)
+    first = next((i for i, t in enumerate(totals) if t >= floor), None)
+    if first is None:
+        print("  Skip: china_powertrain_mix (no volume)")
+        return
     xs = [date(y, m, 1) for (y, m) in months[first:]]
     totals = totals[first:]
     phev = np.array(series.get("PHEV", [0] * len(months)))[first:]
@@ -1506,12 +1536,20 @@ def chart_china_powertrain_mix():
     ax_top.set_ylabel("Trailing 12-month registrations", fontsize=10, color=TEXT)
 
     # Brand market-entry ticks on the x-axis (rotated labels, two-level stagger).
-    for e in _china_brand_entry_markers(mappings, xs[0], xs[-1]):
+    markers, earlier = _china_brand_entry_markers(mappings, xs[0], xs[-1])
+    for e in markers:
         ax_top.plot([e["date"]], [0], marker="^", markersize=6, color=SUBTLE,
                     clip_on=False, zorder=6)
         ax_top.annotate(e["label"], (e["date"], 0), textcoords="offset points",
                         xytext=(0, 7 + e["level"] * 34), rotation=90, ha="center",
                         va="bottom", fontsize=7, color=TEXT, zorder=6)
+    if earlier:
+        # Entrants that predate the volume-floored axis — keep their timing on
+        # the chart without stretching the window back to near-zero years.
+        note = "▲ earlier entrants: " + " · ".join(
+            f"{label} ({MONTH_NAMES[d.month]} {d.year})" for d, label in earlier)
+        ax_top.text(0.01, 0.97, note, transform=ax_top.transAxes, ha="left",
+                    va="top", fontsize=7.5, color=SUBTLE)
 
     ax_bot.set_facecolor(BG)
     ax_bot.plot(xs, phev_share, color=POWERTRAIN_MIX_COLORS["PHEV"], linewidth=2.4)
@@ -1534,7 +1572,10 @@ def chart_china_powertrain_mix():
     years = sorted({d.year for d in xs})
     ax_bot.set_xticks([date(y, 1, 1) for y in years])
     ax_bot.set_xticklabels([str(y) for y in years])
-    ax_bot.set_xlim(xs[0], xs[-1] + timedelta(days=400))
+    # Right pad proportional to the (volume-floored, variable-length) window;
+    # the end labels start just past the data and overflow the axes.
+    pad = timedelta(days=max(90, int((xs[-1] - xs[0]).days * 0.10)))
+    ax_bot.set_xlim(xs[0], xs[-1] + pad)
 
     fig.text(0.5, 0.975, "Chinese Brands — Swiss Registrations by Powertrain",
              ha="center", va="top", fontsize=15.5, fontweight="bold", color=TEXT)
@@ -1545,7 +1586,8 @@ def chart_china_powertrain_mix():
              "China-branded only (excl. Chinese-owned European marques like Volvo, MG) · Extended-range EVs (EREV) classified as PHEV · Pre-2022 PHEV/HEV split approximate (CO2 fallback)",
              ha="center", va="top", fontsize=7.5, color="#94a3b8")
     fig.text(0.5, 0.888,
-             f"▲ market entry (first month ≥{ENTRY_MIN_MONTHLY} BEV, brands ≥{ENTRY_MARKER_MIN_CUMULATIVE} cumulative)",
+             f"▲ market entry (first month ≥{ENTRY_MIN_MONTHLY} BEV, brands ≥{ENTRY_MARKER_MIN_CUMULATIVE} cumulative) · "
+             f"Axis starts when trailing volume first reaches {POWERTRAIN_WINDOW_FLOOR:.0%} of its peak",
              ha="center", va="top", fontsize=7.5, color="#94a3b8")
 
     fig.subplots_adjust(top=0.86, bottom=0.09, left=0.08, right=0.83, hspace=0.22)
