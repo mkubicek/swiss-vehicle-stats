@@ -17,7 +17,7 @@ permissions:
 jobs:
   update:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 75
 
     steps:
       - name: Checkout
@@ -57,7 +57,8 @@ jobs:
         id: download
         run: uv run scripts/download.py
         env:
-          DOWNLOAD_TIMEOUT: "900"
+          DOWNLOAD_TIMEOUT: "3600"
+          DOWNLOAD_MIN_HEADROOM: "360"
 
       - name: Re-pack raw data for next cache
         if: always()
@@ -71,22 +72,28 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: data/raw.tar.zst
-          key: raw-data-v3-${{ hashFiles('scripts/download.py') }}-${{ github.run_id }}
+          key: raw-data-v3-${{ hashFiles('scripts/download.py') }}-${{ github.run_id }}-${{ github.run_attempt }}
+
+      - name: Stop if download incomplete
+        if: steps.download.outputs.partial == 'true'
+        run: |
+          echo "::error::Raw data download incomplete; partial cache was saved. Re-run this workflow to resume."
+          exit 1
 
       - name: Process data
-        if: steps.download.outputs.timed_out != 'true'
+        if: steps.download.outputs.partial != 'true'
         run: uv run scripts/process.py
 
       - name: Validate data
-        if: steps.download.outputs.timed_out != 'true'
+        if: steps.download.outputs.partial != 'true'
         run: uv run scripts/validate.py
 
       - name: Generate projection
-        if: steps.download.outputs.timed_out != 'true'
+        if: steps.download.outputs.partial != 'true'
         run: uv run scripts/project.py
 
       - name: Generate charts
-        if: steps.download.outputs.timed_out != 'true'
+        if: steps.download.outputs.partial != 'true'
         run: |
           DAY=$(date -u +%d)
           if [ "$DAY" = "05" ] || [ "${{ inputs.generate_gifs }}" = "true" ]; then
@@ -96,11 +103,11 @@ jobs:
           fi
 
       - name: Generate report
-        if: steps.download.outputs.timed_out != 'true'
+        if: steps.download.outputs.partial != 'true'
         run: uv run scripts/report.py
 
       - name: Commit and push
-        if: steps.download.outputs.timed_out != 'true'
+        if: steps.download.outputs.partial != 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
