@@ -90,6 +90,52 @@ class TestDownloadFileExistsNotForce:
         assert result is True
         assert dest.read_bytes() == b"fresh"
 
+    def test_head_timeout_retries_then_up_to_date(self, tmp_path):
+        """Transient HEAD timeout is retried before using the cached file."""
+        dest = tmp_path / "NEUZU.txt"
+        dest.write_text("old")
+
+        head_resp = _mock_response(status_code=304)
+
+        with patch.object(
+            requests,
+            "head",
+            side_effect=[requests.ConnectTimeout("timeout"), head_resp],
+        ) as mock_head, \
+             patch.object(requests, "get") as mock_get, \
+             patch.object(time, "sleep") as mock_sleep:
+            result = download.download_file("http://x/NEUZU.txt", dest, force=False)
+
+        assert result is False
+        assert mock_head.call_count == 2
+        mock_get.assert_not_called()
+        mock_sleep.assert_called_once()
+        assert dest.read_text() == "old"
+
+    def test_head_failure_downloads_anyway(self, tmp_path):
+        """Repeated HEAD failure falls back to downloading the file."""
+        dest = tmp_path / "NEUZU.txt"
+        dest.write_text("old")
+
+        get_resp = _mock_response(
+            headers={"content-length": "5"},
+            chunks=[b"fresh"],
+        )
+
+        with patch.object(
+            requests,
+            "head",
+            side_effect=[requests.ConnectTimeout("timeout") for _ in range(download.REQUEST_ATTEMPTS)],
+        ) as mock_head, \
+             patch.object(requests, "get", return_value=get_resp) as mock_get, \
+             patch.object(time, "sleep"):
+            result = download.download_file("http://x/NEUZU.txt", dest, force=False)
+
+        assert result is True
+        assert mock_head.call_count == download.REQUEST_ATTEMPTS
+        mock_get.assert_called_once()
+        assert dest.read_bytes() == b"fresh"
+
 
 class TestDownloadFileDoesNotExist:
     """File does not exist → skip HEAD, go straight to download."""
@@ -136,31 +182,73 @@ class TestDownloadFileForce:
 # ---------------------------------------------------------------------------
 
 class TestDownloadFileFailure:
-    """requests.get raises RequestException → returns False."""
+    """requests.get raises RequestException → returns a partial-download signal."""
 
-    def test_request_exception_returns_false(self, tmp_path):
+    def test_request_exception_returns_none(self, tmp_path):
         dest = tmp_path / "NEUZU.txt"
 
         with patch.object(
             requests, "get", side_effect=requests.RequestException("timeout")
-        ):
+        ), \
+             patch.object(time, "sleep"):
             result = download.download_file("http://x/NEUZU.txt", dest, force=True)
 
-        assert result is False
+        assert result is None
         assert not dest.exists()
 
     def test_raise_for_status_exception(self, tmp_path):
-        """raise_for_status() triggers RequestException → returns False."""
+        """raise_for_status() triggers RequestException → returns None."""
         dest = tmp_path / "NEUZU.txt"
 
         get_resp = _mock_response(
             raise_for_status=requests.RequestException("500 Server Error"),
         )
 
-        with patch.object(requests, "get", return_value=get_resp):
+        with patch.object(requests, "get", return_value=get_resp), \
+             patch.object(time, "sleep"):
             result = download.download_file("http://x/NEUZU.txt", dest, force=True)
 
-        assert result is False
+        assert result is None
+
+    def test_stream_failure_retries_and_cleans_tmp(self, tmp_path):
+        """A broken streaming response is retried without leaving a .tmp file."""
+        dest = tmp_path / "NEUZU.txt"
+
+        bad_resp = _mock_response(headers={"content-length": "4"})
+        bad_resp.iter_content.side_effect = requests.ConnectionError("stream broke")
+        good_resp = _mock_response(
+            headers={"content-length": "4"},
+            chunks=[b"good"],
+        )
+
+        with patch.object(requests, "get", side_effect=[bad_resp, good_resp]) as mock_get, \
+             patch.object(time, "sleep") as mock_sleep:
+            result = download.download_file("http://x/NEUZU.txt", dest, force=True)
+
+        assert result is True
+        assert mock_get.call_count == 2
+        mock_sleep.assert_called_once()
+        assert not dest.with_suffix(".tmp").exists()
+        assert dest.read_bytes() == b"good"
+
+    def test_retryable_status_retries(self, tmp_path):
+        """HTTP 5xx responses are retried before a successful download."""
+        dest = tmp_path / "NEUZU.txt"
+
+        busy_resp = _mock_response(status_code=503)
+        good_resp = _mock_response(
+            headers={"content-length": "2"},
+            chunks=[b"ok"],
+        )
+
+        with patch.object(requests, "get", side_effect=[busy_resp, good_resp]) as mock_get, \
+             patch.object(time, "sleep") as mock_sleep:
+            result = download.download_file("http://x/NEUZU.txt", dest, force=True)
+
+        assert result is True
+        assert mock_get.call_count == 2
+        mock_sleep.assert_called_once()
+        assert dest.read_bytes() == b"ok"
 
 
 # ---------------------------------------------------------------------------
@@ -378,6 +466,22 @@ class TestMain:
 
         # 1 current + 1 archive
         assert call_count == 2
+
+    def test_partial_output_written_for_download_failure(self, tmp_path, monkeypatch):
+        """A failed file marks the run partial in GitHub Actions outputs."""
+        output = tmp_path / "github-output.txt"
+        monkeypatch.setattr(download, "RAW_DIR", tmp_path / "raw")
+        monkeypatch.setattr(download, "TIMEOUT_SECONDS", 0)
+        monkeypatch.setattr(download, "ARCHIVE_YEARS", range(2024, 2024))
+        monkeypatch.setattr("sys.argv", ["download.py"])
+        monkeypatch.setenv("GITHUB_OUTPUT", str(output))
+
+        with patch.object(download, "download_file", return_value=None):
+            download.main()
+
+        assert "partial=true" in output.read_text()
+        assert "complete=false" in output.read_text()
+        assert "timed_out=false" in output.read_text()
 
 
 # ---------------------------------------------------------------------------
