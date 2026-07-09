@@ -398,6 +398,20 @@
       });
     }
 
+    function monthKey(row) {
+      return (+row.year * 12) + +row.month;
+    }
+
+    function latestCompleteMonth(monthly, dataDate) {
+      const sorted = [...monthly].sort((a, b) => monthKey(a) - monthKey(b));
+      const parsed = /^(\d{4})-(\d{2})-\d{2}$/.exec(dataDate || '');
+      if (!parsed) return sorted[sorted.length - 1];
+
+      const firstPartialKey = (+parsed[1] * 12) + +parsed[2];
+      const complete = sorted.filter(r => monthKey(r) < firstPartialKey);
+      return complete[complete.length - 1] || sorted[sorted.length - 1];
+    }
+
     async function loadStats() {
       try {
         const [monthlyText, fuelText, meta] = await Promise.all([
@@ -409,8 +423,8 @@
         const monthly = parseCSV(monthlyText);
         const fuel = parseCSV(fuelText);
 
-        // Last complete month (second-to-last row; last row may be partial current month)
-        const latest = monthly[monthly.length >= 2 ? monthly.length - 2 : monthly.length - 1];
+        // Complete months are all months before metadata.data_date's month.
+        const latest = latestCompleteMonth(monthly, meta.data_date);
         const y = +latest.year, m = +latest.month, count = +latest.count;
 
         // Same month previous year
