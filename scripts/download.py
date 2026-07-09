@@ -72,6 +72,40 @@ def head_with_retries(url: str, headers: dict[str, str]) -> requests.Response:
     raise RuntimeError("unreachable")
 
 
+def parse_content_length(value: str | None) -> int | None:
+    """Parse a Content-Length header, returning None when unavailable."""
+    if not value:
+        return None
+    try:
+        return int(value)
+    except ValueError:
+        return None
+
+
+def parse_last_modified(value: str | None) -> float | None:
+    """Parse a Last-Modified header to a POSIX timestamp."""
+    if not value:
+        return None
+    try:
+        return parsedate_to_datetime(value).timestamp()
+    except (TypeError, ValueError):
+        return None
+
+
+def remote_matches_local(resp: requests.Response, dest: Path) -> bool:
+    """Return True when HEAD metadata shows the cached file is current."""
+    remote_size = parse_content_length(resp.headers.get("content-length"))
+    if remote_size is None or remote_size != dest.stat().st_size:
+        return False
+
+    remote_mtime = parse_last_modified(resp.headers.get("Last-Modified"))
+    if remote_mtime is None:
+        return True
+
+    # File mtimes can lose sub-second precision through tar/cache round-trips.
+    return dest.stat().st_mtime >= remote_mtime - 1
+
+
 def download_file(url: str, dest: Path, force: bool = False) -> bool | None:
     """Download only if remote is newer than local.
 
@@ -92,6 +126,9 @@ def download_file(url: str, dest: Path, force: bool = False) -> bool | None:
                 print(f"  Up to date (cached): {dest.name}", flush=True)
                 return False
             elif resp.status_code == 200:
+                if remote_matches_local(resp, dest):
+                    print(f"  Up to date (cached metadata): {dest.name}", flush=True)
+                    return False
                 print(f"  Newer version available: {dest.name}", flush=True)
             else:
                 print(f"  HEAD failed ({resp.status_code}) -> downloading anyway", flush=True)

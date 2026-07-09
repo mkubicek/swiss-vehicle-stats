@@ -2,6 +2,7 @@
 
 import os
 import time
+from email.utils import formatdate
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -71,6 +72,56 @@ class TestDownloadFileExistsNotForce:
 
         assert result is True
         assert dest.read_bytes() == b"new!"
+
+    def test_head_200_same_metadata_uses_cache(self, tmp_path):
+        """Some servers ignore If-Modified-Since but still expose matching metadata."""
+        dest = tmp_path / "NEUZU.txt"
+        dest.write_bytes(b"old")
+        mtime = 1_700_000_000
+        os.utime(dest, (mtime, mtime))
+
+        head_resp = _mock_response(
+            status_code=200,
+            headers={
+                "content-length": "3",
+                "Last-Modified": formatdate(mtime, usegmt=True),
+            },
+        )
+
+        with patch.object(requests, "head", return_value=head_resp), \
+             patch.object(requests, "get") as mock_get:
+            result = download.download_file("http://x/NEUZU.txt", dest, force=False)
+
+        assert result is False
+        mock_get.assert_not_called()
+        assert dest.read_bytes() == b"old"
+
+    def test_head_200_same_size_newer_last_modified_downloads(self, tmp_path):
+        """Matching size is not enough when Last-Modified is newer than local mtime."""
+        dest = tmp_path / "NEUZU.txt"
+        dest.write_bytes(b"old")
+        local_mtime = 1_700_000_000
+        remote_mtime = local_mtime + 3600
+        os.utime(dest, (local_mtime, local_mtime))
+
+        head_resp = _mock_response(
+            status_code=200,
+            headers={
+                "content-length": "3",
+                "Last-Modified": formatdate(remote_mtime, usegmt=True),
+            },
+        )
+        get_resp = _mock_response(
+            headers={"content-length": "3"},
+            chunks=[b"new"],
+        )
+
+        with patch.object(requests, "head", return_value=head_resp), \
+             patch.object(requests, "get", return_value=get_resp):
+            result = download.download_file("http://x/NEUZU.txt", dest, force=False)
+
+        assert result is True
+        assert dest.read_bytes() == b"new"
 
     def test_head_other_status_downloads_anyway(self, tmp_path):
         """HEAD returns unexpected status (e.g. 403) → download anyway."""
