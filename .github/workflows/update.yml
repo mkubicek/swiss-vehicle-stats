@@ -14,6 +14,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   update:
     runs-on: ubuntu-latest
@@ -114,4 +118,18 @@ jobs:
           git add data/processed/ charts/ reports/ warnings.log
           git diff --cached --quiet && echo "No changes" && exit 0
           git commit -m "data: update $(date +%Y-%m)"
-          git push
+          branch="${GITHUB_REF_NAME:-main}"
+          for attempt in 1 2 3; do
+            git fetch origin "refs/heads/${branch}:refs/remotes/origin/${branch}"
+            if ! git rebase "origin/${branch}"; then
+              echo "::error::Could not rebase generated update onto origin/${branch}. Re-run after resolving the conflicting branch changes."
+              exit 1
+            fi
+            if git push origin "HEAD:${branch}"; then
+              exit 0
+            fi
+            echo "Push was rejected; refreshing ${branch} before retry ${attempt}/3."
+            sleep $((attempt * 5))
+          done
+          echo "::error::Unable to push generated update after 3 attempts."
+          exit 1
