@@ -1,4 +1,4 @@
-# Warnings — 2026-08-05 10:38
+# Warnings — 2026-08-15 08:29
 # Unmapped values + plausibility checks
 
 plausibility:bev_monthly:2019-04: ASTRA=1,050 vs auto.swiss=1,122 (diff=6.4%)
