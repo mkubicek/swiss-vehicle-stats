@@ -1,4 +1,4 @@
-# Warnings — 2026-08-15 08:29
+# Warnings — 2026-08-25 09:26
 # Unmapped values + plausibility checks
 
 plausibility:bev_monthly:2019-04: ASTRA=1,050 vs auto.swiss=1,122 (diff=6.4%)
@@ -6,10 +6,12 @@ plausibility:bev_monthly:2019-07: ASTRA=686 vs auto.swiss=745 (diff=7.9%)
 plausibility:bev_monthly:2019-10: ASTRA=666 vs auto.swiss=715 (diff=6.9%)
 plausibility:bev_monthly:2020-04: ASTRA=500 vs auto.swiss=532 (diff=6.0%)
 plausibility:bev_monthly:2025-07: ASTRA=3,785 vs auto.swiss=4,083 (diff=7.3%)
+plausibility:mom_spike:2026-08: 5,899 vs prev 18,802 (change=69%, threshold=50%)
 plausibility:monthly_total:2025-06: ASTRA=22,637 vs auto.swiss=21,810 (diff=3.8%)
 plausibility:monthly_total:2025-07: ASTRA=18,435 vs auto.swiss=19,629 (diff=6.1%)
 unmapped:brand:BAW
 unmapped:brand:CADILLON
+unmapped:brand:DENZA
 unmapped:brand:DFM
 unmapped:brand:FORCA
 unmapped:brand:GAC
