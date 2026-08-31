@@ -371,6 +371,205 @@ class TestMainNoData:
 
 
 # ---------------------------------------------------------------------------
+# china_owned_share_line
+# ---------------------------------------------------------------------------
+
+class TestChinaOwnedShareLine:
+    def test_missing_file_returns_none(self, env):
+        assert report.china_owned_share_line(2024, 3, 2024, 2) is None
+
+    def test_line_with_mom_delta(self, env, monkeypatch):
+        import yaml as _yaml
+        import process
+        mapfile = env["data"].parent / "mappings.yaml"
+        with open(mapfile, "w") as f:
+            _yaml.dump({
+                "brand_origin": {"BYD": "China", "VOLVO": "Sweden",
+                                 "TESLA": "USA", "VW": "Germany"},
+                "brand_owner_country": {"BYD": "China", "VOLVO": "China",
+                                        "TESLA": "USA", "VW": "Germany"},
+            }, f)
+        monkeypatch.setattr(process, "MAPPINGS_FILE", mapfile)
+
+        rows = []
+        for k in range(15):  # 2023-01 .. 2024-03, enough for a T12M window
+            y, m = 2023 + k // 12, 1 + k % 12
+            rows += [(y, m, "BYD", 10), (y, m, "VOLVO", 15),
+                     (y, m, "TESLA", 30), (y, m, "VW", 45)]
+        pd.DataFrame(rows, columns=["year", "month", "brand", "bev_count"]).to_csv(
+            env["data"] / "brand_bev_by_month.csv", index=False)
+
+        line = report.china_owned_share_line(2024, 3, 2024, 2)
+        # China-owned = (BYD 10 + VOLVO 15) / 100 = 25.0%; flat MoM.
+        assert line is not None
+        assert "China-owned BEV share" in line
+        assert "25.0%" in line
+        assert "MoM" in line
+
+    def test_target_month_not_in_series_returns_none(self, env, monkeypatch):
+        import yaml as _yaml
+        import process
+        mapfile = env["data"].parent / "mappings.yaml"
+        with open(mapfile, "w") as f:
+            _yaml.dump({"brand_origin": {"BYD": "China"},
+                        "brand_owner_country": {"BYD": "China"}}, f)
+        monkeypatch.setattr(process, "MAPPINGS_FILE", mapfile)
+        pd.DataFrame([(2024, 1, "BYD", 10)],
+                     columns=["year", "month", "brand", "bev_count"]).to_csv(
+            env["data"] / "brand_bev_by_month.csv", index=False)
+        # 2099 is far outside the series -> None.
+        assert report.china_owned_share_line(2099, 1, 2098, 12) is None
+
+    def test_no_prior_month_omits_mom(self, env, monkeypatch):
+        import yaml as _yaml
+        import process
+        mapfile = env["data"].parent / "mappings.yaml"
+        with open(mapfile, "w") as f:
+            _yaml.dump({"brand_origin": {"BYD": "China"},
+                        "brand_owner_country": {"BYD": "China"}}, f)
+        monkeypatch.setattr(process, "MAPPINGS_FILE", mapfile)
+        # A single month: the target resolves but its prior month has no T12M row.
+        pd.DataFrame([(2024, 1, "BYD", 10)],
+                     columns=["year", "month", "brand", "bev_count"]).to_csv(
+            env["data"] / "brand_bev_by_month.csv", index=False)
+        line = report.china_owned_share_line(2024, 1, 2023, 12)
+        assert line is not None
+        assert "MoM" not in line
+
+    def test_appears_in_generated_report(self, env, monkeypatch):
+        """The line shows up in the Headlines when brand BEV data is present."""
+        import yaml as _yaml
+        import process
+        mapfile = env["data"].parent / "mappings.yaml"
+        with open(mapfile, "w") as f:
+            _yaml.dump({"brand_origin": {"BYD": "China"},
+                        "brand_owner_country": {"BYD": "China", "VW": "Germany"}}, f)
+        monkeypatch.setattr(process, "MAPPINGS_FILE", mapfile)
+
+        _setup_data_files(env["data"], MONTHLY_ROWS, FUEL_ROWS,
+                          [("VW", 500000), ("BYD", 1000)])
+        rows = []
+        for k in range(15):
+            y, m = 2023 + k // 12, 1 + k % 12
+            rows += [(y, m, "BYD", 20), (y, m, "VW", 80)]
+        pd.DataFrame(rows, columns=["year", "month", "brand", "bev_count"]).to_csv(
+            env["data"] / "brand_bev_by_month.csv", index=False)
+
+        path = report.generate_report(target_year=2024, target_month=3)
+        assert "China-owned BEV share" in path.read_text()
+
+
+# ---------------------------------------------------------------------------
+# china_bloc_rank_line
+# ---------------------------------------------------------------------------
+
+class TestChinaBlocRankLine:
+    def _bloc_mapfile(self, env, monkeypatch):
+        import yaml as _yaml
+        import process
+        mapfile = env["data"].parent / "mappings.yaml"
+        with open(mapfile, "w") as f:
+            _yaml.dump({
+                "brand_origin": {"BYD": "China", "VOLVO": "Sweden",
+                                 "TESLA": "USA", "VW": "Germany"},
+                "brand_owner_country": {"BYD": "China", "VOLVO": "China",
+                                        "TESLA": "USA", "VW": "Germany"},
+                "brand_group": {"VW": "Volkswagen Group"},
+                "country_continent": {"Germany": "Europe", "Sweden": "Europe",
+                                      "USA": "North America", "China": "Asia"},
+            }, f)
+        monkeypatch.setattr(process, "MAPPINGS_FILE", mapfile)
+
+    def _write_bev(self, env, per_month):
+        rows = []
+        for k in range(15):  # 2023-01 .. 2024-03
+            y, m = 2023 + k // 12, 1 + k % 12
+            for brand, cnt in per_month.items():
+                rows.append((y, m, brand, cnt))
+        pd.DataFrame(rows, columns=["year", "month", "brand", "bev_count"]).to_csv(
+            env["data"] / "brand_bev_by_month.csv", index=False)
+
+    def test_missing_file_returns_none(self, env):
+        assert report.china_bloc_rank_line(2024, 3) is None
+
+    def test_ranks_behind_named_leaders(self, env, monkeypatch):
+        self._bloc_mapfile(env, monkeypatch)
+        # Blocs: VW Group 45, Tesla 30, China-owned (BYD+VOLVO) 25 -> China 3rd.
+        self._write_bev(env, {"VW": 45, "TESLA": 30, "VOLVO": 15, "BYD": 10})
+        line = report.china_bloc_rank_line(2024, 3)
+        assert line is not None
+        assert "3rd-largest" in line
+        assert "25.0%" in line
+        assert "Volkswagen Group (45.0%)" in line
+        assert "Tesla (30.0%)" in line
+
+    def test_largest_bloc(self, env, monkeypatch):
+        self._bloc_mapfile(env, monkeypatch)
+        # China-owned dominates -> "largest" branch, no "behind" clause.
+        self._write_bev(env, {"BYD": 60, "VOLVO": 20, "VW": 15, "TESLA": 5})
+        line = report.china_bloc_rank_line(2024, 3)
+        assert "**largest**" in line
+        assert "80.0%" in line
+        assert "behind" not in line
+
+    def test_month_not_in_series_returns_none(self, env, monkeypatch):
+        self._bloc_mapfile(env, monkeypatch)
+        self._write_bev(env, {"BYD": 10, "VW": 40})
+        assert report.china_bloc_rank_line(2099, 1) is None
+
+
+# ---------------------------------------------------------------------------
+# china_branded_phev_share_line
+# ---------------------------------------------------------------------------
+
+class TestChinaBrandedPhevShareLine:
+    def _mapfile(self, env, monkeypatch):
+        import yaml as _yaml
+        import process
+        mapfile = env["data"].parent / "mappings.yaml"
+        with open(mapfile, "w") as f:
+            _yaml.dump({"brand_origin": {"BYD": "China", "VW": "Germany"},
+                        "brand_owner_country": {"BYD": "China", "VW": "Germany"}}, f)
+        monkeypatch.setattr(process, "MAPPINGS_FILE", mapfile)
+
+    def _write_powertrain(self, env):
+        rows = []
+        for k in range(15):  # 2023-01 .. 2024-03
+            y, m = 2023 + k // 12, 1 + k % 12
+            rows += [(y, m, "BYD", "BEV", 30), (y, m, "BYD", "PHEV", 10),
+                     (y, m, "VW", "BEV", 100)]  # VW excluded (not China-branded)
+        pd.DataFrame(rows, columns=["year", "month", "brand", "powertrain",
+                                    "count"]).to_csv(
+            env["data"] / "brand_powertrain_by_month.csv", index=False)
+
+    def test_missing_file_returns_none(self, env):
+        assert report.china_branded_phev_share_line(2024, 3, 2024, 2) is None
+
+    def test_no_china_branded_returns_none(self, env, monkeypatch):
+        self._mapfile(env, monkeypatch)
+        pd.DataFrame([(2024, 1, "VW", "BEV", 100)],
+                     columns=["year", "month", "brand", "powertrain",
+                              "count"]).to_csv(
+            env["data"] / "brand_powertrain_by_month.csv", index=False)
+        assert report.china_branded_phev_share_line(2024, 1, 2023, 12) is None
+
+    def test_share_with_mom_delta(self, env, monkeypatch):
+        self._mapfile(env, monkeypatch)
+        self._write_powertrain(env)
+        line = report.china_branded_phev_share_line(2024, 3, 2024, 2)
+        # PHEV 10 / (BEV 30 + PHEV 10) = 25%; flat MoM.
+        assert line is not None
+        assert "PHEV share of China-branded registrations" in line
+        assert "**25%**" in line
+        assert "MoM" in line
+
+    def test_month_not_in_series_returns_none(self, env, monkeypatch):
+        self._mapfile(env, monkeypatch)
+        self._write_powertrain(env)
+        assert report.china_branded_phev_share_line(2099, 1, 2098, 12) is None
+
+
+# ---------------------------------------------------------------------------
 # __name__ == "__main__" guard
 # ---------------------------------------------------------------------------
 

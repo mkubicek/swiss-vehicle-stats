@@ -126,6 +126,12 @@ brand_origin:
   MCLAREN: UK
   MC LAREN: UK
   LOTUS: UK
+  # MG (Morris Garages) and Maxus (ex-LDV) are British marques now owned by
+  # SAIC (China). Origin follows brand heritage (British); the Chinese ownership
+  # is captured separately in brand_owner_country. See METHODOLOGY.md > Ownership
+  # Classification. (Both were previously mapped origin=China — corrected here.)
+  MG: UK
+  MAXUS: UK
   CATERHAM: UK
   MORGAN: UK
   RELIANT: UK
@@ -156,7 +162,6 @@ brand_origin:
   AIWAYS: China
   LYNK & CO: China
   LYNK: China
-  MAXUS: China
   DONGFENG: China
   DFSK: China
   GEELY: China
@@ -174,11 +179,13 @@ brand_origin:
   JAECOO: China
   VOYAH: China
   WULING: China
-  MG: China
   BAIC: China
   SKYWELL: China
   JIALING: China
   JIAYUAN: China
+  # LYNK&CO as ASTRA spells it (no spaces) — the "LYNK & CO"/"LYNK" keys above
+  # do not match the spaceless Marke string in the raw data.
+  "LYNK&CO": China
 
   # Indian
   TATA: India
@@ -349,6 +356,144 @@ brand_group:
   # SAIC
   MG: SAIC
   MAXUS: SAIC
+
+  # Other Chinese parent groups (owner_country == China). SMART stays under
+  # Mercedes-Benz above — it is a 50/50 Geely–Mercedes JV, and the global
+  # corporate view keeps it with Mercedes; the Geely callout on
+  # chart_china_bev_share scopes it to Geely (see METHODOLOGY.md).
+  LEAPMOTOR: Leapmotor
+  LEAP MOTOR: Leapmotor
+  XPENG: XPeng
+  GWM: GWM
+  GREAT WALL: GWM
+  ORA: GWM
+  CHERY: Chery
+  OMODA: Chery
+  JAECOO: Chery
+  JAC: JAC
+  SERES: Seres
+  DFSK: Seres
+  NIO: NIO
+  AIWAYS: Aiways
+  DONGFENG: Dongfeng
+  VOYAH: Dongfeng
+  SKYWELL: Skywell
+  HONGQI: FAW
+  GAC: GAC
+  BAIC: BAIC
+  GEELY: Geely
+  JIALING: Jialing
+  JIAYUAN: Jiayuan
+  ZEEHO: Zeeho
+  "LYNK&CO": Geely
+
+# Brand → country of the ultimate controlling shareholder of the parent group.
+#
+# This is a SECOND, orthogonal dimension to brand_origin (which is by heritage).
+# It exists for the Chinese-ownership story: brands like Volvo, Polestar, MG and
+# Smart carry European/British heritage (brand_origin unchanged) but are
+# China-owned. Classification is by brand ownership, NEVER by production location
+# (Dacia Spring, Tesla Shanghai, pre-2025 BMW iX3 are China-*made*, not China-
+# *owned*, and stay with their owner's country). See METHODOLOGY.md > Ownership
+# Classification for the bloc definitions and footnoted edge cases.
+#
+# The China-owned bloc = origin==China OR owner_country==China, so heritage-
+# Chinese brands are covered even without an explicit entry here; the entries
+# that MATTER are the non-China-heritage brands controlled from China.
+# validate.py warns (owner_country:<brand>:<count>) for any brand contributing
+# ≥20 BEV registrations in the trailing 12 months without an entry here, so new
+# entrants surface for classification.
+brand_owner_country:
+  # --- China-owned, non-Chinese heritage (the "European badges" set) ---
+  VOLVO: China            # Geely Holding
+  VOLVO-T: China
+  POLESTAR: China         # Geely Holding (Nasdaq listing ≠ controlling ownership)
+  LOTUS: China            # Geely Holding
+  SMART: China            # 50/50 Geely–Mercedes JV, production in Xi'an
+  MG: China               # SAIC
+  MAXUS: China            # SAIC
+  # --- China-owned, Chinese heritage ---
+  BYD: China
+  NIO: China
+  XPENG: China
+  ZEEKR: China            # Geely
+  LYNK & CO: China        # Geely (engineering in Gothenburg; heritage ambiguous)
+  LYNK: China
+  "LYNK&CO": China
+  LEAPMOTOR: China        # Leapmotor (Stellantis holds a minority stake / export JV)
+  LEAP MOTOR: China
+  AIWAYS: China
+  JAC: China
+  GAC: China
+  SERES: China
+  DFSK: China
+  DONGFENG: China
+  VOYAH: China            # Dongfeng
+  SKYWELL: China
+  HONGQI: China           # FAW
+  GWM: China
+  GREAT WALL: China
+  ORA: China
+  CHERY: China
+  OMODA: China            # Chery
+  JAECOO: China           # Chery
+  WULING: China
+  BAIC: China
+  GEELY: China
+  JIALING: China
+  JIAYUAN: China
+  # --- Germany ---
+  VW: Germany
+  VOLKSWAGEN: Germany
+  AUDI: Germany
+  PORSCHE: Germany
+  SKODA: Germany          # VW Group
+  ŠKODA: Germany
+  SEAT: Germany           # VW Group
+  CUPRA: Germany          # VW Group
+  BMW: Germany
+  MINI: Germany           # BMW Group
+  MERCEDES-BENZ: Germany
+  MERCEDES-AMG: Germany
+  OPEL: Germany           # Stellantis (German heritage retained for owner too)
+  # --- France ---
+  RENAULT: France
+  DACIA: France           # Renault Group
+  ALPINE: France          # Renault Group
+  PEUGEOT: France         # Stellantis
+  CITROEN: France         # Stellantis
+  CITROËN: France
+  DS: France              # Stellantis
+  # --- Italy ---
+  FIAT: Italy             # Stellantis
+  ALFA ROMEO: Italy       # Stellantis
+  ABARTH: Italy           # Stellantis
+  MASERATI: Italy         # Stellantis
+  LANCIA: Italy
+  # --- Japan ---
+  TOYOTA: Japan
+  LEXUS: Japan            # Toyota
+  MAZDA: Japan
+  SUBARU: Japan
+  SUZUKI: Japan
+  NISSAN: Japan
+  MITSUBISHI: Japan
+  HONDA: Japan
+  # --- South Korea ---
+  HYUNDAI: South Korea
+  KIA: South Korea        # Hyundai Group
+  GENESIS: South Korea    # Hyundai Group
+  KG MOBILITY: South Korea
+  SSANGYONG: South Korea
+  # --- USA ---
+  TESLA: USA
+  FORD: USA
+  JEEP: USA               # Stellantis, but US heritage/ownership retained
+  CADILLAC: USA
+  CHEVROLET: USA
+  LUCID: USA
+  RIVIAN: USA
+  FISKER: USA
 
 # Country → continent mapping
 country_continent:
@@ -528,6 +673,18 @@ model_merges:
   BENTLEY CONTINENTAL: Bentley Continental
   SUZUKI SX4S-CROSS: Suzuki SX4 S-Cross
   SUZUKI SX4S-CROSS1.6: Suzuki SX4 S-Cross
+  # Chinese nameplates ASTRA writes two ways — bare digit ("4") vs brand-repeated
+  # ("MG4"), or with/without a trailing digit ("ATTO" vs "ATTO3"). Same car;
+  # collapse so each nameplate has one canonical key (chart_model_race,
+  # model_mapping_warnings).
+  MG 4: MG 4
+  MG MG4: MG 4
+  MG 3: MG 3
+  MG MG3: MG 3
+  MG 5: MG 5
+  MG MG5: MG 5
+  BYD ATTO: BYD Atto 3
+  BYD ATTO3: BYD Atto 3
   # Land Rover writes models many ways — two-word brand plus glued-on engine
   # codes ("DISCOVERYSP.SD4", "DISCO.SP") the decimal engine-stripper misses.
   # Discovery Sport, the full-size Discovery, and Defender are distinct models;
@@ -786,6 +943,30 @@ model_segments:
   DS DS3: City / Supermini
   DS DS4: Compact
   DS DS7: Mid-size SUV
+  # --- Chinese BEV nameplates (keeps them out of "Other" and lets
+  #     model_mapping_warnings watch new Chinese entrants). ---
+  BYD SEAL: Compact Executive
+  BYD Atto 3: Compact SUV
+  BYD SEALION: Mid-size SUV
+  BYD DOLPHIN: Compact
+  BYD TANG: Large SUV
+  MG 4: Compact
+  MG 3: City / Supermini
+  MG 5: Compact
+  MG ZS: Compact SUV
+  MG HS: Compact SUV
+  MG MARVEL: Mid-size SUV
+  MG CYBERSTER: Sports / GT
+  SMART 1: Compact SUV
+  SMART 3: Compact SUV
+  SMART 5: Mid-size SUV
+  LEAPMOTOR C10: Mid-size SUV
+  LEAPMOTOR T03: City / Supermini
+  LEAPMOTOR B10: Compact SUV
+  XPENG G6: Mid-size SUV
+  XPENG G9: Large SUV
+  ZEEKR X: Compact SUV
+  ZEEKR 001: Executive
 
 # Warn when watched brands have high-volume model keys that still fall into
 # model_segments -> Other. This is a maintenance signal for newly introduced
@@ -810,3 +991,12 @@ model_mapping_warnings:
     - MASERATI
     - GENESIS
     - DS
+    # China-owned brands — surface new Chinese nameplates (BYD Seal U, MG S5,
+    # Zeekr 7X, …) as they cross the volume floor so their segment tags get
+    # added to model_segments.
+    - BYD
+    - MG
+    - SMART
+    - LEAPMOTOR
+    - XPENG
+    - ZEEKR

@@ -8,7 +8,10 @@ import json
 import pandas as pd
 from pathlib import Path
 from datetime import datetime
-from chart import display_brand
+from chart import (
+    display_brand, china_bev_share_series, _t12m_matrix, POWERTRAIN_COLLAPSE,
+)
+from process import load_mappings, bloc, is_china_branded, BLOC_CHINA_OWNED
 
 ROOT = Path(__file__).parent.parent
 DATA_DIR = ROOT / "data" / "processed"
@@ -28,6 +31,98 @@ MONTH_NAMES = {
     5: "May", 6: "June", 7: "July", 8: "August",
     9: "September", 10: "October", 11: "November", 12: "December",
 }
+
+
+def china_owned_share_line(year: int, month: int, prev_year: int, prev_month: int):
+    """One Headlines bullet: China-owned BEV share (T12M) + MoM delta in pp.
+
+    Returns the markdown line, or None if brand BEV data is unavailable or the
+    trailing window does not cover the target month (e.g. pre-2019 reports).
+    """
+    path = DATA_DIR / "brand_bev_by_month.csv"
+    if not path.exists():
+        return None
+    shares = china_bev_share_series(pd.read_csv(path), load_mappings())
+    cur = shares[(shares["year"] == year) & (shares["month"] == month)]
+    if cur.empty:
+        return None
+    cur_owned = float(cur["owned"].iloc[0]) * 100
+    prev = shares[(shares["year"] == prev_year) & (shares["month"] == prev_month)]
+    if prev.empty:
+        return f"- China-owned BEV share (trailing 12 months): **{cur_owned:.1f}%**"
+    delta = cur_owned - float(prev["owned"].iloc[0]) * 100
+    return (f"- China-owned BEV share (trailing 12 months): **{cur_owned:.1f}%** "
+            f"({delta:+.1f}pp MoM)")
+
+
+def china_bloc_rank_line(year: int, month: int):
+    """One Headlines bullet: where China-owned ranks among the seven manufacturer
+    blocs (T12M share), naming the current leader. Mirrors the manufacturer-bloc
+    strip inside charts/china_bev_share.png. Returns None if brand BEV data is
+    unavailable or the trailing window does not cover the target month.
+    """
+    path = DATA_DIR / "brand_bev_by_month.csv"
+    if not path.exists():
+        return None
+    df = pd.read_csv(path)
+    mappings = load_mappings()
+    records = [(r.year, r.month, bloc(r.brand, mappings), int(r.bev_count))
+               for r in df.itertuples(index=False)]
+    months, keys, series = _t12m_matrix(records, start=(2019, 1))
+    if (year, month) not in months:
+        return None
+    i = months.index((year, month))
+    total = sum(series[k][i] for k in keys)
+    if total == 0:
+        return None
+    ranked = sorted(((series[k][i] / total * 100, k) for k in keys), reverse=True)
+    rank = next(n for n, (_, k) in enumerate(ranked, 1) if k == BLOC_CHINA_OWNED)
+    china_share = next(s for s, k in ranked if k == BLOC_CHINA_OWNED)
+    ordinal = {1: "largest", 2: "2nd-largest", 3: "3rd-largest"}.get(
+        rank, f"{rank}th-largest")
+    if rank == 1:
+        return (f"- China-owned brands are the **largest** BEV manufacturer bloc "
+                f"(**{china_share:.1f}%** of trailing-12-month registrations)")
+    ahead = " and ".join(f"{k} ({s:.1f}%)" for s, k in ranked[:rank - 1])
+    return (f"- China-owned brands are the {ordinal} BEV manufacturer bloc "
+            f"(**{china_share:.1f}%**), behind {ahead}")
+
+
+def china_branded_phev_share_line(year: int, month: int,
+                                  prev_year: int, prev_month: int):
+    """One Headlines bullet: PHEV share of China-branded registrations (T12M) —
+    the 'second wave' indicator behind charts/china_powertrain_mix.png. Returns
+    None if the powertrain file is missing (it lags the other outputs by a month
+    right after release) or the window does not cover the target month.
+    """
+    path = DATA_DIR / "brand_powertrain_by_month.csv"
+    if not path.exists():
+        return None
+    df = pd.read_csv(path)
+    mappings = load_mappings()
+    records = [(r.year, r.month, POWERTRAIN_COLLAPSE.get(r.powertrain, "Other"),
+                int(r.count))
+               for r in df.itertuples(index=False)
+               if is_china_branded(r.brand, mappings)]
+    if not records:
+        return None
+    months, keys, series = _t12m_matrix(records, start=(2019, 1))
+    if (year, month) not in months:
+        return None
+    i = months.index((year, month))
+    total = sum(series[k][i] for k in keys)
+    if total == 0:
+        return None
+    cur = series.get("PHEV", [0] * len(months))[i] / total * 100
+    line = ("- PHEV share of China-branded registrations "
+            f"(trailing 12 months): **{cur:.0f}%**")
+    if (prev_year, prev_month) in months:
+        j = months.index((prev_year, prev_month))
+        prev_total = sum(series[k][j] for k in keys)
+        if prev_total:
+            delta = cur - series.get("PHEV", [0] * len(months))[j] / prev_total * 100
+            line += f" ({delta:+.1f}pp MoM)"
+    return line
 
 
 def pct_change(new: float, old: float) -> str:
@@ -118,6 +213,21 @@ def generate_report(target_year: int = None, target_month: int = None):
         f"- **{current:,.0f}** new passenger cars registered in {month_name} {year}",
         f"- The market {momentum} compared to {month_name} {year - 1}",
         f"- BEV share: **{bev_share:.1f}%** | Plug-in share (BEV + PHEV): **{plugin_share:.1f}%**",
+    ]
+
+    china_line = china_owned_share_line(year, month, prev_month_year, prev_month)
+    if china_line:
+        lines.append(china_line)
+
+    bloc_line = china_bloc_rank_line(year, month)
+    if bloc_line:
+        lines.append(bloc_line)
+
+    phev_line = china_branded_phev_share_line(year, month, prev_month_year, prev_month)
+    if phev_line:
+        lines.append(phev_line)
+
+    lines += [
         "",
         "## Key Metrics",
         "",

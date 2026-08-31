@@ -913,6 +913,75 @@ class TestConsolidateAndSaveOptionalKeys:
         df = pd.read_csv(env["out"] / "fuel_by_month.csv")
         assert list(df.columns) == ["year", "month", "fuel_type", "count"]
 
+    def test_brand_powertrain_by_month(self, env):
+        agg = {
+            "brand_powertrain_by_month": pd.DataFrame({
+                "_year": [2024, 2024],
+                "_month": [1, 1],
+                "_brand": ["BYD", "BYD"],
+                "_fuel": ["BEV", "PHEV"],
+                "count": [40, 10],
+            }),
+        }
+        process.consolidate_and_save(agg)
+        df = pd.read_csv(env["out"] / "brand_powertrain_by_month.csv")
+        assert list(df.columns) == ["year", "month", "brand", "powertrain", "count"]
+        assert set(df["powertrain"]) == {"BEV", "PHEV"}
+
+
+# ---------------------------------------------------------------------------
+# bloc — mutually-exclusive, exhaustive manufacturer partition
+# ---------------------------------------------------------------------------
+
+class TestBloc:
+    @pytest.fixture(scope="class")
+    def mappings(self):
+        return process.load_mappings()
+
+    def test_china_owned_beats_origin(self, mappings):
+        # China ownership is resolved first, before European/other origin: Volvo
+        # (Sweden), MG (UK) and Smart (a JV kept under Mercedes-Benz in
+        # brand_group) must all land in the China-owned bloc.
+        for brand in ["VOLVO", "POLESTAR", "MG", "SMART", "BYD", "ZEEKR",
+                      "LYNK&CO", "LOTUS"]:
+            assert process.bloc(brand, mappings) == process.BLOC_CHINA_OWNED
+
+    def test_tesla_is_its_own_bloc(self, mappings):
+        assert process.bloc("TESLA", mappings) == process.BLOC_TESLA
+        assert process.bloc(" tesla ", mappings) == process.BLOC_TESLA
+
+    def test_volkswagen_group(self, mappings):
+        for brand in ["VW", "AUDI", "SKODA", "CUPRA", "PORSCHE", "SEAT"]:
+            assert process.bloc(brand, mappings) == process.BLOC_VW
+
+    def test_korean(self, mappings):
+        for brand in ["HYUNDAI", "KIA", "GENESIS"]:
+            assert process.bloc(brand, mappings) == process.BLOC_KOREAN
+
+    def test_japanese(self, mappings):
+        for brand in ["TOYOTA", "NISSAN", "MAZDA", "HONDA", "SUBARU"]:
+            assert process.bloc(brand, mappings) == process.BLOC_JAPANESE
+
+    def test_european_legacy(self, mappings):
+        for brand in ["BMW", "MERCEDES-BENZ", "RENAULT", "PEUGEOT", "FIAT", "OPEL"]:
+            assert process.bloc(brand, mappings) == process.BLOC_EU_LEGACY
+
+    def test_other_fallback(self, mappings):
+        # Non-European, non-classified origins (and unknown brands) fall through.
+        for brand in ["FORD", "JEEP", "CADILLAC", "SOME UNKNOWN MARQUE"]:
+            assert process.bloc(brand, mappings) == process.BLOC_OTHER
+
+    def test_partition_is_total(self, mappings):
+        # Every brand resolves to exactly one bloc, and every bloc is a member of
+        # BLOC_ORDER — the stackplot contract for the china_bev_share bloc strip.
+        brands = ["TESLA", "VW", "VOLVO", "MG", "SMART", "BYD", "HYUNDAI",
+                  "TOYOTA", "BMW", "FORD", "ZZZ-UNMAPPED"]
+        for brand in brands:
+            result = process.bloc(brand, mappings)
+            assert result in process.BLOC_ORDER
+        assert len(process.BLOC_ORDER) == len(set(process.BLOC_ORDER))
+        assert process.BLOC_ORDER[-1] == process.BLOC_CHINA_OWNED
+
 
 # ---------------------------------------------------------------------------
 # consolidate_and_save — simple totals
