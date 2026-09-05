@@ -1037,14 +1037,14 @@ year,month,fuel_type,count
 2025,12,Hybrid (Petrol),7004
 2025,12,PHEV,2822
 2025,12,Petrol,5483
-2026,1,BEV,2949
-2026,1,Diesel,885
+2026,1,BEV,2948
+2026,1,Diesel,886
 2026,1,Diesel PHEV,31
 2026,1,Hybrid (Diesel),784
-2026,1,Hybrid (Petrol),4959
-2026,1,PHEV,1514
+2026,1,Hybrid (Petrol),4960
+2026,1,PHEV,1515
 2026,1,Petrol,2994
-2026,2,BEV,3082
+2026,2,BEV,3086
 2026,2,CNG,1
 2026,2,Diesel,927
 2026,2,Diesel PHEV,51
@@ -1052,18 +1052,18 @@ year,month,fuel_type,count
 2026,2,Hybrid (Petrol),5553
 2026,2,PHEV,1547
 2026,2,Petrol,3869
-2026,3,BEV,5388
+2026,3,BEV,5390
 2026,3,Diesel,1201
 2026,3,Diesel PHEV,51
 2026,3,Hybrid (Diesel),1039
 2026,3,Hybrid (Petrol),8447
 2026,3,PHEV,2250
 2026,3,Petrol,4888
-2026,4,BEV,4664
-2026,4,Diesel,981
+2026,4,BEV,4657
+2026,4,Diesel,982
 2026,4,Diesel PHEV,44
 2026,4,Hybrid (Diesel),726
-2026,4,Hybrid (Petrol),6176
+2026,4,Hybrid (Petrol),6183
 2026,4,Hydrogen,1
 2026,4,PHEV,1933
 2026,4,Petrol,4020
@@ -1071,30 +1071,30 @@ year,month,fuel_type,count
 2026,5,Diesel,1014
 2026,5,Diesel PHEV,52
 2026,5,Hybrid (Diesel),851
-2026,5,Hybrid (Petrol),6331
+2026,5,Hybrid (Petrol),6329
 2026,5,LPG,1
 2026,5,PHEV,1904
 2026,5,Petrol,4508
-2026,6,BEV,6780
+2026,6,BEV,6801
 2026,6,CNG,1
-2026,6,Diesel,1497
+2026,6,Diesel,1498
 2026,6,Diesel PHEV,95
 2026,6,Hybrid (Diesel),1074
 2026,6,Hybrid (Petrol),8123
 2026,6,LPG,1
-2026,6,PHEV,2862
-2026,6,Petrol,5019
-2026,7,BEV,4849
+2026,6,PHEV,2863
+2026,6,Petrol,5020
+2026,7,BEV,4847
 2026,7,Diesel,1131
 2026,7,Diesel PHEV,92
 2026,7,Hybrid (Diesel),742
-2026,7,Hybrid (Petrol),6536
+2026,7,Hybrid (Petrol),6541
 2026,7,PHEV,2093
-2026,7,Petrol,3359
-2026,8,BEV,1841
-2026,8,Diesel,276
-2026,8,Diesel PHEV,12
-2026,8,Hybrid (Diesel),220
-2026,8,Hybrid (Petrol),1990
-2026,8,PHEV,608
-2026,8,Petrol,952
+2026,7,Petrol,3357
+2026,8,BEV,4773
+2026,8,Diesel,739
+2026,8,Diesel PHEV,75
+2026,8,Hybrid (Diesel),591
+2026,8,Hybrid (Petrol),5648
+2026,8,PHEV,1486
+2026,8,Petrol,2546
