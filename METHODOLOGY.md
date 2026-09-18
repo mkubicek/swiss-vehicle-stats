@@ -116,6 +116,50 @@ Assigned by **brand heritage**, not corporate registration country:
 - Fiat → Italy (even though Stellantis is Dutch-registered)
 - MINI → Germany (even though it's BMW Group / historically British)
 - Volvo → Sweden (even though Geely is Chinese-owned)
+- MG → United Kingdom, Maxus → United Kingdom (British marques — Morris Garages, ex-LDV — now SAIC-owned; heritage governs origin, ownership is captured separately below)
+
+### Ownership Classification (`owner_country`)
+
+**Brand Origin is by heritage and is not repurposed.** The Chinese-ownership story needs a *second, orthogonal* dimension: **`owner_country`** — the country of the ultimate controlling shareholder of the brand's parent group. It lives in `mappings.yaml > brand_owner_country` (a flat per-brand map, mirroring `brand_origin`/`brand_group`); no classification logic lives in code.
+
+Two blocs are derived from these two dimensions:
+
+| Bloc | Rule | Examples |
+|------|------|----------|
+| **China-branded** | `brand_origin == China` | BYD, XPeng, Zeekr, NIO, Leapmotor, GWM/Ora, Aiways, JAC, GAC, Maxus (heritage note below), DFSK/Seres, Omoda & Jaecoo (Chery), Voyah, Hongqi, Lynk & Co |
+| **China-owned** | `owner_country == China` **or** `brand_origin == China` | All China-branded brands **plus** MG (SAIC), Volvo, Polestar & Lotus (Geely), Smart (Geely–Mercedes JV) |
+
+The union rule (`owner_country == China OR origin == China`) makes **China-branded ⊆ China-owned** by construction, so on `china_bev_share.png` the China-branded line is never above the China-owned line, and a new Chinese-heritage brand is counted as China-owned even before an explicit `owner_country` entry is added.
+
+Decisions encoded (the recurring objections, pre-empted):
+
+- **Lynk & Co** — Geely-created brand (2016), engineering in Gothenburg. Heritage is genuinely ambiguous → `origin: China`, `owner_country: China`. (The Gothenburg design heritage is why it is borderline.)
+- **Smart** — 50/50 Geely–Mercedes JV, production in Xi'an → `origin: Germany` (unchanged), `owner_country: China`. This is the "but Smart is German" objection; the on-chart definition line names the JV. For the Geely callout on `china_bev_share.png`, Smart is counted **fully under Geely** (via `CHINA_GROUP_OVERRIDES` in `scripts/chart.py`) — no fractional JV attribution.
+- **Volvo / Polestar / Lotus** — `origin` stays Sweden / Sweden / United Kingdom; `owner_country: China` (Geely Holding). Polestar's Nasdaq listing does not change controlling ownership.
+- **MG / Maxus** — `origin` corrected to United Kingdom (British heritage; both were previously mapped `origin: China`), `owner_country: China` (SAIC).
+- **Classification is by brand ownership, never by production location.** Dacia Spring, Tesla Model 3 (Shanghai) and the pre-2025 BMW iX3 are China-*made* but not China-*owned*, and stay with their owner's country.
+- **Unknown brands** — the existing "Other" mechanism applies. `validate.py` additionally emits `owner_country:<brand>:<count>` to `warnings.log` for any brand contributing ≥ 20 BEV registrations in the trailing 12 months without an `owner_country` mapping, so new entrants (expected: several Chinese brands per year) surface for classification.
+
+### Market Entry (entry markers)
+
+The **market-entry markers** on `china_powertrain_mix.png` place one ▲ tick per China-branded brand at its **market entry** — the first month with **≥ `ENTRY_MIN_MONTHLY` (= 5)** BEV registrations whose following three months are not all zero. The threshold and follow-through guard filter single grey/direct imports (Known Limitation #3) that would otherwise date a brand's "entry" to a one-off registration years before commercial launch. Only brands with **≥ 300 cumulative** BEV registrations are marked (`ENTRY_MARKER_MIN_CUMULATIVE` in `scripts/chart.py`), and entries within four months of each other are staggered onto two levels. Qualifying brands whose entry predates the volume-floored x-axis (see China-branded Powertrain Mix below) are named in a corner note instead of a tick, so the trimmed window doesn't erase their timing. `ENTRY_MIN_MONTHLY` is a module constant in `scripts/process.py`.
+
+### Manufacturer Blocs (displacement strip)
+
+The manufacturer-bloc strip inside `china_bev_share.png` partitions **every** BEV brand into exactly one of seven mutually-exclusive, collectively-exhaustive **manufacturer blocs** via `process.bloc()`. Resolution is first-match-wins so the partition is deterministic:
+
+1. **China-owned** — `owner_country == China OR origin == China` (absorbs Volvo, Polestar, Smart, MG before the European fallthrough can claim them, consistent with the `owner_country` dimension)
+2. **Tesla** — its own bloc (the single largest non-group marque; kept separate so the legacy-vs-China story isn't muddied by Tesla's swings)
+3. **Volkswagen Group** — `brand_group == "Volkswagen Group"`
+4. **Korean** / **Japanese** — `brand_origin`
+5. **European legacy** — any remaining Europe-origin brand (`country_continent[origin] == Europe`)
+6. **Other** — everything else (incl. unmapped origins, already surfaced by the brand-origin unmapped warning)
+
+`BLOC_ORDER` places China-owned **last** so it stacks on top of the compressed 100%-area strip. Only the China-owned wedge is drawn at full saturation; every legacy bloc is muted so the growing red wedge is the one thing the eye tracks (`BEV_BLOC_FILL_COLORS` in `scripts/chart.py`). The partition contract (every brand → exactly one bloc ∈ `BLOC_ORDER`) is asserted in `tests/test_process.py::TestBloc`. The report's `china_bloc_rank_line` mirrors this strip as a Headlines bullet.
+
+### China-branded Powertrain Mix
+
+`china_powertrain_mix.png` uses the **China-branded** set (tighter than China-owned — excludes Volvo, MG, Smart, Polestar) from the `brand_powertrain_by_month.csv` output. The full decision-table fuels collapse to **BEV / PHEV / HEV / ICE / Other** (`POWERTRAIN_COLLAPSE`): EREV/range-extender is already PHEV upstream, Diesel-PHEV folds into PHEV, both hybrid flavours into HEV, Petrol + Diesel into ICE. The lower panel tracks **PHEV share of China-branded registrations** — the "second wave" indicator as BYD/others push plug-in hybrids after their BEV entry. The x-axis starts at the first month whose T12M total reaches **5% of the series peak** (`POWERTRAIN_WINDOW_FLOOR` in `scripts/chart.py`): China-branded volume sat near zero for years before the 2025 surge, and an untrimmed axis compresses the entire growth story into its final tenth. The floor is relative, not a hardcoded year, so the window tracks the data (precedent: `MODEL_RACE_START_YEAR`). Per-brand market-entry ▲ ticks sit on the top panel's x-axis (see Market Entry above).
 
 ### Corporate Group
 
@@ -243,3 +287,4 @@ Animated charts use **12-month trailing** sums/averages for trend stability. Thi
 |------|---------|--------|
 | 2025-03 | 1.0 | Initial classification: all "Benzin/Elektrisch" mapped to PHEV |
 | 2025-03 | 2.0 | **PR #4:** Split "Benzin/Elektrisch" into PHEV vs HEV using Hybridcode + CO2 fallback. Added HEV(Petrol) and HEV(Diesel) categories. REX reclassified from BEV to PHEV. |
+| 2026-07 | 3.0 | **Chinese BEV brands:** Added the `owner_country` ownership dimension (China-owned vs China-branded blocs) and two dashboard charts. `china_bev_share` overlays the T12M China-owned / China-branded / Tesla share lines (with a Geely-concentration callout and a China-owned-passes-Tesla marker) on a compressed 100%-stacked manufacturer-bloc strip (`process.bloc()`, 7-bloc partition). `china_powertrain_mix` shows the China-branded powertrain collapse + PHEV-share "second wave" panel with per-brand market-entry ▲ markers (`ENTRY_MIN_MONTHLY = 5`, brands ≥300 cumulative; new `brand_powertrain_by_month.csv` output). MG and Maxus `origin` corrected China → United Kingdom (heritage); Chinese ownership carried by `owner_country`. Report gains China-owned-share, bloc-rank, and China-branded-PHEV-share Headlines. |

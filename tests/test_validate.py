@@ -401,6 +401,7 @@ class TestMain:
             "# Header comment\n"
             "\n"
             "plausibility:old_warning\n"
+            "owner_country:OLD_BRAND:99\n"
             "unmapped:SOME_BRAND -> Unknown\n"
             "ANOTHER_BRAND -> Unknown\n"
         )
@@ -413,6 +414,10 @@ class TestMain:
         result = (tmp_path / "warnings.log").read_text()
         # plausibility: lines from old file are dropped
         assert "plausibility:old_warning" not in result
+        # owner_country: lines are recomputed fresh, so the stale one is dropped
+        # (not preserved as an unmapped value)
+        assert "owner_country:OLD_BRAND:99" not in result
+        assert "unmapped:owner_country" not in result
         # unmapped: prefix is stripped and re-added
         assert "unmapped:SOME_BRAND -> Unknown" in result
         # bare line gets unmapped: prefix
@@ -456,6 +461,60 @@ class TestMain:
 
 
 # ---------------------------------------------------------------------------
+# check_owner_country_completeness
+# ---------------------------------------------------------------------------
+
+class TestCheckOwnerCountryCompleteness:
+    def _write_bev(self, data_dir, rows):
+        pd.DataFrame(rows, columns=["year", "month", "brand", "bev_count"]).to_csv(
+            data_dir / "brand_bev_by_month.csv", index=False)
+
+    def _mappings(self, tmp_path, monkeypatch):
+        import process
+        mapfile = tmp_path / "mappings.yaml"
+        _write_yaml(mapfile, {
+            "brand_origin": {"BYD": "China"},
+            "brand_owner_country": {"BYD": "China"},
+        })
+        monkeypatch.setattr(process, "MAPPINGS_FILE", mapfile)
+
+    def test_missing_file(self, tmp_path, monkeypatch):
+        monkeypatch.setattr(validate, "DATA_DIR", tmp_path)
+        assert validate.check_owner_country_completeness() == []
+
+    def test_empty_file(self, tmp_path, monkeypatch):
+        monkeypatch.setattr(validate, "DATA_DIR", tmp_path)
+        self._write_bev(tmp_path, [])
+        assert validate.check_owner_country_completeness() == []
+
+    def test_flags_only_unmapped_active_brands(self, tmp_path, monkeypatch):
+        self._mappings(tmp_path, monkeypatch)
+        monkeypatch.setattr(validate, "DATA_DIR", tmp_path)
+        rows = []
+        for m in range(1, 13):
+            rows.append((2024, m, "BYD", 10))     # mapped -> never flagged
+            rows.append((2024, m, "FOOEV", 5))    # unmapped, T12M=60 (≥20) -> flag
+            rows.append((2024, m, "TINY", 1))     # unmapped, T12M=12 (<20) -> skip
+        self._write_bev(tmp_path, rows)
+        warns = validate.check_owner_country_completeness()
+        assert "owner_country:FOOEV:60" in warns
+        assert not any(w.startswith("owner_country:BYD") for w in warns)
+        assert not any(w.startswith("owner_country:TINY") for w in warns)
+
+    def test_only_trailing_12_months_counted(self, tmp_path, monkeypatch):
+        self._mappings(tmp_path, monkeypatch)
+        monkeypatch.setattr(validate, "DATA_DIR", tmp_path)
+        # 30 units in 2022 (outside the window), 6 units inside the last 12
+        # months -> below threshold, so no warning despite a large lifetime sum.
+        rows = [(2022, 1, "OLDEV", 30)]
+        for m in range(1, 13):
+            rows.append((2024, m, "OLDEV", 0))
+        rows.append((2024, 6, "OLDEV", 6))
+        self._write_bev(tmp_path, rows)
+        warns = validate.check_owner_country_completeness()
+        assert not any(w.startswith("owner_country:OLDEV") for w in warns)
+
+
 # __name__ == "__main__" guard
 # ---------------------------------------------------------------------------
 
