@@ -11,6 +11,8 @@ import pandas as pd
 from pathlib import Path
 from datetime import datetime
 
+from process import load_mappings, owner_country_or_none
+
 ROOT = Path(__file__).parent.parent
 DATA_DIR = ROOT / "data" / "processed"
 REFERENCE_FILE = ROOT / "reference.yaml"
@@ -23,6 +25,10 @@ BEV_MONTHLY_TOLERANCE = 0.05
 MONTHLY_MIN = 5000
 MONTHLY_MAX = 45000
 MOM_SPIKE = 0.50
+
+# Any brand contributing at least this many BEV registrations in the trailing
+# 12 months must carry a brand_owner_country mapping (owner_country watch).
+OWNER_COUNTRY_MIN_BEV = 20
 
 
 def load_reference() -> dict:
@@ -170,6 +176,42 @@ def check_fuel_consistency() -> list[str]:
     return warnings
 
 
+def check_owner_country_completeness() -> list[str]:
+    """Flag active BEV brands with no brand_owner_country mapping.
+
+    Any brand contributing ≥ OWNER_COUNTRY_MIN_BEV BEV registrations in the
+    trailing 12 months without an owner_country entry is surfaced as
+    ``owner_country:<brand>:<count>`` (mirrors the model_segment watch). This is
+    the maintenance signal for new market entrants — expected to be Chinese
+    brands — so their ownership bloc gets classified before the charts run.
+    """
+    warnings = []
+    path = DATA_DIR / "brand_bev_by_month.csv"
+    if not path.exists():
+        return warnings
+    df = pd.read_csv(path)
+    if df.empty:
+        return warnings
+
+    mappings = load_mappings()
+    latest_year = int(df["year"].max())
+    latest_month = int(df[df["year"] == latest_year]["month"].max())
+    window = set()
+    y, m = latest_year, latest_month
+    for _ in range(12):
+        window.add((y, m))
+        m -= 1
+        if m == 0:
+            m, y = 12, y - 1
+
+    df = df[[(int(yr), int(mo)) in window for yr, mo in zip(df["year"], df["month"])]]
+    t12 = df.groupby("brand")["bev_count"].sum()
+    for brand, count in t12.items():
+        if count >= OWNER_COUNTRY_MIN_BEV and owner_country_or_none(brand, mappings) is None:
+            warnings.append(f"owner_country:{brand}:{int(count)}")
+    return warnings
+
+
 def main():
     print("=== Plausibility Checks ===\n")
 
@@ -197,6 +239,7 @@ def main():
     all_warnings.extend(check_complete_years(monthly))
     all_warnings.extend(check_yoy_spikes(monthly))
     all_warnings.extend(check_fuel_consistency())
+    all_warnings.extend(check_owner_country_completeness())
 
     # Merge with existing unmapped warnings from process.py
     existing_warnings = []
@@ -207,6 +250,10 @@ def main():
                 if not line or line.startswith("#"):
                     continue
                 if line.startswith("plausibility:"):
+                    continue
+                # owner_country warnings are recomputed fresh below (like
+                # plausibility) — don't preserve them as unmapped values.
+                if line.startswith("owner_country:"):
                     continue
                 # Strip existing unmapped: prefix to avoid doubling
                 if line.startswith("unmapped:"):

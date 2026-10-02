@@ -43,6 +43,12 @@ BEV_FUELS = {"BEV"}
 # CO2 threshold for PHEV classification when Hybridcode is unavailable
 CO2_PHEV_THRESHOLD = 50  # g/km — EU regulation: PHEV < 50 g/km
 
+# Market-entry threshold for the brand entry markers on chart_china_powertrain_mix.
+# A single grey/direct import (Known Limitation #3) can put one BEV on the road
+# years before a brand's commercial launch; requiring ≥5 in a month (and non-zero
+# follow-through) filters those one-offs. Documented in METHODOLOGY.md.
+ENTRY_MIN_MONTHLY = 5
+
 # Intermediate fuel types from mappings.yaml that need runtime resolution
 _HYBRID_INTERMEDIATES = {"_petrol_hybrid", "_diesel_hybrid"}
 
@@ -282,6 +288,102 @@ def safe_map(value, mapping: dict, default: str = "Other") -> str:
         if str(key).upper() == v_upper:
             return val
     return default
+
+
+# --- Ownership classification (owner_country dimension) -------------------
+# Two orthogonal blocs for the Chinese-BEV charts (see METHODOLOGY.md):
+#   China-branded = brand_origin == China          (heritage)
+#   China-owned   = owner_country == China OR brand_origin == China (ownership)
+# The union guarantees China-branded ⊆ China-owned, so the share lines never
+# cross. Classification is data-driven from mappings.yaml — no logic here beyond
+# reading the two maps.
+
+def resolve_origin(brand, mappings: dict) -> str:
+    """Brand heritage country (or 'Other' if unmapped)."""
+    return safe_map(brand, mappings.get("brand_origin", {}))
+
+
+def owner_country_or_none(brand, mappings: dict):
+    """Ultimate controlling-shareholder country, or None if the brand has no
+    explicit brand_owner_country entry. Used by validate.py to flag gaps."""
+    m = mappings.get("brand_owner_country", {})
+    result = safe_map(brand, m, default="__missing__")
+    return None if result == "__missing__" else result
+
+
+def is_china_branded(brand, mappings: dict) -> bool:
+    """True when the brand's heritage is Chinese (brand_origin == China)."""
+    return resolve_origin(brand, mappings) == "China"
+
+
+def is_china_owned(brand, mappings: dict) -> bool:
+    """True when the brand is ultimately controlled from China. Union of the
+    explicit owner_country and the heritage-China set, so any Chinese-heritage
+    brand counts as China-owned even without an explicit owner_country entry."""
+    return owner_country_or_none(brand, mappings) == "China" or is_china_branded(brand, mappings)
+
+
+# Manufacturer blocs for the bloc strip inside chart_china_bev_share. The
+# partition is mutually exclusive and exhaustive: every brand resolves to
+# exactly one bloc, and any brand without a mapped origin falls through to
+# "Other" (already surfaced by the existing brand-origin unmapped warning).
+BLOC_CHINA_OWNED = "China-owned"
+BLOC_TESLA = "Tesla"
+BLOC_VW = "Volkswagen Group"
+BLOC_EU_LEGACY = "European legacy"
+BLOC_KOREAN = "Korean"
+BLOC_JAPANESE = "Japanese"
+BLOC_OTHER = "Other"
+BLOC_ORDER = [BLOC_TESLA, BLOC_VW, BLOC_EU_LEGACY, BLOC_KOREAN, BLOC_JAPANESE,
+              BLOC_OTHER, BLOC_CHINA_OWNED]
+
+
+def bloc(brand, mappings: dict) -> str:
+    """Resolve a brand to exactly one manufacturer bloc (see BLOC_ORDER).
+
+    Resolution order (first match wins), so the partition is deterministic and
+    the China-owned bloc absorbs Volvo/Polestar/Smart/MG before the European
+    fallthrough can claim them (consistent with the owner_country dimension):
+      1. China-owned  (owner_country == China OR origin == China)
+      2. Tesla
+      3. Volkswagen Group  (brand_group)
+      4. Korean / Japanese  (brand_origin)
+      5. European legacy  (any remaining Europe-origin brand)
+      6. Other
+    """
+    if is_china_owned(brand, mappings):
+        return BLOC_CHINA_OWNED
+    if str(brand).strip().upper() == "TESLA":
+        return BLOC_TESLA
+    if safe_map(brand, mappings.get("brand_group", {})) == "Volkswagen Group":
+        return BLOC_VW
+    origin = resolve_origin(brand, mappings)
+    if origin == "South Korea":
+        return BLOC_KOREAN
+    if origin == "Japan":
+        return BLOC_JAPANESE
+    if safe_map(origin, mappings.get("country_continent", {})) == "Europe":
+        return BLOC_EU_LEGACY
+    return BLOC_OTHER
+
+
+def detect_entry_month(series):
+    """First sustained market-entry month for a brand's monthly BEV series.
+
+    ``series`` is an iterable of ``(year, month, count)`` in chronological order.
+    Entry = the first month with ``count >= ENTRY_MIN_MONTHLY`` whose following
+    three months are not all zero (the grey-import guard — a lone spike that
+    immediately drops back to zero is not a market entry). Returns ``(year,
+    month)`` or ``None`` if the brand never sustains the threshold.
+    """
+    rows = list(series)
+    for i, (y, m, count) in enumerate(rows):
+        if count is None or count < ENTRY_MIN_MONTHLY:
+            continue
+        nxt = rows[i + 1:i + 4]
+        if not nxt or any((r[2] or 0) > 0 for r in nxt):
+            return (int(y), int(m))
+    return None
 
 
 def find_raw_files() -> list[Path]:
@@ -554,6 +656,15 @@ def process_file(filepath: Path, mappings: dict, warnings: set) -> dict:
                     .rename(columns={brand_col: "_brand"})
                 )
 
+        # Brand powertrain by month (brand x month x fuel category) — generic
+        # aggregate powering chart_china_powertrain_mix and any future
+        # per-brand powertrain view. Not China-filtered on purpose.
+        if "_brand" in valid.columns and "_fuel" in valid.columns:
+            agg["brand_powertrain_by_month"] = (
+                valid.groupby(["_year", "_month", "_brand", "_fuel"])
+                .size().reset_index(name="count")
+            )
+
         # Brand BEV by month (for ev_race)
         if "_brand" in valid.columns and "_is_bev" in valid.columns:
             bev_only = valid[valid["_is_bev"]]
@@ -688,6 +799,14 @@ def consolidate_and_save(agg: dict):
         df.columns = ["year", "month", "brand", "bev_count"]
         df = df.sort_values(["year", "month", "brand"])
         df.to_csv(OUT_DIR / "brand_bev_by_month.csv", index=False)
+
+    # Brand powertrain by month (brand x month x fuel category)
+    if "brand_powertrain_by_month" in agg:
+        df = agg["brand_powertrain_by_month"].groupby(
+            ["_year", "_month", "_brand", "_fuel"])["count"].sum().reset_index()
+        df.columns = ["year", "month", "brand", "powertrain", "count"]
+        df = df.sort_values(["year", "month", "brand", "powertrain"])
+        df.to_csv(OUT_DIR / "brand_powertrain_by_month.csv", index=False)
 
     # Brand canton BEV (for LQ chart)
     if "brand_canton_bev" in agg:

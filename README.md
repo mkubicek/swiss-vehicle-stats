@@ -71,6 +71,18 @@ Location Quotient for top 6 BEV brands — where each brand over/underperforms v
 
 ![EV Taste](charts/ev_taste_lq.png)
 
+### Chinese Brands in the Swiss BEV Market
+
+**Badge vs. ownership.** Chinese-owned groups' share of new BEV registrations, split by brand heritage vs ultimate ownership — much of the Chinese footprint wears European badges (Volvo, Polestar, Smart, MG), so the China-owned line runs well above the China-branded line. A callout names how much of the China-owned wedge is Geely alone, a tick marks the month China-owned overtook Tesla, and a compressed 100%-stacked strip shows whose share the growing China-owned wedge is displacing.
+
+![Chinese-owned BEV share and manufacturer-bloc strip](charts/china_bev_share.png)
+
+**The second wave.** China-*branded* registrations by powertrain over time, with the PHEV "second wave" share broken out below and each brand's Swiss market entry marked on the axis — the plug-in hybrids arriving after the initial all-electric push.
+
+![Chinese brands by powertrain with market-entry markers](charts/china_powertrain_mix.png)
+
+> **China-owned** = ultimate controlling shareholder in China (incl. MG/SAIC; Volvo, Polestar & Lotus/Geely; Smart/Geely–Mercedes JV). **China-branded** = Chinese brand heritage (BYD, XPeng, Zeekr, NIO, …). Classified by ownership, **not** production location (Dacia Spring, Shanghai-built Teslas are China-*made*, not China-*owned*). See [METHODOLOGY.md](METHODOLOGY.md#ownership-classification-owner_country).
+
 ---
 
 ## How It Works

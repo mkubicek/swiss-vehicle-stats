@@ -7,6 +7,7 @@ Functions already covered in test_utils.py are skipped:
 
 import json
 import subprocess
+import sys
 from pathlib import Path
 from unittest.mock import patch
 
@@ -72,6 +73,39 @@ def _brand_bev_by_month_csv(data_dir: Path, months: list[tuple[int, int]]):
     for y, m in months:
         for i, b in enumerate(brands):
             rows.append(f"{y},{m},{b},{500 - i * 30}")
+    _write_csv(data_dir / "brand_bev_by_month.csv", "\n".join(rows))
+
+
+def _brand_bev_china_csv(data_dir: Path):
+    """brand_bev_by_month spanning 2019-01..2024-12 with a realistic ownership
+    mix and staggered market entries — enough for both China charts to exercise
+    every branch (included brands, MG/Tesla references, the micro-entrant
+    collective line, and the YoY momentum panel). Uses real mappings.yaml
+    classifications, so the brand names must be genuinely mapped."""
+    start = (2019, 1)
+
+    def month_at(offset):
+        return (start[0] + (offset) // 12, 1 + (offset) % 12)
+
+    # brand -> (entry_offset, monthly_count, num_months)
+    plan = {
+        "TESLA": (0, 40, 72),      # reference, whole span
+        "VW": (0, 30, 72),         # non-China
+        "VOLVO": (0, 12, 72),      # China-owned, Sweden heritage
+        "POLESTAR": (6, 8, 66),    # China-owned, Sweden heritage
+        "MG": (12, 10, 60),        # China-owned, UK heritage; ≥100 -> MG reference
+        "JAC": (3, 6, 69),         # China-branded, ≥100 -> included
+        "BYD": (24, 9, 48),        # China-branded, ≥100 -> included
+        "ZEEKR": (48, 7, 24),      # China-branded, ≥100 -> included (youngest)
+        "VOYAH": (30, 6, 4),       # China-branded micro (<100) -> collective
+        "SERES": (33, 6, 4),       # China-branded micro (<100) -> collective
+        "DONGFENG": (36, 6, 4),    # China-branded micro (<100) -> collective
+    }
+    rows = ["year,month,brand,bev_count"]
+    for brand, (off, count, n) in plan.items():
+        for k in range(n):
+            y, m = month_at(off + k)
+            rows.append(f"{y},{m},{brand},{count}")
     _write_csv(data_dir / "brand_bev_by_month.csv", "\n".join(rows))
 
 
@@ -152,6 +186,74 @@ def _geojson(path: Path):
     }
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(geo))
+
+
+def _brand_powertrain_china_csv(data_dir: Path):
+    """brand_powertrain_by_month over 2023-2024 for one China-branded marque
+    (BYD) across four powertrains that exercise every collapse bucket
+    (BEV/PHEV/HEV/ICE), plus a non-China brand that must be excluded."""
+    rows = ["year,month,brand,powertrain,count"]
+    for y in (2023, 2024):
+        for mo in range(1, 13):
+            rows.append(f"{y},{mo},BYD,BEV,30")
+            rows.append(f"{y},{mo},BYD,PHEV,10")
+            rows.append(f"{y},{mo},BYD,Hybrid (Petrol),4")
+            rows.append(f"{y},{mo},BYD,Petrol,2")
+            rows.append(f"{y},{mo},VW,BEV,100")  # excluded: not China-branded
+    _write_csv(data_dir / "brand_powertrain_by_month.csv", "\n".join(rows))
+
+
+def _brand_bev_no_crossover_csv(data_dir: Path):
+    """brand_bev where Tesla's BEV share always dwarfs the China-owned share, so
+    chart_china_bev_share's crossover marker finds no crossover (guard path). Two
+    blocs (Tesla + China-owned via Volvo/Smart) so the bloc strip still stacks;
+    Smart exercises the Geely-override branch of the callout attribution."""
+    rows = ["year,month,brand,bev_count"]
+    for k in range(24):  # 2019-01 .. 2020-12
+        y, m = 2019 + k // 12, 1 + k % 12
+        rows.append(f"{y},{m},TESLA,100")
+        rows.append(f"{y},{m},VOLVO,5")   # China-owned (Geely), always a small minority
+        rows.append(f"{y},{m},SMART,3")   # China-owned via CHINA_GROUP_OVERRIDES -> Geely
+    _write_csv(data_dir / "brand_bev_by_month.csv", "\n".join(rows))
+
+
+def _brand_powertrain_entry_csv(data_dir: Path):
+    """Powertrain areas + a brand_bev companion covering every entry-marker branch
+    of chart_china_powertrain_mix (all brands China-branded):
+      BYD/ZEEKR/NIO enter within four months of each other and clear the 300
+        cumulative floor -> marked, exercising the two-level stagger + fallback;
+      JAC enters years before the powertrain x-range starts -> named in the
+        "earlier entrants" corner note instead of a tick;
+      SERES clears the entry threshold but stays below 300 cumulative -> skipped;
+      GWM enters after the powertrain data ends (bev file runs longer) -> skipped."""
+    prows = ["year,month,brand,powertrain,count"]
+    for y in (2022, 2023, 2024):
+        for mo in range(1, 13):
+            prows.append(f"{y},{mo},BYD,BEV,30")
+            prows.append(f"{y},{mo},BYD,PHEV,10")
+            prows.append(f"{y},{mo},BYD,Hybrid (Petrol),2")  # tiny HEV wedge...
+            prows.append(f"{y},{mo},BYD,Petrol,1")           # ...tiny ICE -> label declutter
+    _write_csv(data_dir / "brand_powertrain_by_month.csv", "\n".join(prows))
+
+    brows = ["year,month,brand,bev_count"]
+    # brand -> (first (year, month), monthly_count); x-range starts 2022-01 (BYD).
+    plan = {
+        "BYD": ((2022, 1), 30),     # entry 2022-01 (== x-range start) -> level 0
+        "ZEEKR": ((2022, 2), 30),   # entry 2022-02 -> level 1
+        "NIO": ((2022, 3), 30),     # entry 2022-03 -> both levels busy -> fallback level
+        "JAC": ((2020, 1), 30),     # entry 2020-01, before x-range -> corner note
+        "SERES": ((2022, 1), 6),    # 216 cumulative (<300) -> below floor, skipped
+        "XPENG": ((2018, 1), 4),    # always <5/month -> entry None, but 336 cumulative
+        "GWM": ((2025, 1), 50),     # entry 2025-01, after powertrain data -> skipped
+    }
+    for brand, ((sy, sm), c) in plan.items():
+        y, m = sy, sm
+        while (y, m) <= (2025, 12):
+            brows.append(f"{y},{m},{brand},{c}")
+            m += 1
+            if m == 13:
+                m, y = 1, y + 1
+    _write_csv(data_dir / "brand_bev_by_month.csv", "\n".join(brows))
 
 
 # ---------------------------------------------------------------------------
@@ -630,6 +732,151 @@ class TestChartEvTaste:
 
 
 # ===================================================================
+# chart_china_bev_share
+# ===================================================================
+
+class TestChartChinaBevShare:
+    def test_file_missing(self, chart_dirs, capsys):
+        chart.chart_china_bev_share()
+        assert "Skip" in capsys.readouterr().out
+
+    def test_empty_csv(self, chart_dirs, capsys):
+        data_dir, _, _ = chart_dirs
+        _write_csv(data_dir / "brand_bev_by_month.csv", "year,month,brand,bev_count")
+        chart.chart_china_bev_share()
+        assert "Skip" in capsys.readouterr().out
+
+    def test_all_zero_counts_no_share(self, chart_dirs, capsys):
+        """Non-empty data but every BEV count is zero -> no share rows."""
+        data_dir, _, _ = chart_dirs
+        _write_csv(data_dir / "brand_bev_by_month.csv",
+                   "year,month,brand,bev_count\n2023,1,TESLA,0\n2023,2,BYD,0")
+        chart.chart_china_bev_share()
+        assert "no share data" in capsys.readouterr().out
+
+    def test_normal(self, chart_dirs, capsys):
+        # Fixture spans ≥2 blocs (Tesla, VW Group, China-owned), so the bottom
+        # bloc strip stacks and its four end labels render.
+        data_dir, chart_dir, _ = chart_dirs
+        _brand_bev_china_csv(data_dir)
+        with patch("chart.get_repo_url", return_value=""):
+            chart.chart_china_bev_share()
+        assert (chart_dir / "china_bev_share.png").exists()
+        assert "Saved: china_bev_share.png" in capsys.readouterr().out
+
+    def test_no_crossover(self, chart_dirs, capsys):
+        """Bloc strip still renders and the crossover marker is skipped silently
+        when China-owned never overtakes Tesla."""
+        data_dir, chart_dir, _ = chart_dirs
+        _brand_bev_no_crossover_csv(data_dir)
+        with patch("chart.get_repo_url", return_value=""):
+            chart.chart_china_bev_share()
+        assert (chart_dir / "china_bev_share.png").exists()
+
+
+# ===================================================================
+# _t12m_matrix (shared helper)
+# ===================================================================
+
+class TestT12mMatrix:
+    def test_empty_records(self):
+        months, keys, series = chart._t12m_matrix([])
+        assert months == [] and keys == [] and series == {}
+
+    def test_trailing_window_and_alignment(self):
+        # Two keys, 13 months of 1/each: the 12th month's T12M is 12, the 13th
+        # still 12 (window slides). Confirms per-key alignment to `months`.
+        recs = [(2023, m, "A", 1) for m in range(1, 13)]
+        recs += [(2024, 1, "A", 1), (2024, 1, "B", 5)]
+        months, keys, series = chart._t12m_matrix(recs, start=(2023, 1))
+        assert keys == ["A", "B"]
+        assert months[0] == (2023, 1) and months[-1] == (2024, 1)
+        assert series["A"][11] == 12       # Dec-2023 window = Jan..Dec 2023
+        assert series["A"][12] == 12       # Jan-2024 window = Feb-2023..Jan-2024
+        assert series["B"][12] == 5
+
+
+# ===================================================================
+# chart_china_powertrain_mix
+# ===================================================================
+
+class TestChartChinaPowertrainMix:
+    def test_file_missing(self, chart_dirs, capsys):
+        chart.chart_china_powertrain_mix()
+        assert "Skip" in capsys.readouterr().out
+
+    def test_empty_csv(self, chart_dirs, capsys):
+        data_dir, _, _ = chart_dirs
+        _write_csv(data_dir / "brand_powertrain_by_month.csv",
+                   "year,month,brand,powertrain,count")
+        chart.chart_china_powertrain_mix()
+        assert "Skip" in capsys.readouterr().out
+
+    def test_no_china_branded(self, chart_dirs, capsys):
+        data_dir, _, _ = chart_dirs
+        _write_csv(data_dir / "brand_powertrain_by_month.csv",
+                   "year,month,brand,powertrain,count\n2023,1,VW,BEV,100")
+        chart.chart_china_powertrain_mix()
+        assert "no china-branded data" in capsys.readouterr().out
+
+    def test_normal(self, chart_dirs, capsys):
+        # No brand_bev_by_month.csv present -> entry markers degrade to none.
+        data_dir, chart_dir, _ = chart_dirs
+        _brand_powertrain_china_csv(data_dir)
+        with patch("chart.get_repo_url", return_value=""):
+            chart.chart_china_powertrain_mix()
+        assert (chart_dir / "china_powertrain_mix.png").exists()
+        assert "Saved: china_powertrain_mix.png" in capsys.readouterr().out
+
+    def test_entry_markers(self, chart_dirs, capsys):
+        """Entry markers exercise every branch: marked brands (≥5 BEV/month and
+        ≥300 cumulative) with two-level stagger + fallback, a pre-window entry
+        (corner note), and a below-floor brand. Renders without error."""
+        data_dir, chart_dir, _ = chart_dirs
+        _brand_powertrain_entry_csv(data_dir)
+        with patch("chart.get_repo_url", return_value=""):
+            chart.chart_china_powertrain_mix()
+        assert (chart_dir / "china_powertrain_mix.png").exists()
+        assert "Saved: china_powertrain_mix.png" in capsys.readouterr().out
+
+    def test_zero_volume(self, chart_dirs, capsys):
+        """China-branded rows exist but every count is zero -> the volume floor
+        finds no start month -> skip."""
+        data_dir, _, _ = chart_dirs
+        _write_csv(data_dir / "brand_powertrain_by_month.csv",
+                   "year,month,brand,powertrain,count\n2023,1,BYD,BEV,0")
+        chart.chart_china_powertrain_mix()
+        assert "no volume" in capsys.readouterr().out
+
+    def test_window_trims_flat_head(self, chart_dirs, capsys):
+        """Years of near-zero volume before the surge are trimmed: the x-axis
+        starts where T12M total first reaches 5% of peak, not at the first
+        non-zero month."""
+        data_dir, chart_dir, _ = chart_dirs
+        rows = ["year,month,brand,powertrain,count"]
+        for y in (2020, 2021, 2022):
+            for mo in range(1, 13):
+                rows.append(f"{y},{mo},BYD,BEV,1")     # near-zero head
+        for y in (2023, 2024):
+            for mo in range(1, 13):
+                rows.append(f"{y},{mo},BYD,BEV,100")   # the surge
+        _write_csv(data_dir / "brand_powertrain_by_month.csv", "\n".join(rows))
+        with patch("chart.get_repo_url", return_value=""):
+            chart.chart_china_powertrain_mix()
+        assert (chart_dir / "china_powertrain_mix.png").exists()
+
+    def test_entry_markers_empty_bev_file(self, chart_dirs, capsys):
+        """An empty brand_bev_by_month.csv makes entry markers degrade to none;
+        the chart still renders."""
+        data_dir, chart_dir, _ = chart_dirs
+        _brand_powertrain_china_csv(data_dir)
+        _write_csv(data_dir / "brand_bev_by_month.csv", "year,month,brand,bev_count")
+        with patch("chart.get_repo_url", return_value=""):
+            chart.chart_china_powertrain_mix()
+        assert (chart_dir / "china_powertrain_mix.png").exists()
+
+
+# ===================================================================
 # main
 # ===================================================================
 
@@ -661,9 +908,10 @@ class TestMain:
         _monthly_totals_csv(data_dir)
         _fuel_by_month_csv(data_dir)
         _brand_by_year_csv(data_dir)
-        _brand_bev_by_month_csv(data_dir, [(2023, 1), (2023, 2)])
+        _brand_bev_china_csv(data_dir)  # ownership mix for the bloc strip + Geely callout
         _canton_ev_by_month_csv(data_dir, [(2023, 1), (2023, 2)])
-        _brand_canton_bev_csv(data_dir)
+        _brand_canton_bev_csv(data_dir)  # feeds ev_taste_lq
+        _brand_powertrain_china_csv(data_dir)
         _geojson(geojson)
 
         with patch("chart.get_repo_url", return_value=""):
@@ -679,3 +927,24 @@ class TestMain:
         assert (chart_dir / "ev_race.gif").exists()
         assert (chart_dir / "brand_race.gif").exists()
         assert (chart_dir / "ev_taste_lq.png").exists()
+        # The China section ships exactly two charts.
+        assert (chart_dir / "china_bev_share.png").exists()
+        assert (chart_dir / "china_powertrain_mix.png").exists()
+
+    def test_skip_gifs(self, chart_dirs, capsys, monkeypatch):
+        """--skip-gifs writes the static charts but skips the four animations."""
+        data_dir, chart_dir, geojson = chart_dirs
+        _monthly_totals_csv(data_dir)
+        _fuel_by_month_csv(data_dir)
+        _brand_by_year_csv(data_dir)
+        _brand_bev_china_csv(data_dir)
+        _brand_powertrain_china_csv(data_dir)
+        _geojson(geojson)
+        monkeypatch.setattr(sys, "argv", ["chart.py", "--skip-gifs"])
+        with patch("chart.get_repo_url", return_value=""):
+            chart.main()
+        out = capsys.readouterr().out
+        assert "Skipping GIF generation" in out
+        assert (chart_dir / "china_bev_share.png").exists()
+        assert (chart_dir / "china_powertrain_mix.png").exists()
+        assert not (chart_dir / "ev_race.gif").exists()

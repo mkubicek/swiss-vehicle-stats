@@ -1,13 +1,13 @@
 {
   "year": 2026,
-  "data_date": "2026-09-16",
-  "complete_months": 8,
-  "partial_month": 9,
-  "partial_month_fraction": 0.533,
-  "capture_ratio": 0.62,
-  "effective_fraction": 0.33,
-  "ytd_actual": 159191,
-  "ytd_prorated": 174123,
+  "data_date": "2026-10-01",
+  "complete_months": 9,
+  "partial_month": null,
+  "partial_month_fraction": null,
+  "capture_ratio": 0.0,
+  "effective_fraction": null,
+  "ytd_actual": 173537,
+  "ytd_prorated": 173537,
   "reference_years": [
     2016,
     2017,
@@ -22,12 +22,12 @@
     2020,
     2021
   ],
-  "mean_factor": 1.48,
-  "std_factor": 0.03,
-  "projection": 235193,
-  "projection_low": 225359,
-  "projection_high": 245028,
-  "cv_pct": 2.1,
+  "mean_factor": 1.37,
+  "std_factor": 0.02,
+  "projection": 237091,
+  "projection_low": 230711,
+  "projection_high": 243472,
+  "cv_pct": 1.3,
   "band": "2sigma",
-  "method": "pro_rated_with_lag_correction"
+  "method": "complete_months_only"
 }
