@@ -107,13 +107,16 @@ FALLBACK_COLORS = [
 # Ownership-bloc colors for the Chinese-BEV charts. Kept in code alongside
 # BRAND_COLORS (the repo keeps chart colors in code; mappings.yaml's `colors:`
 # is the unrelated German→English paint-colour map).
-#   china_owned   red family, echoes BYD #ff6b6b, distinct from Tesla #f72585
-#   china_branded orange, clearly subordinate to china_owned
-#   tesla_ref     existing Tesla color
+#   china_owned   the ONE red on the chart — deep red, the hero line/wedge
+#   china_branded amber, warm but clearly subordinate to china_owned
+#   tesla_ref     muted plum — Tesla is only a scale benchmark, not a rival hue.
+#                 Matches its strip wedge (BEV_BLOC_FILL_COLORS[BLOC_TESLA]) so
+#                 Tesla is one colour across both panels, and stays distinct from
+#                 the chrome grey (SUBTLE #94a3b8) used for annotations.
 BLOC_COLORS = {
-    "china_owned": "#ef4444",
-    "china_branded": "#f97316",
-    "tesla_ref": "#f72585",
+    "china_owned": "#dc2626",
+    "china_branded": "#f59e0b",
+    "tesla_ref": "#7d566f",
 }
 
 # Manufacturer-bloc fills for the 100%-stacked bloc strip inside
@@ -123,7 +126,7 @@ BLOC_COLORS = {
 # from process.BLOC_ORDER.
 BEV_BLOC_FILL_COLORS = {
     BLOC_CHINA_OWNED: BLOC_COLORS["china_owned"],
-    BLOC_TESLA: "#7d566f",      # muted plum (nods to Tesla magenta, reads purple)
+    BLOC_TESLA: BLOC_COLORS["tesla_ref"],  # muted plum, one Tesla colour both panels
     BLOC_VW: "#3f9068",         # muted green (echoes VW #4ade80)
     BLOC_EU_LEGACY: "#475569",  # slate
     BLOC_KOREAN: "#8a6a3f",     # muted amber
@@ -1197,10 +1200,12 @@ def chart_china_bev_share():
 
     # --- Top: level lines ---
     ax_top.set_facecolor(BG)
-    # Badge-gap fill kept faint (0.07): at higher alpha the red tint dominates
-    # the whole panel and competes with the China-owned line itself.
-    ax_top.fill_between(xs, branded, owned, color=BLOC_COLORS["china_owned"],
-                        alpha=0.07, zorder=1)
+    # Badge-gap fill (branded->owned) shades the Chinese-owned-but-European-
+    # badged volume. Neutral slate, not red: China-branded sits near 0% for most
+    # of the series, so this band spans nearly the whole area under the owned
+    # line — a red fill there floods the panel and competes with the hero line.
+    ax_top.fill_between(xs, branded, owned, color="#64748b",
+                        alpha=0.10, zorder=1)
     ax_top.plot(xs, tesla, color=BLOC_COLORS["tesla_ref"], linewidth=1.3,
                 alpha=0.85, zorder=2)
     ax_top.plot(xs, branded, color=BLOC_COLORS["china_branded"], linewidth=2.2, zorder=3)

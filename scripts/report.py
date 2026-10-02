@@ -145,12 +145,23 @@ def delta_str(new: float, old: float) -> str:
 def generate_report(target_year: int = None, target_month: int = None):
     """Generate delta report for the most recent complete month."""
     monthly = pd.read_csv(DATA_DIR / "monthly_totals.csv")
+    meta = load_metadata()
+    complete = monthly
+    source_month = None
+    if meta.get("data_date"):
+        source_date = datetime.strptime(meta["data_date"], "%Y-%m-%d")
+        source_month = source_date.year * 12 + source_date.month
+        complete = monthly[monthly["year"] * 12 + monthly["month"] < source_month]
 
-    # Find latest month with data
+    # Match the dashboard: the source snapshot's month is still partial.
     if target_year and target_month:
         year, month = target_year, target_month
+        if source_month is not None and year * 12 + month >= source_month:
+            raise ValueError(f"Report month {year}-{month:02d} is not complete")
     else:
-        latest = monthly.sort_values(["year", "month"]).iloc[-1]
+        if complete.empty:
+            raise ValueError("No complete month available for a report")
+        latest = complete.sort_values(["year", "month"]).iloc[-1]
         year, month = int(latest["year"]), int(latest["month"])
 
     month_name = MONTH_NAMES.get(month, str(month))
@@ -189,7 +200,9 @@ def generate_report(target_year: int = None, target_month: int = None):
     top5 = brand_totals.head(5)
 
     # Momentum word
-    if current > yoy:
+    if yoy == 0:
+        momentum = None
+    elif current > yoy:
         momentum = "grew" if (current - yoy) / yoy * 100 > 5 else "edged up"
     elif current < yoy:
         momentum = "declined" if (yoy - current) / yoy * 100 > 5 else "dipped slightly"
@@ -197,7 +210,6 @@ def generate_report(target_year: int = None, target_month: int = None):
         momentum = "remained flat"
 
     # Build report
-    meta = load_metadata()
     data_source = "ASTRA/IVZ Open Data"
     if "data_date" in meta:
         data_source += f" (as of {meta['data_date']})"
@@ -211,9 +223,10 @@ def generate_report(target_year: int = None, target_month: int = None):
         "## Headlines",
         "",
         f"- **{current:,.0f}** new passenger cars registered in {month_name} {year}",
-        f"- The market {momentum} compared to {month_name} {year - 1}",
-        f"- BEV share: **{bev_share:.1f}%** | Plug-in share (BEV + PHEV): **{plugin_share:.1f}%**",
     ]
+    if momentum is not None:
+        lines.append(f"- The market {momentum} compared to {month_name} {year - 1}")
+    lines.append(f"- BEV share: **{bev_share:.1f}%** | Plug-in share (BEV + PHEV): **{plugin_share:.1f}%**")
 
     china_line = china_owned_share_line(year, month, prev_month_year, prev_month)
     if china_line:

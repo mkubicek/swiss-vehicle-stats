@@ -131,11 +131,11 @@ class TestGenerateReportExplicit:
     def test_with_metadata(self, env):
         _setup_data_files(
             env["data"], MONTHLY_ROWS, FUEL_ROWS, BRAND_ROWS,
-            metadata={"data_date": "2024-03-15"},
+            metadata={"data_date": "2024-04-01"},
         )
         path = report.generate_report(target_year=2024, target_month=3)
         content = path.read_text()
-        assert "as of 2024-03-15" in content
+        assert "as of 2024-04-01" in content
 
 
 # ---------------------------------------------------------------------------
@@ -143,6 +143,34 @@ class TestGenerateReportExplicit:
 # ---------------------------------------------------------------------------
 
 class TestGenerateReportAutoDetect:
+    @pytest.mark.parametrize("data_date", ["2024-03-15", "2024-03-31"])
+    def test_excludes_source_month(self, env, data_date):
+        _setup_data_files(env["data"], MONTHLY_ROWS, FUEL_ROWS, BRAND_ROWS,
+                          metadata={"data_date": data_date})
+        path = report.generate_report()
+        assert path.name == "2024-02.md"
+        assert "19,500" in path.read_text()
+        assert "vs. February 2023 (YoY)" in path.read_text()
+
+    def test_january_source_selects_previous_december(self, env):
+        _setup_data_files(env["data"], MONTHLY_ROWS, FUEL_ROWS, BRAND_ROWS,
+                          metadata={"data_date": "2024-01-15"})
+        assert report.generate_report().name == "2023-12.md"
+
+    def test_no_complete_month_refuses_report(self, env):
+        _setup_data_files(env["data"], [(2024, 1, 10000)], FUEL_ROWS, BRAND_ROWS,
+                          metadata={"data_date": "2024-01-15"})
+        with pytest.raises(ValueError, match="No complete month"):
+            report.generate_report()
+        assert not list(env["reports"].iterdir())
+
+    def test_explicit_partial_month_refuses_report(self, env):
+        _setup_data_files(env["data"], MONTHLY_ROWS, FUEL_ROWS, BRAND_ROWS,
+                          metadata={"data_date": "2024-03-15"})
+        with pytest.raises(ValueError, match="not complete"):
+            report.generate_report(2024, 3)
+        assert not list(env["reports"].iterdir())
+
     def test_auto_detect_latest(self, env):
         _setup_data_files(env["data"], MONTHLY_ROWS, FUEL_ROWS, BRAND_ROWS)
         path = report.generate_report()
@@ -196,6 +224,7 @@ class TestGenerateReportZeroPrevious:
         assert "(MoM)" not in content
         assert "vs. January 2023 (YoY)" not in content
         assert "YTD 2024 vs. YTD 2023" not in content
+        assert "The market" not in content
 
 
 # ---------------------------------------------------------------------------

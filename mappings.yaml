@@ -157,6 +157,10 @@ brand_origin:
 
   # Chinese
   BYD: China
+  DENZA: China
+  GAC: China
+  BAW: China
+  DFM: China
   NIO: China
   XPENG: China
   AIWAYS: China
@@ -352,6 +356,7 @@ brand_group:
 
   # BYD
   BYD: BYD
+  DENZA: BYD
 
   # SAIC
   MG: SAIC
@@ -376,10 +381,12 @@ brand_group:
   NIO: NIO
   AIWAYS: Aiways
   DONGFENG: Dongfeng
+  DFM: Dongfeng
   VOYAH: Dongfeng
   SKYWELL: Skywell
   HONGQI: FAW
   GAC: GAC
+  BAW: BAW
   BAIC: BAIC
   GEELY: Geely
   JIALING: Jialing
@@ -414,6 +421,9 @@ brand_owner_country:
   MAXUS: China            # SAIC
   # --- China-owned, Chinese heritage ---
   BYD: China
+  DENZA: China
+  BAW: China
+  DFM: China
   NIO: China
   XPENG: China
   ZEEKR: China            # Geely

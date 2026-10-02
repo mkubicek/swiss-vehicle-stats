@@ -120,6 +120,17 @@ Assigned by **brand heritage**, not corporate registration country:
 
 ### Ownership Classification (`owner_country`)
 
+Reviewed ASTRA labels include DENZA (Chinese heritage, BYD group, China-owned;
+[Denza's official history](https://www.denza.com/en-ae/about-denza.html)),
+GAC (Chinese heritage, GAC group;
+[GAC's company profile](https://www.gacgroup.com/en/gac-group)),
+BAW (Chinese heritage, kept in its own BAW group rather than BAIC;
+[BAW's company profile](https://bawauto.com/company/)), and DFM (Dongfeng's
+abbreviation, Chinese heritage and Dongfeng group;
+[Dongfeng's official site](https://www.dongfeng-global.com/fr/)). All four carry
+an explicit China owner-country entry. `LYNK&CO`, ASTRA's spaceless spelling,
+already maps to China / Geely / China.
+
 **Brand Origin is by heritage and is not repurposed.** The Chinese-ownership story needs a *second, orthogonal* dimension: **`owner_country`** — the country of the ultimate controlling shareholder of the brand's parent group. It lives in `mappings.yaml > brand_owner_country` (a flat per-brand map, mirroring `brand_origin`/`brand_group`); no classification logic lives in code.
 
 Two blocs are derived from these two dimensions:
@@ -222,6 +233,15 @@ Historical `SEAT CUPRA ...` rows are normalized to Cupra model labels and rebran
 ---
 
 ## Temporal Rules
+
+### Monthly Reports
+
+Reports use the latest available month strictly before the month of
+`metadata.json:data_date`, matching the dashboard. ASTRA's snapshot month remains
+partial, even on its last day; it must not be compared with complete prior
+months. An explicit request for that month (or a later one) is rejected. If no
+complete month exists, no report is written. Without a source date, legacy
+inputs retain latest-available-month selection.
 
 ### Partial Years
 

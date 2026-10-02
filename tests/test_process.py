@@ -943,7 +943,7 @@ class TestBloc:
         # (Sweden), MG (UK) and Smart (a JV kept under Mercedes-Benz in
         # brand_group) must all land in the China-owned bloc.
         for brand in ["VOLVO", "POLESTAR", "MG", "SMART", "BYD", "ZEEKR",
-                      "LYNK&CO", "LOTUS"]:
+                      "LYNK&CO", "LOTUS", "DENZA", "GAC", "BAW", "DFM"]:
             assert process.bloc(brand, mappings) == process.BLOC_CHINA_OWNED
 
     def test_tesla_is_its_own_bloc(self, mappings):
